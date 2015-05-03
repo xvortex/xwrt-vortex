@@ -2567,8 +2567,7 @@ int nand_erase_nand(struct mtd_info *mtd, struct erase_info *instr,
 					chip->page_shift, 0, allowbbt)) {
 			printk(KERN_WARNING "%s: attempt to erase a bad block "
 					"at page 0x%08x\n", __func__, page);
-			instr->state = MTD_ERASE_FAILED;
-			goto erase_exit;
+			goto erase_skip;
 		}
 
 		/*
@@ -2609,7 +2608,7 @@ int nand_erase_nand(struct mtd_info *mtd, struct erase_info *instr,
 		    (page & BBT_PAGE_MASK) == bbt_masked_page)
 			    rewrite_bbt[chipnr] =
 					((loff_t)page << chip->page_shift);
-
+ erase_skip:
 		/* Increment page address and decrement length */
 		len -= (1 << chip->phys_erase_shift);
 		page += pages_per_block;
