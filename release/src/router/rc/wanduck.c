@@ -65,7 +65,11 @@ int update_wan_leds(int wan_unit)
 					onoff++;
 			}
 
-			if (onoff) {
+			if (onoff
+#ifdef RTCONFIG_LED_BTN
+			&& !nvram_get_int("led_disable")
+#endif
+			) {
 				wan_red_led_control(LED_OFF);
 				led_control(LED_WAN, LED_ON);
 			} else {
@@ -82,7 +86,11 @@ int update_wan_leds(int wan_unit)
 			if (dualwan_unit__nonusbif(wan_unit))
 				l = get_wanports_status(wan_unit);
 
-			if (l == CONNED && state == WAN_STATE_CONNECTED) {
+			if (l == CONNED && state == WAN_STATE_CONNECTED
+#ifdef RTCONFIG_LED_BTN
+			&& !nvram_get_int("led_disable")
+#endif
+			) {
 				wan_red_led_control(LED_OFF);
 				led_control(LED_WAN, LED_ON);
 			} else {
@@ -100,7 +108,11 @@ int update_wan_leds(int wan_unit)
 	}
 #else	/* !RTCONFIG_WANRED_LED */
 	/* Turn on/off WAN LED in accordance with link status of WAN port */
-	if (link_wan[wan_unit]) {
+	if (link_wan[wan_unit]
+#ifdef RTCONFIG_LED_BTN
+	&& !nvram_get_int("led_disable")
+#endif
+	) {
 		led_control(LED_WAN, LED_ON);
 	} else {
 		led_control(LED_WAN, LED_OFF);
@@ -331,9 +343,8 @@ static void get_network_nvram(int signo){
 }
 
 static void wan_led_control(int sig) {
-
-	if(nvram_match("AllLED", "1")){
-#if defined(RTAC87U) || defined(RTAC3200) || defined(RTAC88U) || defined(RTAC3100) || defined(RTAC5300) 
+	if(!nvram_get_int("led_disable")){
+#if defined(RTAC87U) || defined(RTAC3200) || defined(EA9200) || defined(R8000) || defined(RTAC88U) || defined(RTAC3100) || defined(RTAC5300) 
 		if (rule_setup) {
 			led_control(LED_WAN, LED_ON);
 			eval("et", "robowr", "0", "0x18", "0x01fe");
@@ -960,7 +971,11 @@ _dprintf("# wanduck: if_wan_phyconnected: x_Setting=%d, link_modem=%d, sim_state
 	}
 
 #ifdef RTCONFIG_LANWAN_LED
-	if(get_lanports_status()) led_control(LED_LAN, LED_ON);
+	if(get_lanports_status()
+#ifdef RTCONFIG_LED_BTN
+	&& !nvram_get_int("led_disable")
+#endif
+	) led_control(LED_LAN, LED_ON);
 	else led_control(LED_LAN, LED_OFF);
 #endif
 
@@ -2573,7 +2588,7 @@ _dprintf("wanduck(%d) 6: conn_state %d, conn_state_old %d, conn_changed_state %d
 			}
 			if(internet_led) {
 #if defined(RTCONFIG_WPS_ALLLED_BTN)
-				if(nvram_match("AllLED", "1"))
+				if(!nvram_get_int("led_disable"))
 					led_control(LED_WAN, LED_ON);
 				else
 					led_control(LED_WAN, LED_OFF);
@@ -2648,8 +2663,8 @@ _dprintf("wanduck(%d) 6: conn_state %d, conn_state_old %d, conn_changed_state %d
 						led_control(LED_WAN, LED_OFF);
 #elif defined(RTCONFIG_DSL)
 						led_control(LED_WAN, LED_OFF);
-#elif defined(RTAC87U) || defined(RTAC3200) || defined(RTAC88U) || defined(RTAC3100) || defined(RTAC5300)
-						if(nvram_match("AllLED", "1")){
+#elif defined(RTAC87U) || defined(RTAC3200) || defined(RTAC88U) || defined(RTAC3100) || defined(RTAC5300) || defined(EA9200) || defined(R8000)
+						if(!nvram_get_int("led_disable")){
 							led_control(LED_WAN, LED_ON);
 							eval("et", "robowr", "0", "0x18", "0x01fe");
 							eval("et", "robowr", "0", "0x1a", "0x01fe");
@@ -2716,8 +2731,8 @@ _dprintf("wanduck(%d) 6: conn_state %d, conn_state_old %d, conn_changed_state %d
 						led_control(LED_WAN, LED_OFF);
 #elif defined(DSL_N55U) || defined(DSL_N55U_B)
 					led_control(LED_WAN, LED_ON);
-#elif defined(RTAC87U) || defined(RTAC3200) || defined(RTAC88U) || defined(RTAC3100) || defined(RTAC5300)
-					if(nvram_match("AllLED", "1")){
+#elif defined(RTAC87U) || defined(RTAC3200) || defined(RTAC88U) || defined(RTAC3100) || defined(RTAC5300) || defined(EA9200) || defined(R8000)
+					if(!nvram_get_int("led_disable")){
 						led_control(LED_WAN, LED_OFF);
 						eval("et", "robowr", "0", "0x18", "0x01ff");
 						eval("et", "robowr", "0", "0x1a", "0x01ff");

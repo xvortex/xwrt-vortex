@@ -169,13 +169,13 @@ static void usbled(int sig)
 
 	if (nvram_match("asus_mfg", "1")
 #ifdef RTCONFIG_LED_BTN
-			|| !nvram_get_int("AllLED")
+			|| nvram_get_int("led_disable")
 #endif
 			)
 		no_blink(sig);
 	else if (!usb_busy
 #ifdef RTCONFIG_LED_BTN
-			&& nvram_get_int("AllLED")
+			&& !nvram_get_int("led_disable")
 #endif
 			)
 	{
@@ -217,7 +217,7 @@ static void usbled(int sig)
 	}
 	else
 #ifdef RTCONFIG_LED_BTN
-	if (nvram_get_int("AllLED"))
+	if (!nvram_get_int("led_disable"))
 #endif
 	{
 		if (strcmp(usb_path1, "storage") && strcmp(usb_path2, "storage"))

@@ -282,7 +282,7 @@ QTN_RESET:
 
 	nvram_set("qtn_ready", "1");
 
-	if(nvram_get_int("AllLED") == 0) setAllLedOff();
+	if(nvram_get_int("led_disable") == 1) setAllLedOff();
 
 	// dbG("[QTN] update router_command.sh from brcm to qtn\n");
 	// qcsapi_wifi_run_script("set_test_mode", "update_router_command");

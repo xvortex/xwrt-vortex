@@ -768,7 +768,7 @@ void wlconf_pre()
 #ifdef RTCONFIG_BCMARM
 		if (nvram_match(strcat_r(prefix, "nband", tmp), "2"))
 		{
-			if (model == MODEL_RTN18U || model == MODEL_RTAC3200 || model == MODEL_RTAC68U || model == MODEL_RPAC68U || model == MODEL_DSLAC68U || model == MODEL_RTAC88U || model == MODEL_RTAC3100 || model == MODEL_RTAC5300 || model == MODEL_RTAC87U) {
+			if (model == MODEL_RTN18U || model == MODEL_RTAC3200 || model == MODEL_RTAC68U || model == MODEL_EA6900 || model == MODEL_EA9200 || model == MODEL_R7000 || model == MODEL_R8000 || model == MODEL_WS880 || model == MODEL_RPAC68U || model == MODEL_DSLAC68U || model == MODEL_RTAC88U || model == MODEL_RTAC3100 || model == MODEL_RTAC5300 || model == MODEL_RTAC87U) {
 				if (nvram_match(strcat_r(prefix, "turbo_qam", tmp), "1"))
 					eval("wl", "-i", word, "vht_features", "3");
 				else
@@ -953,7 +953,7 @@ void start_wl(void)
 		}
 #else
 		nvram_set("led_5g", "1");
-		if (nvram_get_int("AllLED"))
+		if (!nvram_get_int("led_disable"))
 			led_control(LED_5G, LED_ON);
 #endif
 	}
@@ -962,15 +962,27 @@ void start_wl(void)
 		nvram_set("led_5g", "0");
 		led_control(LED_5G, LED_OFF);
 	}
-
+#if defined(R7000) || defined(WS880)
+	if (nvram_match("wl0_radio", "1"))
+	{
+#ifdef RTCONFIG_LED_BTN
+		if (!nvram_get_int("led_disable"))
+#endif
+		led_control(LED_2G, LED_ON);
+	}
+	else
+	{
+		led_control(LED_2G, LED_OFF);
+	}
+#endif
 #ifdef RTCONFIG_TURBO
 	if ((nvram_match("wl0_radio", "1") || nvram_match("wl1_radio", "1")
-#ifdef RTAC3200
+#if defined(RTAC3200) || defined(R8000) || defined(EA9200)
 		|| nvram_match("wl2_radio", "1")
 #endif
 	)
 #ifdef RTCONFIG_LED_BTN
-		&& nvram_get_int("AllLED")
+		&& !nvram_get_int("led_disable")
 #endif
 	)
 		led_control(LED_TURBO, LED_ON);
@@ -1601,6 +1613,11 @@ void start_lan(void)
 	if ((get_model() == MODEL_RTAC3200) ||
 		(get_model() == MODEL_RPAC68U) ||
 		(get_model() == MODEL_RTAC68U) ||
+		(get_model() == MODEL_EA6900) ||
+		(get_model() == MODEL_EA9200) ||
+		(get_model() == MODEL_R7000) ||
+		(get_model() == MODEL_R8000) ||
+		(get_model() == MODEL_WS880) ||
 		(get_model() == MODEL_DSLAC68U) ||
 		(get_model() == MODEL_RTAC87U) ||
 		(get_model() == MODEL_RTAC66U) ||
@@ -1653,6 +1670,11 @@ void start_lan(void)
 	case MODEL_APN12HP:
 	case MODEL_RTN66U:
 	case MODEL_RTN18U:
+	case MODEL_EA6900:
+	case MODEL_EA9200:
+	case MODEL_R7000:
+	case MODEL_R8000:
+	case MODEL_WS880:
 	//case MODEL_RTAC5300:
 	//case MODEL_RTAC3100:
 	//case MODEL_RTAC88U:
@@ -2285,6 +2307,9 @@ void stop_lan(void)
 #if defined(RTAC66U) || defined(BCM4352)
 	nvram_set("led_5g", "0");
 	led_control(LED_5G, LED_OFF);
+#if defined(R7000) || defined(WS880)
+	led_control(LED_2G, LED_OFF);
+#endif
 #ifdef RTCONFIG_TURBO
 	led_control(LED_TURBO, LED_OFF);
 #endif
@@ -3031,6 +3056,11 @@ static void led_bh_prep(int post)
 		case MODEL_RTAC5300:
 		case MODEL_RTAC88U:
 		case MODEL_RTAC3100:
+		case MODEL_EA6900:
+		case MODEL_EA9200:
+		case MODEL_R7000:
+		case MODEL_R8000:
+		case MODEL_WS880:
 			if(post)
 			{
 #if defined(RTAC88U) || defined(RTAC3100)
@@ -3047,7 +3077,7 @@ static void led_bh_prep(int post)
 				eval("wl", "-i", "eth2", "ledbh", "9", "7");
 				eval("wl", "-i", "eth2", "ledbh", "0", "7");
 #endif
-#if defined(RTAC3200)
+#if defined(RTAC3200) || defined(R8000) || defined(EA9200)
 				eval("wl", "-i", "eth3", "ledbh", "10", "7");
 #elif defined(RTAC5300)
 				eval("wl", "-i", "eth3", "ledbh", "9", "7");
@@ -3069,7 +3099,7 @@ static void led_bh_prep(int post)
 				eval("wl", "-i", "eth2", "ledbh", "9", "1");
 				eval("wl", "-i", "eth2", "ledbh", "0", "1");
 #endif
-#if defined(RTAC3200)
+#if defined(RTAC3200) || defined(R8000) || defined(EA9200)
 				eval("wl", "-i", "eth3", "ledbh", "10", "1");
 #elif defined(RTAC5300)
 				eval("wl", "-i", "eth3", "ledbh", "9", "1");
@@ -3084,7 +3114,7 @@ static void led_bh_prep(int post)
 				eval("wl", "maxassoc", "0");
 				eval("wlconf", "eth2", "up");
 				eval("wl", "-i", "eth2", "maxassoc", "0");
-#if defined(RTAC3200) || defined(RTAC5300)
+#if defined(RTAC3200) || defined(RTAC5300) || defined(R8000) || defined(EA9200)
 				eval("wlconf", "eth3", "up");
 				eval("wl", "-i", "eth3", "maxassoc", "0");
 #endif
@@ -3512,6 +3542,9 @@ void stop_lan_wl(void)
 #if defined(RTAC66U) || defined(BCM4352)
 	nvram_set("led_5g", "0");
 	led_control(LED_5G, LED_OFF);
+#if defined(R7000) || defined(WS880)
+	led_control(LED_2G, LED_OFF);
+#endif
 #ifdef RTCONFIG_TURBO
 	led_control(LED_TURBO, LED_OFF);
 #endif
@@ -3561,6 +3594,11 @@ void start_lan_wl(void)
 	if ((get_model() == MODEL_RTAC3200) ||
 		(get_model() == MODEL_RPAC68U) ||
 		(get_model() == MODEL_RTAC68U) ||
+		(get_model() == MODEL_EA6900) ||
+		(get_model() == MODEL_EA9200) ||
+		(get_model() == MODEL_R7000) ||
+		(get_model() == MODEL_R8000) ||
+		(get_model() == MODEL_WS880) ||
 		(get_model() == MODEL_DSLAC68U) ||
 		(get_model() == MODEL_RTAC87U) ||
 		(get_model() == MODEL_RTAC66U) ||
@@ -3606,6 +3644,11 @@ void start_lan_wl(void)
 	case MODEL_APN12HP:
 	case MODEL_RTN66U:
 	case MODEL_RTN18U:
+	case MODEL_EA6900:
+	case MODEL_EA9200:
+	case MODEL_R7000:
+	case MODEL_R8000:
+	case MODEL_WS880:
 	//case MODEL_RTAC5300:
 	//case MODEL_RTAC3100:
 	//case MODEL_RTAC88U:
@@ -3902,7 +3945,7 @@ void restart_wl(void)
 		}
 #else
 		nvram_set("led_5g", "1");
-		if (nvram_get_int("AllLED"))
+		if (!nvram_get_int("led_disable"))
 			led_control(LED_5G, LED_ON);
 #endif
 	}
@@ -3911,14 +3954,27 @@ void restart_wl(void)
 		nvram_set("led_5g", "0");
 		led_control(LED_5G, LED_OFF);
 	}
+#if defined(R7000) || defined(WS880)
+	if (nvram_match("wl0_radio", "1"))
+	{
+#ifdef RTCONFIG_LED_BTN
+		if (!nvram_get_int("led_disable"))
+#endif
+		led_control(LED_2G, LED_ON);
+	}
+	else
+	{
+		led_control(LED_2G, LED_OFF);
+	}
+#endif
 #ifdef RTCONFIG_TURBO
 	if ((nvram_match("wl0_radio", "1") || nvram_match("wl1_radio", "1")
-#ifdef RTAC3200
+#if defined(RTAC3200) || defined(R8000) || defined(EA9200)
 		|| nvram_match("wl2_radio", "1")
 #endif
 	)
 #ifdef RTCONFIG_LED_BTN
-		&& nvram_get_int("AllLED")
+		&& !nvram_get_int("led_disable")
 #endif
 	)
 		led_control(LED_TURBO, LED_ON);
@@ -4161,7 +4217,7 @@ void restart_wireless(void)
 	nvram_set_int("wlready", 1);
 
 #ifdef RTAC87U
-	if(nvram_get_int("AllLED") == 0) setAllLedOff();
+	if(nvram_get_int("led_disable") == 1) setAllLedOff();
 #endif
 
 	file_unlock(lock);

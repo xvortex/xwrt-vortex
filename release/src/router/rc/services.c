@@ -4810,6 +4810,11 @@ check_ddr_done:
 		case MODEL_APN12HP:
 		case MODEL_RTN66U:
 		case MODEL_RTN18U:
+		case MODEL_EA6900:
+		case MODEL_EA9200:
+		case MODEL_R7000:
+		case MODEL_R8000:
+		case MODEL_WS880:
 		//case MODEL_RTAC5300:
 		//case MODEL_RTAC3100:
 		//case MODEL_RTAC88U:
@@ -6213,7 +6218,7 @@ void set_acs_ifnames()
 
 	nvram_set("acs_ifnames", acs_ifnames);
 
-#if defined(RTAC3200) || defined(RTAC5300)
+#if defined(RTAC3200) || defined(RTAC5300) || defined(R8000) || defined(EA9200)
 	nvram_set("wl0_acs_excl_chans", "");
 	if (nvram_match("wl1_country_code", "EU")) {
 		/* exclude acsd from selecting chanspec 52, 52l, 52/80, 56, 56u, 56/80, 60, 60l, 60/80, 64, 64u, 64/80, 100, 100l, 100/80, 104, 104u, 104/80, 108, 108l, 108/80, 112, 112u, 112/80, 116, 132, 132l, 136, 136u, 140 */
@@ -6851,7 +6856,7 @@ void setup_leds()
 	model = get_model();
 
 	if (nvram_get_int("led_disable") == 1) {
-		if ((model == MODEL_RTAC56U) || (model == MODEL_RTAC56S) || (model == MODEL_RTAC68U) || (model == MODEL_RTAC87U) || (model == MODEL_RTAC3200)) {
+		if ((model == MODEL_RTAC56U) || (model == MODEL_RTAC56S) || (model == MODEL_RTAC68U) || (model == MODEL_EA6900) || (model == MODEL_EA9200) || (model == MODEL_R7000) || (model == MODEL_R8000) || (model == MODEL_WS880) || (model == MODEL_RTAC87U) || (model == MODEL_RTAC3200)) {
 			setAllLedOff();
 			if (model == MODEL_RTAC87U)
 				led_control_atomic(LED_5G, LED_OFF);
@@ -6878,10 +6883,27 @@ void setup_leds()
 
 		if (nvram_match("wl1_radio", "1")) {
 			led_control_atomic(LED_5G_FORCED, LED_ON);
+#if defined(WS880) || defined(R7000)
+			led_control_atomic(LED_5G, LED_ON);
+#endif
 		}
 		if (nvram_match("wl0_radio", "1")) {
 			led_control_atomic(LED_2G, LED_ON);
 		}
+#ifdef RTCONFIG_TURBO
+		if ((nvram_match("wl0_radio", "1") || nvram_match("wl1_radio", "1")
+#if defined(RTAC3200) || defined(R8000) || defined(EA9200)
+			|| nvram_match("wl2_radio", "1")
+#endif
+		)
+#ifdef RTCONFIG_LED_BTN
+			&& !nvram_get_int("led_disable")
+#endif
+		)
+			led_control(LED_TURBO, LED_ON);
+		else
+			led_control(LED_TURBO, LED_OFF);
+#endif
 #ifdef RTCONFIG_QTN
 		setAllLedOn_qtn();
 #endif

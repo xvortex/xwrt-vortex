@@ -268,6 +268,11 @@ enum {
 	MODEL_RTN10P,
 	MODEL_RTN10D1,
 	MODEL_RTN10PV2,
+	MODEL_EA6900,
+	MODEL_EA9200,
+	MODEL_R7000,
+	MODEL_R8000,
+	MODEL_WS880,
 	MODEL_GENERIC
 };
 
@@ -439,6 +444,9 @@ static inline int have_usb3_led(int model)
 		case MODEL_RTAC88U:
 		case MODEL_RTAC3100:
 		case MODEL_RTAC5300:
+		case MODEL_R7000:
+		case MODEL_R8000:
+		case MODEL_WS880:
 			return 1;
 	}
 	return 0;

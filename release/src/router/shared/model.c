@@ -72,6 +72,11 @@ static const struct model_s model_list[] = {
 	{ "RT-N10D1",	MODEL_RTN10D1	},
 	{ "RT-N10PV2",	MODEL_RTN10PV2	},
 	{ "DSL-AC68U",	MODEL_DSLAC68U	},
+	{ "EA6900",	MODEL_EA6900	},
+	{ "EA9200",	MODEL_EA9200	},
+	{ "R7000",	MODEL_R7000	},
+	{ "R8000",	MODEL_R8000	},
+	{ "WS880",	MODEL_WS880	},
 #endif	/* !RTCONFIG_RALINK */
 	{ NULL, 0 },
 };
@@ -140,6 +145,12 @@ int get_model(void)
 
 	if (model != MODEL_UNKNOWN)
 		return model;
+
+	if ((nvram_match("boardrev", "0x1301")) && (nvram_match("boardnum", "32")) && (nvram_match("boardtype", "0x0665")))
+		return MODEL_R7000;
+
+	if ((nvram_match("boardrev", "0x1101")) && (nvram_match("boardnum", "32")) && (nvram_match("boardtype", "0x0665")))
+		return MODEL_R8000;
 
 	pid = nvram_safe_get("productid");
 	for (p = &model_list[0]; p->pid; ++p) {

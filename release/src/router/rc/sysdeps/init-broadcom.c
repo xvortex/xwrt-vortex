@@ -114,6 +114,15 @@ static const struct txpower_ac_s txpower_list_rtac87u[] = {
 	{ 0, 0, 0x0, 0x0, 0x0, 0x0}
 };
 
+static const unsigned char txpower_list_vtx[] = { // 0-100% = 1-27 dBm = 1-500 mW
+	4, 29, 42, 50, 55, 59, 62, 65, 68, 70, 72, 73, 75, 76, 78, 79, 80, 81, 82, 83, 84, 85,
+	86, 87, 88, 88, 89, 90, 91, 91, 92, 92, 93, 94, 94, 95, 95, 96, 96, 97, 97, 98, 98, 98,
+	99, 99, 100, 100, 100, 101, 101, 102, 102, 102, 103, 103, 103, 104, 104, 104, 105, 105,
+	105, 105, 106, 106, 106, 107, 107, 107, 107, 108, 108, 108, 108, 109, 109, 109, 109, 110,
+	110, 110, 110, 111, 111, 111, 111, 111, 112, 112, 112, 112, 112, 113, 113, 113, 113, 113,
+	114, 114, 114
+};
+
 int setpoweroffset_rtn12hp(uint8 level, char *prefix2)
 {
 	char tmp[100], tmp2[100];
@@ -877,6 +886,11 @@ void generate_switch_para(void)
 		case MODEL_RTAC68U:						/* 0  1  2  3  4 */
 		case MODEL_RTN18U:						/* 0  1  2  3  4 */
 		case MODEL_RTAC53U:
+		case MODEL_EA6900:
+		case MODEL_EA9200:
+		case MODEL_R7000:
+		case MODEL_R8000:
+		case MODEL_WS880:
 		{				/* WAN L1 L2 L3 L4 CPU */	/*vision: WAN L1 L2 L3 L4 */
 			const int ports[SWPORT_COUNT] = { 0, 1, 2, 3, 4, 5 };
 			int wancfg = (!nvram_match("switch_wantag", "none")&&!nvram_match("switch_wantag", "")) ? SWCFG_DEFAULT : cfg;
@@ -1621,11 +1635,16 @@ void ether_led()
 	/* refer to 5301x datasheet page 2770 */
 	case MODEL_RTAC56S:
 	case MODEL_RTAC56U:
-		eval("et", "robowr", "0x00", "0x10", "0x3000");
+		eval("et", "robowr", "0", "0x10", "0x3000");
 		break;
 	case MODEL_RTN16:
 		eval("et", "robowr", "0", "0x18", "0x01ff");
 		eval("et", "robowr", "0", "0x1a", "0x01ff");
+		break;
+	case MODEL_R7000:
+		eval("et", "robowr", "0", "0x10", "0x3000");
+		eval("et", "robowr", "0", "0x12", "0x78");
+		eval("et", "robowr", "0", "0x14", "0x01");
 		break;
 	}
 }
@@ -1792,6 +1811,7 @@ reset_mssid_hwaddr(int unit)
 				break;
 			case MODEL_RTN66U:
 			case MODEL_RTAC66U:
+			case MODEL_R7000:
 				snprintf(macaddr_str, sizeof(macaddr_str), "pci/%d/1/macaddr", unit + 1);
 				break;
 			case MODEL_RTN18U:
@@ -1805,6 +1825,10 @@ reset_mssid_hwaddr(int unit)
 			case MODEL_RTAC5300:
 			case MODEL_RTAC88U:
 			case MODEL_RTAC3100:
+			case MODEL_EA6900:
+			case MODEL_EA9200:
+			case MODEL_R8000:
+			case MODEL_WS880:
 				snprintf(macaddr_str, sizeof(macaddr_str), "%d:macaddr", unit);
 				break;
 			default:
@@ -1955,6 +1979,11 @@ void init_wl(void)
 		case MODEL_RTAC88U:
 		case MODEL_RTAC3100:
 		case MODEL_RTAC5300:
+		case MODEL_EA6900:
+		case MODEL_EA9200:
+		case MODEL_R7000:
+		case MODEL_R8000:
+		case MODEL_WS880:
 			set_bcm4360ac_vars();
 			break;
 	}
@@ -2054,6 +2083,11 @@ void fini_wl(void)
 	if ((get_model() == MODEL_RTAC3200) ||
 		(get_model() == MODEL_RPAC68U) ||
 		(get_model() == MODEL_RTAC68U) ||
+		(get_model() == MODEL_EA6900) ||
+		(get_model() == MODEL_EA9200) ||
+		(get_model() == MODEL_R7000) ||
+		(get_model() == MODEL_R8000) ||
+		(get_model() == MODEL_WS880) ||
 		(get_model() == MODEL_DSLAC68U) ||
 		(get_model() == MODEL_RTAC87U) ||
 		(get_model() == MODEL_RTAC66U) ||
@@ -2075,6 +2109,7 @@ void init_syspara(void)
 {
 	char *ptr;
 	int model;
+	char s[256];
 
 	nvram_set("firmver", rt_version);
 	nvram_set("productid", rt_buildname);
@@ -2192,6 +2227,8 @@ void init_syspara(void)
 			break;
 
 		case MODEL_RTAC3200:
+		case MODEL_EA9200:
+		case MODEL_R8000:
 			if (!nvram_get("et0macaddr"))				// eth0 (ethernet)
 				nvram_set("et0macaddr", "00:22:15:A5:03:00");
 			nvram_set("1:macaddr", nvram_safe_get("et0macaddr"));	// eth2 (2.4GHz)
@@ -2209,6 +2246,27 @@ void init_syspara(void)
 			nvram_set("sb/1/macaddr", nvram_safe_get("et0macaddr"));
 			break;
 
+		case MODEL_EA6900:
+		case MODEL_WS880:
+			if (!nvram_get("et0macaddr"))	//eth0, eth1
+				nvram_set("et0macaddr", "00:22:15:A5:03:00");
+			strcpy(s, nvram_safe_get("et0macaddr"));
+			// inc_mac(s, +2);
+			nvram_set("0:macaddr", s);
+			inc_mac(s, +4);
+			nvram_set("1:macaddr", s);
+			break;
+
+		case MODEL_R7000:
+			if (!nvram_get("et0macaddr"))	//eth0, eth1
+				nvram_set("et0macaddr", "00:22:15:A5:03:00");
+			strcpy(s, nvram_safe_get("et0macaddr"));
+			// inc_mac(s, +2);
+			nvram_set("pci/1/1/macaddr", s);
+			inc_mac(s, +4);
+			nvram_set("pci/2/1/macaddr", s);
+			break;
+
 		default:
 #ifdef RTCONFIG_RGMII_BRCM5301X
 			if (!nvram_get("lan_hwaddr"))
@@ -2221,7 +2279,7 @@ void init_syspara(void)
 	}
 
 #ifdef RTCONFIG_ODMPID
-	if (nvram_match("odmpid", "ASUS") ||
+	if (nvram_match("odmpid", "ASUS") || nvram_match("odmpid", "LINKSYS") || nvram_match("odmpid", "NETGEAR") || nvram_match("odmpid", "HUAWEI") ||
 		!is_valid_hostname(nvram_safe_get("odmpid")))
 		nvram_set("odmpid", "");
 #endif
@@ -2250,7 +2308,7 @@ void init_others(void)
 {
 	int model = get_model();
 
-	if (model == MODEL_RTAC56U || model == MODEL_RTAC56S || model == MODEL_RTAC3200 || model == MODEL_RTAC68U || model == MODEL_RPAC68U || model == MODEL_RTAC87U || model == MODEL_RTAC88U || model == MODEL_RTAC3100 || model == MODEL_RTAC5300 || model == MODEL_RTN18U) {
+	if (model == MODEL_RTAC56U || model == MODEL_RTAC56S || model == MODEL_RTAC3200 || model == MODEL_RTAC68U || model == MODEL_EA6900 || model == MODEL_EA9200 || model == MODEL_R7000 || model == MODEL_R8000 || model == MODEL_WS880 || model == MODEL_RPAC68U || model == MODEL_RTAC87U || model == MODEL_RTAC88U || model == MODEL_RTAC3100 || model == MODEL_RTAC5300 || model == MODEL_RTN18U) {
 #ifdef SMP
 		int fd;
 
@@ -2574,6 +2632,8 @@ int set_wltxpower()
 	int txpower = 100;
 	int commit_needed = 0;
 	int model;
+	unsigned char p;
+	char tmp3[100];
 
 	// generate nvram nvram according to system setting
 	model = get_model();
@@ -2596,6 +2656,11 @@ int set_wltxpower()
 		&& (model != MODEL_RTAC68U)
 		&& (model != MODEL_RTAC3200)
 		&& (model != MODEL_RTN18U)
+		&& (model != MODEL_EA6900)
+		&& (model != MODEL_EA9200)
+		&& (model != MODEL_R7000)
+		&& (model != MODEL_R8000)
+		&& (model != MODEL_WS880)
 		//&& (model != MODEL_RTAC5300)
 		//&& (model != MODEL_RTAC3100)
 		//&& (model != MODEL_RTAC88U)
@@ -2655,6 +2720,7 @@ int set_wltxpower()
 
 			case MODEL_RTN66U:
 			case MODEL_RTAC66U:
+			case MODEL_R7000:
 				snprintf(prefix2, sizeof(prefix2), "pci/%d/1/", unit + 1);
 				break;
 
@@ -2665,6 +2731,8 @@ int set_wltxpower()
 			case MODEL_RTAC87U:
 			case MODEL_RTAC56S:
 			case MODEL_RTAC56U:
+			case MODEL_EA6900:
+			case MODEL_WS880:
 			//case MODEL_RTAC5300:
 			//case MODEL_RTAC3100:
 			//case MODEL_RTAC88U:
@@ -2672,6 +2740,8 @@ int set_wltxpower()
 				break;
 
 			case MODEL_RTAC3200:
+			case MODEL_EA9200:
+			case MODEL_R8000:
 				if (unit < 2)
 					snprintf(prefix2, sizeof(prefix2), "%d:", 1 - unit);
 				else
@@ -3209,6 +3279,8 @@ int set_wltxpower()
 				break;
 
 			case MODEL_RTAC3200:
+			case MODEL_EA9200:
+			case MODEL_R8000:
 				if (set_wltxpower_once) {
 					if (unit == 0)	// 2.4G
 					{
@@ -4747,6 +4819,37 @@ int set_wltxpower()
 															tmp2, prefix2);
 				break;
 
+			case MODEL_EA6900:
+			case MODEL_R7000:
+			case MODEL_WS880:
+				if (set_wltxpower_once) {
+					if (nvram_match(strcat_r(prefix, "nband", tmp), "2"))		// 2.4G
+					{
+						p = txpower_list_vtx[txpower];
+						sprintf(tmp3, "%d", p);
+						if (!nvram_match(strcat_r(prefix2, "maxp2ga0", tmp2), tmp3))
+						{
+							nvram_set(strcat_r(prefix2,"maxp2ga0", tmp2), tmp3);
+							nvram_set(strcat_r(prefix2,"maxp2ga1", tmp2), tmp3);
+							nvram_set(strcat_r(prefix2,"maxp2ga2", tmp2), tmp3);
+							commit_needed++;
+						}
+					}
+					else if (nvram_match(strcat_r(prefix, "nband", tmp), "1"))	// 5G
+					{
+						p = txpower_list_vtx[txpower];
+						sprintf(tmp3, "%d,%d,%d,%d", p, p, p, p);
+						if (!nvram_match(strcat_r(prefix2, "maxp5ga0", tmp2), tmp3))
+						{
+							nvram_set(strcat_r(prefix2, "maxp5ga0", tmp2), tmp3);
+							nvram_set(strcat_r(prefix2, "maxp5ga1", tmp2), tmp3);
+							nvram_set(strcat_r(prefix2, "maxp5ga2", tmp2), tmp3);
+							commit_needed++;
+						}
+					}
+				}
+				break;
+
 			default:
 
 				break;
@@ -5434,6 +5537,11 @@ void generate_wl_para(int unit, int subunit)
 					get_model() == MODEL_RTAC3200 ||
 					get_model() == MODEL_RPAC68U ||
 					get_model() == MODEL_RTAC68U ||
+					get_model() == MODEL_EA6900 ||
+					get_model() == MODEL_EA9200 ||
+					get_model() == MODEL_R7000 ||
+					get_model() == MODEL_R8000 ||
+					get_model() == MODEL_WS880 ||
 					get_model() == MODEL_DSLAC68U ||
 					get_model() == MODEL_RTAC87U ||
 					get_model() == MODEL_RTAC5300 ||
@@ -5578,7 +5686,7 @@ void generate_wl_para(int unit, int subunit)
 		nvram_set(strcat_r(prefix, "net_reauth", tmp), tmp2);
 
 		if (nvram_match(strcat_r(prefix, "nband", tmp), "1")) {
-			if (	((get_model() == MODEL_RTAC68U || get_model() == MODEL_RPAC68U || get_model() == MODEL_DSLAC68U) &&
+			if (	((get_model() == MODEL_RTAC68U || get_model() == MODEL_EA6900 || get_model() == MODEL_R7000 || get_model() == MODEL_WS880 || get_model() == MODEL_RPAC68U || get_model() == MODEL_DSLAC68U) &&
 				(nvram_match(strcat_r(prefix, "reg_mode", tmp), "off") || nvram_match(strcat_r(prefix, "reg_mode", tmp), "d")) &&
 			      ((nvram_match(strcat_r(prefix, "country_code", tmp), "EU") &&
 				nvram_match(strcat_r(prefix, "country_rev", tmp), "13")) /*||
@@ -6247,6 +6355,11 @@ set_wan_tag(char *interface) {
 				/* P0  P1 P2 P3 P4 P5 */
 	case MODEL_RTAC68U:	/* WAN L1 L2 L3 L4 CPU */
 	case MODEL_RTN18U:	/* WAN L1 L2 L3 L4 CPU */
+	case MODEL_EA6900:
+	case MODEL_EA9200:
+	case MODEL_R7000:
+	case MODEL_R8000:
+	case MODEL_WS880:
 		if (wan_vid) { /* config wan port */
 			eval("vconfig", "rem", "vlan2");
 			sprintf(port_id, "%d", wan_vid);

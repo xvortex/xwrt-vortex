@@ -168,6 +168,7 @@ setMAC_2G(const char *mac)
 
 		case MODEL_RTN66U:
 		case MODEL_RTAC66U:
+		case MODEL_R7000:
 		{
 			memset(cmd_l, 0, 64);
 			sprintf(cmd_l, "asuscfeet0macaddr=%s", mac);
@@ -184,6 +185,8 @@ setMAC_2G(const char *mac)
 		case MODEL_RTAC56S:
 		case MODEL_RTAC56U:
 		case MODEL_RTN18U:
+		case MODEL_EA6900:
+		case MODEL_WS880:
 			memset(cmd_l, 0, 64);
 			sprintf(cmd_l, "asuscfeet0macaddr=%s", mac);
 			eval("nvram", "set", cmd_l );
@@ -204,6 +207,8 @@ setMAC_2G(const char *mac)
                         break;
 
 		case MODEL_RTAC3200:
+		case MODEL_EA9200:
+		case MODEL_R8000:
 			memset(cmd_l, 0, 64);
 			sprintf(cmd_l, "asuscfeet0macaddr=%s", mac);
 			eval("nvram", "set", cmd_l );
@@ -249,6 +254,7 @@ setMAC_5G(const char *mac)
 
 		case MODEL_RTN66U:
 		case MODEL_RTAC66U:
+		case MODEL_R7000:
 		{
 			memset(cmd_l, 0, 64);
 			sprintf(cmd_l, "asuscfepci/2/1/macaddr=%s", mac);
@@ -262,6 +268,8 @@ setMAC_5G(const char *mac)
 		case MODEL_RPAC68U:
 		case MODEL_RTAC68U:
 		case MODEL_DSLAC68U:
+		case MODEL_EA6900:
+		case MODEL_WS880:
 		{
 			memset(cmd_l, 0, 64);
 			sprintf(cmd_l, "asuscfe1:macaddr=%s", mac);
@@ -280,6 +288,8 @@ setMAC_5G(const char *mac)
                         break;
 
 		case MODEL_RTAC3200:
+		case MODEL_EA9200:
+		case MODEL_R8000:
 			memset(cmd_l, 0, 64);
 			sprintf(cmd_l, "asuscfe0:macaddr=%s", mac);
 			eval("nvram", "set", cmd_l );
@@ -289,7 +299,7 @@ setMAC_5G(const char *mac)
 	return 1;
 }
 
-#if defined(RTAC3200) || defined(RTAC5300)
+#if defined(RTAC3200) || defined(RTAC5300) || defined(R8000) || defined(EA9200)
 int
 setMAC_5G_2(const char *mac)
 {
@@ -304,6 +314,8 @@ setMAC_5G_2(const char *mac)
 
 	switch(model) {
 		case MODEL_RTAC3200:
+		case MODEL_EA9200:
+		case MODEL_R8000:
 		{
 			memset(cmd_l, 0, 64);
 			sprintf(cmd_l, "asuscfe2:macaddr=%s", mac);
@@ -337,9 +349,16 @@ setCountryCode_2G(const char *cc)
 		case MODEL_RTAC56S:
 		case MODEL_RTAC56U:
 		case MODEL_RTN18U:
+		case MODEL_EA6900:
+		case MODEL_WS880:
 			sprintf(cmd, "asuscfe0:ccode=%s", cc);
 			eval("nvram", "set", cmd );
 			puts(nvram_safe_get("0:ccode"));
+			break;
+		case MODEL_R7000:
+			sprintf(cmd, "asuscfepci/1/1/ccode=%s", cc);
+			eval("nvram", "set", cmd );
+			puts(nvram_safe_get("pci/1/1/ccode"));
 			break;
 		case MODEL_RTAC5300:
 		case MODEL_RTAC88U:
@@ -349,6 +368,8 @@ setCountryCode_2G(const char *cc)
                         puts(nvram_safe_get("0:ccode"));
                         break;
 		case MODEL_RTAC3200:
+		case MODEL_EA9200:
+		case MODEL_R8000:
 			sprintf(cmd, "asuscfe1:ccode=%s", cc);
 			eval("nvram", "set", cmd );
 			puts(nvram_safe_get("1:ccode"));
@@ -386,9 +407,17 @@ setCountryCode_5G(const char *cc)
 		case MODEL_RTAC68U:
 		case MODEL_RTAC56S:
 		case MODEL_RTAC56U:
+		case MODEL_EA6900:
+		case MODEL_WS880:
 			sprintf(cmd, "asuscfe1:ccode=%s", cc);
 			eval("nvram", "set", cmd );
 			puts(nvram_safe_get("1:ccode"));
+			break;
+
+		case MODEL_R7000:
+			sprintf(cmd, "asuscfepci/2/1/ccode=%s", cc);
+			eval("nvram", "set", cmd );
+			puts(nvram_safe_get("pci/2/1/ccode"));
 			break;
 
 		case MODEL_RTAC5300:
@@ -400,6 +429,8 @@ setCountryCode_5G(const char *cc)
                         break;
 
 		case MODEL_RTAC3200:
+		case MODEL_EA9200:
+		case MODEL_R8000:
 			sprintf(cmd, "asuscfe0:ccode=%s", cc);
 			eval("nvram", "set", cmd );
 			sprintf(cmd, "asuscfe2:ccode=%s", cc);
@@ -460,6 +491,7 @@ setRegrev_2G(const char *regrev)
 
 		case MODEL_RTN66U:
 		case MODEL_RTAC66U:
+		case MODEL_R7000:
 		{
 			memset(cmd, 0, 32);
 			sprintf(cmd, "asuscfepci/1/1/regrev=%s", regrev);
@@ -475,6 +507,8 @@ setRegrev_2G(const char *regrev)
 		case MODEL_RTAC56S:
 		case MODEL_RTAC56U:
 		case MODEL_RTN18U:
+		case MODEL_EA6900:
+		case MODEL_WS880:
 			memset(cmd, 0, 32);
 			sprintf(cmd, "asuscfe0:regrev=%s", regrev);
 			eval("nvram", "set", cmd );
@@ -492,6 +526,8 @@ setRegrev_2G(const char *regrev)
 			
 
 		case MODEL_RTAC3200:
+		case MODEL_EA9200:
+		case MODEL_R8000:
 			memset(cmd, 0, 32);
 			sprintf(cmd, "asuscfe1:regrev=%s", regrev);
 			eval("nvram", "set", cmd );
@@ -525,6 +561,7 @@ setRegrev_5G(const char *regrev)
 
 		case MODEL_RTN66U:
 		case MODEL_RTAC66U:
+		case MODEL_R7000:
 		{
 			memset(cmd, 0, 32);
 			sprintf(cmd, "asuscfepci/2/1/regrev=%s", regrev);
@@ -538,6 +575,8 @@ setRegrev_5G(const char *regrev)
 		case MODEL_RTAC68U:
 		case MODEL_RTAC56S:
 		case MODEL_RTAC56U:
+		case MODEL_EA6900:
+		case MODEL_WS880:
 			memset(cmd, 0, 32);
 			sprintf(cmd, "asuscfe1:regrev=%s", regrev);
 			eval("nvram", "set", cmd );
@@ -554,6 +593,8 @@ setRegrev_5G(const char *regrev)
                         break;
 
 		case MODEL_RTAC3200:
+		case MODEL_EA9200:
+		case MODEL_R8000:
 			memset(cmd, 0, 32);
 			sprintf(cmd, "asuscfe0:regrev=%s", regrev);
 			eval("nvram", "set", cmd );
@@ -749,6 +790,14 @@ GetPhyStatus(void)
 	case MODEL_RTAC3200:
 	case MODEL_RTN18U:
 	case MODEL_RTAC53U:
+	case MODEL_EA6900:
+	case MODEL_EA9200:
+	case MODEL_R7000:
+	case MODEL_R8000:
+	case MODEL_WS880:
+		/* WAN L1 L2 L3 L4 */
+		ports[0]=0; ports[1]=1; ports[2]=2; ports[3]=3; ports[4]=4;
+		break;
 	case MODEL_RTN66U:
 	case MODEL_RTAC66U:
 		/* WAN L1 L2 L3 L4 */
@@ -928,6 +977,8 @@ setAllLedOn(void)
 		case MODEL_RTAC5300:
 		case MODEL_RTAC88U:
 		case MODEL_RTAC3100:
+		case MODEL_EA9200:
+		case MODEL_R8000:
 		{
 #if defined(RTAC68U) || defined(RTAC88U) || defined(RTAC3100) || defined(RTAC5300) 
 			led_control(LED_USB, LED_ON);
@@ -938,7 +989,7 @@ setAllLedOn(void)
 #endif
 			eval("et", "robowr", "0", "0x18", "0x01ff");	// lan/wan ethernet/giga led
 			eval("et", "robowr", "0", "0x1a", "0x01e0");
-#if defined(RTAC3200) || defined(RTAC5300)
+#if defined(RTAC3200) || defined(RTAC5300) || defined(R8000) || defined(EA9200)
 			eval("wl", "ledbh", "10", "1");			// wl 5G low
 			eval("wl", "-i", "eth2", "ledbh", "10", "1");	// wl 2.4G
 			eval("wl", "-i", "eth3", "ledbh", "10", "1");	// wl 5G high
@@ -1082,6 +1133,36 @@ setAllLedOn(void)
 			eval("wl", "-i", "eth2", "ledbh", "9", "1");	// wl 5G
 			break;
 		}
+		case MODEL_EA6900:
+		{
+			eval("et", "robowr", "0", "0x18", "0x01ff");	// lan/wan ethernet/giga led
+			eval("et", "robowr", "0", "0x1a", "0x01e0");
+			break;
+		}
+		case MODEL_R7000:
+		{
+			led_control(LED_USB, LED_ON);
+			led_control(LED_USB3, LED_ON);
+			led_control(LED_WAN, LED_ON);
+			led_control(LED_WAN_RED, LED_ON);
+			led_control(LED_POWER, LED_ON);
+			led_control(LED_2G, LED_ON);
+			led_control(LED_5G, LED_ON);
+			led_control(LED_WPS, LED_ON);
+			led_control(LED_TURBO, LED_ON);
+			eval("et", "robowr", "0", "0x18", "0x01ff");	// lan/wan ethernet/giga led
+			eval("et", "robowr", "0", "0x1a", "0x01e0");
+			break;
+		}
+		case MODEL_WS880:
+		{
+			led_control(LED_USB3, LED_ON);
+			led_control(LED_LAN, LED_ON);
+			led_control(LED_WAN_RED, LED_ON);
+			led_control(LED_2G, LED_ON);
+			led_control(LED_5G, LED_ON);
+			break;
+		}
 	}
 
 	wan_red_led_control(LED_ON);
@@ -1155,6 +1236,8 @@ setWlOffLed(void)
 			break;
 		}
 		case MODEL_RTAC3200:
+		case MODEL_EA9200:
+		case MODEL_R8000:
 		{
 			if (wlon_unit != 0 && wlon_unit_ex != 0)
 				eval("wl", "-i", "eth2", "ledbh", "10", "0");	// wl 2.4G
@@ -1267,6 +1350,8 @@ setAllLedOff(void)
 		case MODEL_RTAC5300:
 		case MODEL_RTAC88U:
 		case MODEL_RTAC3100:
+		case MODEL_EA9200:
+		case MODEL_R8000:
 		{
 #if defined(RTAC68U) || defined(RTAC88U) || defined(RTAC3100) || defined(RTAC5300) 
 			led_control(LED_USB, LED_OFF);
@@ -1277,7 +1362,7 @@ setAllLedOff(void)
 #endif
 			eval("et", "robowr", "0", "0x18", "0x01e0");	// lan/wan ethernet/giga led
 			eval("et", "robowr", "0", "0x1a", "0x01e0");
-#if defined(RTAC3200)
+#if defined(RTAC3200) || defined(R8000) || defined(EA9200)
 			eval("wl", "ledbh", "10", "0");			// wl 5G low
 			eval("wl", "-i", "eth2", "ledbh", "10", "0");	// wl 2.4G
 			eval("wl", "-i", "eth3", "ledbh", "10", "0");	// wl 5G high
@@ -1403,6 +1488,36 @@ setAllLedOff(void)
 			eval("wl", "-i", "eth2", "ledbh", "9", "0");	// wl 5G
 			break;
 		}
+		case MODEL_EA6900:
+		{
+			eval("et", "robowr", "0", "0x18", "0x01e0");	// lan/wan ethernet/giga led
+			eval("et", "robowr", "0", "0x1a", "0x01e0");
+			break;
+		}
+		case MODEL_R7000:
+		{
+			led_control(LED_USB, LED_OFF);
+			led_control(LED_USB3, LED_OFF);
+			led_control(LED_WAN, LED_OFF);
+			led_control(LED_WAN_RED, LED_OFF);
+			led_control(LED_POWER, LED_OFF);
+			led_control(LED_2G, LED_OFF);
+			led_control(LED_5G, LED_OFF);
+			led_control(LED_WPS, LED_OFF);
+			led_control(LED_TURBO, LED_OFF);
+			eval("et", "robowr", "0", "0x18", "0x01e0");	// lan/wan ethernet/giga led
+			eval("et", "robowr", "0", "0x1a", "0x01e0");
+			break;
+		}
+		case MODEL_WS880:
+		{
+			led_control(LED_USB3, LED_OFF);
+			led_control(LED_LAN, LED_OFF);
+			led_control(LED_WAN_RED, LED_OFF);
+			led_control(LED_2G, LED_OFF);
+			led_control(LED_5G, LED_OFF);
+			break;
+		}
 	}
 
 	wan_red_led_control(LED_OFF);
@@ -1464,6 +1579,8 @@ setATEModeLedOn(void){
 		case MODEL_RTAC5300:
 		case MODEL_RTAC88U:
 		case MODEL_RTAC3100:
+		case MODEL_EA9200:
+		case MODEL_R8000:
 		{
 			led_control(LED_USB, LED_ON);
 			led_control(LED_USB3, LED_ON);
@@ -1540,6 +1657,36 @@ setATEModeLedOn(void){
 			led_control(LED_LAN, LED_ON);
 			led_control(LED_WAN, LED_ON);
 			led_control(LED_USB, LED_ON);
+			break;
+		}
+		case MODEL_EA6900:
+		{
+			eval("et", "robowr", "0", "0x18", "0x01ff");	// lan/wan ethernet/giga led
+			eval("et", "robowr", "0", "0x1a", "0x01e0");
+			break;
+		}
+		case MODEL_R7000:
+		{
+			led_control(LED_USB, LED_ON);
+			led_control(LED_USB3, LED_ON);
+			led_control(LED_WAN, LED_ON);
+			led_control(LED_WAN_RED, LED_ON);
+			led_control(LED_POWER, LED_ON);
+			led_control(LED_2G, LED_ON);
+			led_control(LED_5G, LED_ON);
+			led_control(LED_WPS, LED_ON);
+			led_control(LED_TURBO, LED_ON);
+			eval("et", "robowr", "0", "0x18", "0x01ff");	// lan/wan ethernet/giga led
+			eval("et", "robowr", "0", "0x1a", "0x01e0");
+			break;
+		}
+		case MODEL_WS880:
+		{
+			led_control(LED_USB3, LED_ON);
+			led_control(LED_LAN, LED_ON);
+			led_control(LED_WAN_RED, LED_ON);
+			led_control(LED_2G, LED_ON);
+			led_control(LED_5G, LED_ON);
 			break;
 		}
 	}
@@ -1665,6 +1812,8 @@ getMAC_5G(void)
 		case MODEL_RTAC3200:
 		case MODEL_RTN53:
 		case MODEL_RTAC53U:
+		case MODEL_EA9200:
+		case MODEL_R8000:
 		{
 			puts(nvram_safe_get("0:macaddr"));
 			break;
@@ -1672,6 +1821,7 @@ getMAC_5G(void)
 
 		case MODEL_RTN66U:
 		case MODEL_RTAC66U:
+		case MODEL_R7000:
 		{
 			puts(nvram_safe_get("pci/2/1/macaddr"));
 			break;
@@ -1685,13 +1835,15 @@ getMAC_5G(void)
 		case MODEL_RTAC5300:
 		case MODEL_RTAC88U:
 		case MODEL_RTAC3100:
+		case MODEL_EA6900:
+		case MODEL_WS880:
 			puts(nvram_safe_get("1:macaddr"));
 			break;
 	}
 	return 0;
 }
 
-#if defined(RTAC3200) || defined(RTAC5300)
+#if defined(RTAC3200) || defined(RTAC5300) || defined(R8000) || defined(EA9200)
 int
 getMAC_5G_2(void)
 {
@@ -1703,6 +1855,8 @@ getMAC_5G_2(void)
 	switch(model) {
 		case MODEL_RTAC3200:
 		case MODEL_RTAC5300:
+		case MODEL_EA9200:
+		case MODEL_R8000:
 			puts(nvram_safe_get("2:macaddr"));
 			break;
 	}
@@ -1758,10 +1912,17 @@ getCountryCode_2G(void)
 		case MODEL_RTN18U:
 		case MODEL_RTAC5300:	/* chk after */
 		case MODEL_RTAC88U:
+		case MODEL_EA6900:
+		case MODEL_WS880:
 		case MODEL_RTAC3100:
 			puts(nvram_safe_get("0:ccode"));
 			break;
+		case MODEL_R7000:
+			puts(nvram_safe_get("pci/1/1/ccode"));
+			break;
 		case MODEL_RTAC3200:
+		case MODEL_EA9200:
+		case MODEL_R8000:
 			puts(nvram_safe_get("1:ccode"));
 			break;
 		case MODEL_RTAC53U:
@@ -1789,11 +1950,18 @@ getCountryCode_5G(void)
 		case MODEL_RTAC56U:
 		case MODEL_RTAC5300:	/* chk after */
 		case MODEL_RTAC88U:
+		case MODEL_EA6900:
+		case MODEL_WS880:
 		case MODEL_RTAC3100:
 			puts(nvram_safe_get("1:ccode"));
 			break;
+		case MODEL_R7000:
+			puts(nvram_safe_get("pci/2/1/ccode"));
+			break;
 		case MODEL_RTAC3200:
 		case MODEL_RTAC53U:
+		case MODEL_EA9200:
+		case MODEL_R8000:
 			puts(nvram_safe_get("0:ccode"));
 			break;
 		default:
@@ -1836,6 +2004,7 @@ getRegrev_2G(void)
 
 		case MODEL_RTN66U:
 		case MODEL_RTAC66U:
+		case MODEL_R7000:
 		{
 			puts(nvram_safe_get("pci/1/1/regrev"));
 			break;
@@ -1850,11 +2019,15 @@ getRegrev_2G(void)
 		case MODEL_RTN18U:
 		case MODEL_RTAC5300:	/* chk after */
 		case MODEL_RTAC88U:
+		case MODEL_EA6900:
+		case MODEL_WS880:
 		case MODEL_RTAC3100:
 			puts(nvram_safe_get("0:regrev"));
 			break;
 
 		case MODEL_RTAC3200:
+		case MODEL_EA9200:
+		case MODEL_R8000:
 			puts(nvram_safe_get("1:regrev"));
 			break;
 	}
@@ -1873,6 +2046,8 @@ getRegrev_5G(void)
 		case MODEL_RTAC3200:
 		case MODEL_RTN53:
 		case MODEL_RTAC53U:
+		case MODEL_EA9200:
+		case MODEL_R8000:
 		{
 			puts(nvram_safe_get("0:regrev"));
 			break;
@@ -1880,6 +2055,7 @@ getRegrev_5G(void)
 
 		case MODEL_RTN66U:
 		case MODEL_RTAC66U:
+		case MODEL_R7000:
 		{
 			puts(nvram_safe_get("pci/2/1/regrev"));
 			break;
@@ -1892,6 +2068,8 @@ getRegrev_5G(void)
 		case MODEL_RTAC56U:
 		case MODEL_RTAC5300:
 		case MODEL_RTAC88U:
+		case MODEL_EA6900:
+		case MODEL_WS880:
 		case MODEL_RTAC3100:
 			puts(nvram_safe_get("1:regrev"));
 			break;
@@ -2034,7 +2212,7 @@ int Get_ChannelList_5G(void)
 #endif
 }
 
-#if defined(RTAC3200) || defined(RTAC5300)
+#if defined(RTAC3200) || defined(RTAC5300) || defined(R8000) || defined(EA9200)
 int Get_ChannelList_5G_2(void)
 {
 	return Get_channel_list(2);
@@ -2707,7 +2885,7 @@ next_info:
 			snprintf(prefix, sizeof(prefix), "wl%d_", unit);
 #endif
 			for (i = 0; i < ap_count; i++){
-#if defined(RTAC3200) || defined(RTAC5300)
+#if defined(RTAC3200) || defined(RTAC5300) || defined(R8000) || defined(EA9200)
 				if (!strcmp(wif, "eth1") && (apinfos[i].ctl_ch > 48))
 					continue;
 				if (!strcmp(wif, "eth3")) {
@@ -3094,11 +3272,19 @@ reset_countrycode_2g(void)
 		case MODEL_RTN18U:
 		case MODEL_RTAC5300:
 		case MODEL_RTAC88U:
+		case MODEL_EA6900:
+		case MODEL_WS880:
 		case MODEL_RTAC3100:
 			strcpy(country_code_str, "0:ccode");
 			break;
 
+		case MODEL_R7000:
+			strcpy(country_code_str, "pci/1/1/ccode");
+			break;
+
 		case MODEL_RTAC3200:
+		case MODEL_EA9200:
+		case MODEL_R8000:
 			strcpy(country_code_str, "1:ccode");
 			break;
 
@@ -3131,12 +3317,20 @@ reset_countrycode_5g(void)
 		case MODEL_RTAC56U:
 		case MODEL_RTAC5300:	/* chk after */
 		case MODEL_RTAC88U:
+		case MODEL_EA6900:
+		case MODEL_WS880:
 		case MODEL_RTAC3100:
 			strcpy(country_code_str, "1:ccode");
 			break;
 
+		case MODEL_R7000:
+			strcpy(country_code_str, "pci/2/1/ccode");
+			break;
+
 		case MODEL_RTAC3200:
 		case MODEL_RTAC53U:
+		case MODEL_EA9200:
+		case MODEL_R8000:
 			strcpy(country_code_str, "0:ccode");
 			break;
 
@@ -3149,7 +3343,7 @@ reset_countrycode_5g(void)
 #else
 	doSystem("nvram set wl0_country_code=`cat /dev/mtd0 | grep %s | cut -d \"=\" -f 2`", country_code_str);
 #endif
-#ifdef RTAC3200
+#if defined(RTAC3200) || defined(R8000) || defined(EA9200)
 	nvram_set("wl2_country_code", nvram_safe_get("wl0_country_code"));
 #endif
 	return 0;
@@ -3183,6 +3377,7 @@ reset_countryrev_2g(void)
 
 		case MODEL_RTN66U:
 		case MODEL_RTAC66U:
+		case MODEL_R7000:
 			strcpy(country_rev_str, "pci/1/1/regrev");
 			break;
 
@@ -3195,11 +3390,15 @@ reset_countryrev_2g(void)
 		case MODEL_RTN18U:
 		case MODEL_RTAC5300:
 		case MODEL_RTAC88U:
+		case MODEL_EA6900:
+		case MODEL_WS880:
 		case MODEL_RTAC3100:
 			strcpy(country_rev_str, "0:regrev");
 			break;
 
 		case MODEL_RTAC3200:
+		case MODEL_EA9200:
+		case MODEL_R8000:
 			strcpy(country_rev_str, "1:regrev");
 			break;
 	}
@@ -3209,7 +3408,7 @@ reset_countryrev_2g(void)
 	doSystem("nvram set wl1_country_rev=`cat /dev/mtd0 | grep %s | cut -d \"=\" -f 2`", country_rev_str);
 #endif
 #if 0
-#ifdef RTAC3200
+#if defined(RTAC3200) || defined(R8000) || defined(EA9200)
 #ifndef RTAC3200_INTF_ORDER
 	set_slave_cotuntry_setting(0);
 #else
@@ -3229,11 +3428,14 @@ reset_countryrev_5g(void)
 		case MODEL_RTAC3200:
 		case MODEL_RTN53:
 		case MODEL_RTAC53U:
+		case MODEL_EA9200:
+		case MODEL_R8000:
 			strcpy(country_rev_str, "0:regrev");
 			break;
 
 		case MODEL_RTN66U:
 		case MODEL_RTAC66U:
+		case MODEL_R7000:
 			strcpy(country_rev_str, "pci/2/1/regrev");
 			break;
 
@@ -3245,6 +3447,8 @@ reset_countryrev_5g(void)
 		case MODEL_RTAC87U:
 		case MODEL_RTAC5300:
 		case MODEL_RTAC88U:
+		case MODEL_EA6900:
+		case MODEL_WS880:
 		case MODEL_RTAC3100:
 			strcpy(country_rev_str, "1:regrev");
 			break;
@@ -3258,7 +3462,7 @@ reset_countryrev_5g(void)
 	if (nvram_match("wl1_country_code", "EU") && nvram_match("wl1_dfs", "1"))
 		nvram_set("wl1_country_rev", "31");
 #endif
-#ifdef RTAC3200
+#if defined(RTAC3200) || defined(R8000) || defined(EA9200)
 	nvram_set("wl2_country_rev", nvram_safe_get("wl0_country_rev"));
 #if 0
 #ifndef RTAC3200_INTF_ORDER
@@ -3272,7 +3476,7 @@ reset_countryrev_5g(void)
 	return 0;
 }
 
-#ifdef RTAC3200
+#if defined(RTAC3200) || defined(R8000) || defined(EA9200)
 extern struct nvram_tuple router_defaults[];
 
 void

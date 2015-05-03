@@ -620,7 +620,7 @@ void set_radio(int on, int unit, int subunit)
 			}
 #else
 			nvram_set("led_5g", "1");
-			if (nvram_get_int("AllLED"))
+			if (nvram_get_int("led_disable")==0)
 				led_control(LED_5G, LED_ON);
 #endif
 		}

@@ -206,7 +206,7 @@ void led_control_normal(void)
 
 #if defined(RTCONFIG_LED_BTN) && defined(RTAC87U)
 	LED_switch_count = nvram_get_int("LED_switch_count");
-	if(nvram_get_int("AllLED") == 0) return;
+	if(nvram_get_int("led_disable") == 1) return;
 #endif
 
 	led_control(LED_POWER, LED_ON);
@@ -233,6 +233,11 @@ void erase_nvram(void)
 		case MODEL_RTAC5300:
 		case MODEL_RTAC88U:
 		case MODEL_RTAC3100:
+		case MODEL_EA6900:
+		case MODEL_EA9200:
+		case MODEL_R7000:
+		case MODEL_R8000:
+		case MODEL_WS880:
 			eval("mtd-erase2", "nvram");
 			break;
 		default:
@@ -253,11 +258,108 @@ int init_toggle(void)
 		case MODEL_RTAC5300:
 		case MODEL_RTAC88U:
 		case MODEL_RTAC3100:
+		case MODEL_EA6900:
+		case MODEL_EA9200:
+		case MODEL_R7000:
+		case MODEL_R8000:
+		case MODEL_WS880:
 			nvram_set("btn_ez_radiotoggle", "1");
 			return BTN_WIFI_TOG;
 		default:
 			return BTN_WPS;
 	}
+}
+
+void btn_check_vtx(void)
+{
+	if (button_pressed(BTN_RESET))
+	{
+		TRACE_PT("button RESET pressed\n");
+
+		if (!btn_pressed)
+		{
+			btn_pressed = 1;
+			btn_count = 0;
+			alarmtimer(0, URGENT_PERIOD);
+		}
+		else
+		{	/* Whenever it is pushed steady */
+			if (++btn_count > RESET_WAIT_COUNT)
+			{
+				fprintf(stderr, "You can release RESET button now!\n");
+				btn_pressed = 2;
+			}
+			if (btn_pressed == 2)
+			{
+				if ((btn_count % 10) < 2 || ((btn_count % 10) > 4 && (btn_count % 10) < 7))
+					led_control(LED_WAN, LED_OFF);
+				else
+					led_control(LED_WAN, LED_ON);
+			}
+		}
+	}
+	else
+	{
+		if (btn_pressed == 1)
+		{
+			btn_count = 0;
+			btn_pressed = 0;
+			led_control(LED_WAN, LED_ON);
+			alarmtimer(NORMAL_PERIOD, 0);
+		}
+		else if (btn_pressed == 2)
+		{
+			led_control(LED_WAN, LED_OFF);
+			alarmtimer(0, 0);
+			nvram_set("restore_defaults", "1");
+			if (notify_rc_after_wait("resetdefault")) {
+				/* Send resetdefault rc_service failed. */
+				alarmtimer(NORMAL_PERIOD, 0);
+			}
+		}
+	}
+
+	if (btn_pressed != 0) return;
+
+	if (button_pressed(BTN_WIFI_TOG))
+	{
+		TRACE_PT("button WIFI_TOG pressed\n");
+
+		if (btn_pressed_toggle_radio == 0)
+		{
+			radio_switch(0);
+			btn_pressed_toggle_radio = 1;
+			return;
+		}
+	}
+	else{
+		btn_pressed_toggle_radio = 0;
+	}
+
+#ifdef RTCONFIG_LED_BTN
+	if (button_pressed(BTN_LED))
+	{
+		TRACE_PT("button BTN_LED pressed\n");
+
+		if (LED_status_changed == 0)
+		{
+			if (!nvram_get_int("led_disable"))
+			{
+				nvram_set_int("led_disable", 1);
+			}
+			else
+			{
+				nvram_set_int("led_disable", 0);
+			}
+			setup_leds();
+			LED_status_changed = 1;
+			return;
+		}
+	}
+	else{
+		LED_status_changed = 0;
+	}
+#endif
 }
 
 void btn_check(void)
@@ -710,9 +812,9 @@ void btn_check(void)
 #elif defined(RTAC3200) || defined(RTAC88U) || defined(RTAC3100) || defined(RTAC5300) 
 		if (LED_status_on)
 #endif
-			nvram_set_int("AllLED", 1);
+			nvram_set_int("led_disable", 0);
 		else
-			nvram_set_int("AllLED", 0);
+			nvram_set_int("led_disable", 1);
 #if defined(RTAC68U)
 		if (LED_status == LED_status_on)
 #elif defined(RTAC3200) || defined(RTAC88U) || defined(RTAC3100) || defined(RTAC5300) 
@@ -794,12 +896,12 @@ void btn_check(void)
 
 	if(BTN_pressed_count >= LED_switch_count && LED_status_changed == 0){
 		LED_status_changed = 1;
-		LED_status_on = nvram_get_int("AllLED");
+		LED_status_on = 1 - nvram_get_int("led_disable");
 
 		if(LED_status_on)
-			nvram_set_int("AllLED", 0);
+			nvram_set_int("led_disable", 1);
 		else
-			nvram_set_int("AllLED", 1);
+			nvram_set_int("led_disable", 0);
 		LED_status_on = !LED_status_on;
 
 		if(LED_status_on){
@@ -1501,6 +1603,9 @@ void fake_wl_led_2g(void)
 			data_2g = count_2g;
 		}
 		else blink_2g = 0;
+#ifdef RTCONFIG_LED_BTN
+		if (!nvram_get_int("led_disable"))
+#endif
 		led_control(LED_2G, LED_ON);
 	}
 
@@ -1517,12 +1622,19 @@ void fake_wl_led_2g(void)
 
 			if (status != status_old)
 			{
-				if (status)
+				if (status
+#ifdef RTCONFIG_LED_BTN
+				&& !nvram_get_int("led_disable")
+#endif
+				)
 					led_control(LED_2G, LED_ON);
 				else
 					led_control(LED_2G, LED_OFF);
 			}
 		}
+#ifdef RTCONFIG_LED_BTN
+		if (!nvram_get_int("led_disable"))
+#endif
 		led_control(LED_2G, LED_ON);
 	}
 
@@ -1530,7 +1642,7 @@ void fake_wl_led_2g(void)
 }
 #endif	/* RTCONFIG_WLAN_LED */
 
-#if defined(RTCONFIG_BRCM_USBAP) || defined(RTAC66U) || defined(BCM4352)
+#if defined(RTCONFIG_BRCM_USBAP) || defined(RTAC66U) || defined(BCM4352) || defined(R7000) || defined(R8000) || defined(WS880)
 unsigned long get_5g_count()
 {
 	FILE *f;
@@ -1580,15 +1692,18 @@ void fake_wl_led_5g(void)
 			data_5g = count_5g;
 		}
 		else blink_5g = 0;
+#ifdef RTCONFIG_LED_BTN
+		if (!nvram_get_int("led_disable"))
+#endif
 		led_control(LED_5G, LED_ON);
 	}
 
 	if(blink_5g) {
-#if defined(RTAC66U) || defined(BCM4352)
+#if defined(RTAC66U) || defined(BCM4352) || defined(R7000) || defined(R8000) || defined(WS880)
 		j = rand_seed_by_time() % 3;
 #endif
 		for(i=0;i<10;i++) {
-#if defined(RTAC66U) || defined(BCM4352)
+#if defined(RTAC66U) || defined(BCM4352) || defined(R7000) || defined(R8000) || defined(WS880)
 			usleep(33*1000);
 
 			status_old = status;
@@ -1599,7 +1714,11 @@ void fake_wl_led_5g(void)
 
 			if (status != status_old)
 			{
-				if (status)
+				if (status
+#ifdef RTCONFIG_LED_BTN
+				&& !nvram_get_int("led_disable")
+#endif
+				)
 					led_control(LED_5G, LED_ON);
 				else
 					led_control(LED_5G, LED_OFF);
@@ -1610,10 +1729,16 @@ void fake_wl_led_5g(void)
 				led_control(LED_5G, LED_OFF);
 			}
 			else {
+#ifdef RTCONFIG_LED_BTN
+				if (!nvram_get_int("led_disable"))
+#endif
 				led_control(LED_5G, LED_ON);
 			}
 #endif
 		}
+#ifdef RTCONFIG_LED_BTN
+		if (!nvram_get_int("led_disable"))
+#endif
 		led_control(LED_5G, LED_ON);
 	}
 
@@ -1626,12 +1751,12 @@ void led_check(void)
 #ifdef RTCONFIG_WLAN_LED
 	if (nvram_contains_word("rc_support", "led_2g"))
 	{
-#if defined(RTN53)
+#if defined(RTN53) || defined(R7000) || defined(R8000) || defined(WS880)
 		if(nvram_get_int("wl0_radio") == 0)
 			led_control(LED_2G, LED_OFF);
 		else
 #endif
-		fake_wl_led_2g();
+			fake_wl_led_2g();
 	}
 #endif
 
@@ -1671,12 +1796,12 @@ void led_check(void)
 	   (wlonunit == -1 || wlonunit == 1))
 #endif
 	{
-#if defined(RTN53)
+#if defined(RTN53) || defined(R7000) || defined(R8000) || defined(WS880)
                 if(nvram_get_int("wl1_radio") == 0)
                         led_control(LED_5G, LED_OFF);
                 else
 #endif
-		fake_wl_led_5g();
+			fake_wl_led_5g();
 	}
 #endif
 	
@@ -2711,10 +2836,14 @@ void watchdog(int sig)
 	period_chk_cnt();
 #endif
 	/* handle button */
+#if defined(EA6900) || defined(EA9200) || defined(R7000) || defined(R8000) || defined(WS880)
+	btn_check_vtx();
+#else
 	btn_check();
+#endif
 	if(nvram_match("asus_mfg", "0")
 #if defined(RTCONFIG_LED_BTN) || defined(RTCONFIG_WPS_ALLLED_BTN)
-		&& nvram_get_int("AllLED")
+		&& !nvram_get_int("led_disable")
 #endif
 	)
 	
