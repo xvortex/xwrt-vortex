@@ -1,33 +1,15 @@
-asuswrt-merlin
-==============
+xwrt-vortex
+===========
 
-This is an enhanced version of Asuswrt - the firmware used by all recent Asus routers. 
+This is an port of asuswrt-merlin (enhanced version of Asuswrt - the firmware used by all recent Asus routers).
 
-The goal of this project is to fix issues and bring some minor functionality adjustments to the 
-original Asus firmware.  While some features do get added, this is not the main focus of this project.  
-It is not meant to replace existing projects such as Tomato or DD-WRT, but rather to offer an alternative 
-for people who prefer the original firmware featureset.
+The goal of this project is to port the asuswrt-merlin firmware to different vendor platforms, not only Asus.
+Asuswrt has a good reliability, feture set and speed, so it is often better than OEM firmware.
 
-At this time, the supported devices are:
+XWRT-Vortex supported devices are:
 
-- RT-AC56U
-- RT-N66U
-- RT-AC66U
-- RT-AC68U
-- RT-AC68P
-- RT-AC87U
-- RT-AC3200
-
-NOTE: all the "R" versions (for example RT-N66R) are the same as their 
-"U" counterparts, they are just different packages aimed at large 
-retailers.  The firmware is 100% compatible with both U and R versions 
-of the routers.  Same with the "W" variants that are simply white.
-
-
-No longer officially supported:
-- RT-N16
-
-
-Firmware builds can be downloaded from the official download site:
-
-http://asuswrt.lostrealm.ca/download
+- Linksys EA6900
+- Linksys EA9200
+- Netgear R7000
+- Netgear R8000
+- Huawei WS880
