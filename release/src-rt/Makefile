@@ -301,6 +301,11 @@ else
 	ctools/trx -o image/linux-lzma.trx lzma-loader/loader.gz ctools/vmlinuz-lzma ctools/target.squashfs
 endif
 	ctools/trx_asus -i image/linux-lzma.trx -r $(BUILD_NAME),$(KERNEL_VER).$(FS_VER),image/$(IMGNAME).trx
+ifeq ($(NETGEAR_CHK),y)
+	touch image/rootfs
+	wnrtool/packet -k image/linux-lzma.trx -f image/rootfs -b wnrtool/$(BOARD_FILE) -ok kernel_image -oall image/$(IMGNAME) -or rootfs_image -i wnrtool/$(FW_FILE)
+	@rm -f image/rootfs
+endif
 	@rm -f image/linux-lzma.trx
 endif
 	
@@ -2239,6 +2244,10 @@ rt-% rp-% RT-% RP-% ea-% EA-% tm-% TM-%:
 	$(call save_src_config, $@)
 	$(MAKE) bin
 
+ea6900 EA6900 ea9200 EA9200 r7000 R7000 r8000 R8000 ws880 WS880:
+	$(call save_src_config, $@)
+	$(MAKE) bin
+
 dsl-% DSL-%:
 	$(call dsl_genbintrx_prolog)
 	$(call save_src_config, $@)
@@ -2287,7 +2296,7 @@ setprofile:
 		echo "RTCONFIG_WLMODULE_MT7603E_AP=y" >> router/.config; \
 	fi
 
-	$(MAKE) -C router oldconfig
+	@yes "" | $(MAKE) -C router oldconfig
 
 cleanlibc:
 #	@$(MAKE) -C ../../tools-src/uClibc clean

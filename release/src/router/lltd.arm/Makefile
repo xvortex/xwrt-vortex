@@ -10,7 +10,7 @@ ifeq ($(RTAC3200), y)
 	install lld2d.rtac3200 $(INSTALLDIR)/usr/sbin/lld2d
 	install icon.rtac3200.ico $(INSTALLDIR)/usr/sbin/icon.ico
 	install icon.large.rtac3200.ico $(INSTALLDIR)/usr/sbin/icon.large.ico
-else ifeq ($(RTAC56U), y)
+else ifeq ($(RTAC56U)$(XWRT), y)
 	install lld2d.rtac56u $(INSTALLDIR)/usr/sbin/lld2d
 	install icon.rtac56u.ico $(INSTALLDIR)/usr/sbin/icon.ico
 	install icon.large.rtac56u.ico $(INSTALLDIR)/usr/sbin/icon.large.ico

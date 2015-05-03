@@ -3,7 +3,7 @@ include ../common.mak
 ASUSWRTTOOLSDIR = $(SRCBASE)/router/tools/Lnx_AsusWrtDictPrep
 ASUSWRTTOOLSDIR2 = $(SRCBASE)/router/tools/Lnx_ToolHelp
 
-MODELS_HAVE_USB3 = "DSL-AC68U RT-AC3200 RT-AC87U RT-AC69U RT-AC68U RT-AC56S RT-AC56U RT-AC55U RT-AC55UHP RT-N18U RT-N65U"
+MODELS_HAVE_USB3 = "DSL-AC68U RT-AC3200 RT-AC87U RT-AC69U RT-AC68U RT-AC56S RT-AC56U RT-AC55U RT-AC55UHP RT-N18U RT-N65U EA6900 EA9200 R7000 R8000 WS880"
 
 all:
 
@@ -374,9 +374,13 @@ ifneq ($(RTCONFIG_OLD_PARENTALCTRL), y)
 endif
 
 ifneq ($(BUILD_NAME),RT-AC3200)
+ifneq ($(BUILD_NAME),EA9200)
+ifneq ($(BUILD_NAME),R8000)
 	rm -rf $(INSTALLDIR)/www/Advanced_Smart_Connect.asp
 	rm -rf $(INSTALLDIR)/www/images/New_ui/smart_connect.png
 	rm -rf $(INSTALLDIR)/www/images/New_ui/smart_connect_concept.gif
+endif
+endif
 endif
 
 ifneq ($(RTCONFIG_FINDASUS), y)

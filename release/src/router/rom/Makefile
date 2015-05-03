@@ -165,7 +165,7 @@ ifeq ($(RTAC3200),y)
 	cp -rf dlna/icon_sm.rtac3200.png $(INSTALLDIR)/rom/dlna/icon_sm.png
 	cp -rf dlna/icon_lrg.rtac3200.jpg $(INSTALLDIR)/rom/dlna/icon_lrg.jpg
 	cp -rf dlna/icon_lrg.rtac3200.png $(INSTALLDIR)/rom/dlna/icon_lrg.png
-else ifeq ($(RTAC56U), y)
+else ifeq ($(RTAC56U)$(XWRT), y)
 	cp -rf dlna/icon_sm.rtac56u.jpg $(INSTALLDIR)/rom/dlna/icon_sm.jpg
 	cp -rf dlna/icon_sm.rtac56u.png $(INSTALLDIR)/rom/dlna/icon_sm.png
 	cp -rf dlna/icon_lrg.rtac56u.jpg $(INSTALLDIR)/rom/dlna/icon_lrg.jpg
