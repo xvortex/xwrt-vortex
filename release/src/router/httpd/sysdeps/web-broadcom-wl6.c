@@ -1602,7 +1602,7 @@ int
 ej_wl_extent_channel(int eid, webs_t wp, int argc, char_t **argv)
 {
 
-#ifdef RTAC3200
+#if defined(RTAC3200) || defined(R8000) || defined(EA9200)
 	return websWrite(wp, "[\"%d\", \"%d\", \"%d\"]", wl_extent_channel(0), wl_extent_channel(1), wl_extent_channel(2));
 #else
 	return websWrite(wp, "[\"%d\", \"%d\"]", wl_extent_channel(0), wl_extent_channel(1));
@@ -1669,7 +1669,7 @@ ej_wl_control_channel(int eid, webs_t wp, int argc, char_t **argv)
 {
 	int ret = 0;
 	int channel_24 = 0, channel_50 = 0;
-#ifdef RTAC3200
+#if defined(RTAC3200) || defined(R8000) || defined(EA9200)
 	int channel_50_2 = 0;
 #endif
 	channel_24 = wl_control_channel(0);
@@ -1677,7 +1677,7 @@ ej_wl_control_channel(int eid, webs_t wp, int argc, char_t **argv)
 	if (!(channel_50 = wl_control_channel(1)))
 		ret = websWrite(wp, "[\"%d\", \"%d\"]", channel_24, 0);
 	else
-#ifndef RTAC3200
+#if !defined(RTAC3200) && !defined(R8000) && !defined(EA9200)
 		ret = websWrite(wp, "[\"%d\", \"%d\"]", channel_24, channel_50);
 #else
 	{
@@ -1807,7 +1807,7 @@ ej_wl_channel_list_5g(int eid, webs_t wp, int argc, char_t **argv)
 }
 #endif
 
-#ifdef RTAC3200
+#if defined(RTAC3200) || defined(R8000) || defined(EA9200)
 int
 ej_wl_channel_list_5g_2(int eid, webs_t wp, int argc, char_t **argv)
 {
@@ -1930,7 +1930,7 @@ ej_wl_rate_5g(int eid, webs_t wp, int argc, char_t **argv)
 #endif
 }
 
-#ifdef RTAC3200
+#if defined(RTAC3200) || defined(R8000) || defined(EA9200)
 int
 ej_wl_rate_5g_2(int eid, webs_t wp, int argc, char_t **argv)
 {
@@ -3422,7 +3422,7 @@ ej_wl_sta_list_5g(int eid, webs_t wp, int argc, char_t **argv)
 #endif
 }
 
-#ifdef RTAC3200
+#if defined(RTAC3200) || defined(R8000) || defined(EA9200)
 int
 ej_wl_sta_list_5g_2(int eid, webs_t wp, int argc, char_t **argv)
 {
@@ -3816,7 +3816,7 @@ ej_wl_scan_5g(int eid, webs_t wp, int argc, char_t **argv)
 }
 #endif
 
-#ifdef RTAC3200
+#if defined(RTAC3200) || defined(R8000) || defined(EA9200)
 int
 ej_wl_scan_5g_2(int eid, webs_t wp, int argc, char_t **argv)
 {

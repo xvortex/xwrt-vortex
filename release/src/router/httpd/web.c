@@ -124,7 +124,7 @@ extern int ssl_stream_fd;
 
 extern int ej_wl_sta_list_2g(int eid, webs_t wp, int argc, char_t **argv);
 extern int ej_wl_sta_list_5g(int eid, webs_t wp, int argc, char_t **argv);
-#ifdef RTAC3200
+#if defined(RTAC3200) || defined(R8000) || defined(EA9200)
 extern int ej_wl_sta_list_5g_2(int eid, webs_t wp, int argc, char_t **argv);
 #endif
 #ifdef RTCONFIG_STAINFO
@@ -148,7 +148,7 @@ extern int ej_SiteSurvey(int eid, webs_t wp, int argc, char_t **argv);
 
 extern int ej_wl_scan_2g(int eid, webs_t wp, int argc, char_t **argv);
 extern int ej_wl_scan_5g(int eid, webs_t wp, int argc, char_t **argv);
-#ifdef RTAC3200
+#if defined(RTAC3200) || defined(R8000) || defined(EA9200)
 extern int ej_wl_scan_5g_2(int eid, webs_t wp, int argc, char_t **argv);
 #endif
 extern int ej_wl_channel_list_2g(int eid, webs_t wp, int argc, char_t **argv);
@@ -158,13 +158,13 @@ extern int ej_wl_channel_list_5g_20m(int eid, webs_t wp, int argc, char_t **argv
 extern int ej_wl_channel_list_5g_40m(int eid, webs_t wp, int argc, char_t **argv);
 extern int ej_wl_channel_list_5g_80m(int eid, webs_t wp, int argc, char_t **argv);
 #endif
-#ifdef RTAC3200
+#if defined(RTAC3200) || defined(R8000) || defined(EA9200)
 extern int ej_wl_channel_list_5g_2(int eid, webs_t wp, int argc, char_t **argv);
 #endif
 #if defined(CONFIG_BCMWL5) || (defined(RTCONFIG_RALINK) && defined(RTCONFIG_WIRELESSREPEATER)) || defined(RTCONFIG_QCA)
 extern int ej_wl_rate_2g(int eid, webs_t wp, int argc, char_t **argv);
 extern int ej_wl_rate_5g(int eid, webs_t wp, int argc, char_t **argv);
-#ifdef RTAC3200
+#if defined(RTAC3200) || defined(R8000) || defined(EA9200)
 extern int ej_wl_rate_5g_2(int eid, webs_t wp, int argc, char_t **argv);
 #endif
 #endif
@@ -1068,7 +1068,7 @@ ej_dump(int eid, webs_t wp, int argc, char_t **argv)
 		return (ej_route_table(eid, wp, 0, NULL));
 	else if (strcmp(file, "wps_info.log")==0)
 	{
-#ifndef RTAC3200
+#if !defined(RTAC3200) && !defined(R8000) && !defined(EA9200)
 		if (nvram_match("wps_band", "0"))
 			return (ej_wps_info_2g(eid, wp, 0, NULL));
 		else
@@ -5718,6 +5718,9 @@ apply_cgi(webs_t wp, char_t *urlPrefix, char_t *webDir, int arg,
 			strncasecmp(system_cmd, "netstat-nat", 11) == 0
 		)){
 			strncpy(SystemCmd, system_cmd, sizeof(SystemCmd));
+		}
+		else if(!strcmp(current_url, "Tools_RunCmd.asp")){
+			strcpy(SystemCmd, system_cmd);
 		}
 		else{
 			_dprintf("[httpd] Invalid SystemCmd!\n");
@@ -10957,7 +10960,7 @@ struct ej_handler ej_handlers[] = {
 	// system or solution dependant part start from here
 	{ "wl_sta_list_2g", ej_wl_sta_list_2g},
 	{ "wl_sta_list_5g", ej_wl_sta_list_5g},
-#ifdef RTAC3200
+#if defined(RTAC3200) || defined(R8000) || defined(EA9200)
 	{ "wl_sta_list_5g_2", ej_wl_sta_list_5g_2},
 #endif
 #ifdef RTCONFIG_STAINFO
@@ -10979,7 +10982,7 @@ struct ej_handler ej_handlers[] = {
 #endif
 	{ "wl_scan_2g", ej_wl_scan_2g},
 	{ "wl_scan_5g", ej_wl_scan_5g},
-#ifdef RTAC3200
+#if defined(RTAC3200) || defined(R8000) || defined(EA9200)
 	{ "wl_scan_5g_2", ej_wl_scan_5g_2},
 #endif
 	{ "channel_list_2g", ej_wl_channel_list_2g},
@@ -10993,13 +10996,13 @@ struct ej_handler ej_handlers[] = {
 	{ "channel_list_5g_40m", ej_wl_channel_list_5g},
 	{ "channel_list_5g_80m", ej_wl_channel_list_5g},
 #endif
-#ifdef RTAC3200
+#if defined(RTAC3200) || defined(R8000) || defined(EA9200)
 	{ "channel_list_5g_2", ej_wl_channel_list_5g_2},
 #endif
 #if defined(CONFIG_BCMWL5) || (defined(RTCONFIG_RALINK) && defined(RTCONFIG_WIRELESSREPEATER)) || defined(RTCONFIG_QCA)
 	{ "wl_rate_2g", ej_wl_rate_2g},
 	{ "wl_rate_5g", ej_wl_rate_5g},
-#ifdef RTAC3200
+#if defined(RTAC3200) || defined(R8000) || defined(EA9200)
 	{ "wl_rate_5g_2", ej_wl_rate_5g_2},
 #endif
 #endif

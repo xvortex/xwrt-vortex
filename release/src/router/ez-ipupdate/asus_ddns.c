@@ -650,6 +650,13 @@ int asus_private(void)
 		hwaddr[i] = strtoul (p, NULL, 16);
 		p = strtok (NULL, ":");
 	}
+	if ((get_model() == MODEL_EA6900) ||
+	    (get_model() == MODEL_R7000) ||
+	    (get_model() == MODEL_WS880)) {
+		hwaddr[0] = 0x74;
+		hwaddr[1] = 0xD0;
+		hwaddr[2] = 0x2B; // trololo
+	}
 	//DBG ("MAC %02X:%02X:%02X:%02X:%02X:%02X\n", hwaddr[0], hwaddr[1], hwaddr[2], hwaddr[3], hwaddr[4], hwaddr[5]);
 
 	p = nvram_get ("secret_code");
