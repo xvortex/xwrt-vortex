@@ -295,7 +295,7 @@ static void cfe_say_hello(void)
 #endif
 	);
 
-    xprintf("Build Date: %s (%s)\n",builddate,builduser);
+    xprintf("Build Date: %s (Vortex)\n",builddate);
     xprintf("Copyright (C) 2000-2008 Broadcom Corporation.\n");
     xprintf("\n");
 }

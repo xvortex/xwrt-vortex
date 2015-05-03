@@ -617,7 +617,7 @@ httpd_appcall(struct httpd_state *hs)
 		httpd_printf(hs,
 			"<table border=0 cellpadding=0 cellspacing=0 bgcolor=#306498>\r\n"
 			"<tr><td height=57 width=600>\r\n"
-			"<font face=Arial size=6 color=#ffffff>ASUSTek - CFE miniWeb Server</font>\r\n"
+			"<font face=Arial size=6 color=#ffffff>VTX CFE miniWeb Server</font>\r\n"
 			"</td></tr>\r\n"
 			"</table><br>\r\n"
 			"<form action=f2.htm method=post encType=multipart/form-data>\r\n"

@@ -15,15 +15,6 @@ cfe cfe.bin : $(CRT0OBJS) $(BSPOBJS) $(LIBCFE) cfe.lds
 	$(OBJDUMP) -d cfe > cfe.dis
 	$(OBJCOPY) -O binary -R .reginfo -R .note -R .comment -R .mdebug -S cfe cfe.bin
 	$(OBJCOPY) --input-target=binary --output-target=srec cfe.bin cfe.srec
-	@if [ "$(CFE_MAXSIZE)" != "" ]; then \
-		if [ "`wc -c < cfe.bin`" -gt "$(CFE_MAXSIZE)" ]; then \
-			if [ "$(CFE_INTERNAL)" != "" ]; then \
-				echo "*** WARNING *** : cfe.bin bootrom image size: `wc -c < cfe.bin` exceeds limit: $(CFE_MAXSIZE)"; \
-			else \
-				echo "*** ERROR *** : cfe.bin bootrom image size: `wc -c < cfe.bin` exceeds limit: $(CFE_MAXSIZE)"; \
-			fi; \
-		fi; \
-	fi; \
 
 cfe.mem: cfe.bin
 	$(OBJCOPY) --input-target=binary --output-target=swapmif cfe.bin cfe.mem

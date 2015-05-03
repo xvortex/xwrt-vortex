@@ -157,6 +157,7 @@ reset_release_wait(void)
 				break;
 		}
 	}
+	LEDOFF();
 }
 #endif /* !CFG_SIM */
 #endif /* CFG_FLASH || CFG_SFLASH || CFG_NFLASH */
@@ -164,10 +165,10 @@ reset_release_wait(void)
 int
 BCMINITFN(nvram_wsgpio_init)(void *si)
 {
-#if defined(RTAC68U) || defined(DSLAC68U)
-	int gpio = 5;
+#ifdef WS880
+	int gpio = 15; // WS880 POWER_BTN
 #else
-	int gpio = 7;
+	int gpio = 255; // No Turbo Button
 #endif
 	si_t *sih;
 
@@ -194,11 +195,7 @@ detect_turbo_button(void)
 
 	/* active low */
 	gpiomask = (uint32)1 << gpio;
-#if defined(RTAC68U) || defined(DSLAC68U)	// active high
-	if ((si_gpioin(sih) & gpiomask))
-#else
 	if (!(si_gpioin(sih) & gpiomask))
-#endif
 		cpu_turbo_mode = 1;
 }
 

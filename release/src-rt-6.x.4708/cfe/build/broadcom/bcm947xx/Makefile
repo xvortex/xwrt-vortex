@@ -18,7 +18,7 @@
 # $Id: Makefile 398971 2013-04-26 22:39:49Z $
 #
 
-include ../../../../.config
+#include ../../../../.config
 
 ARCH ?= arm
 CPU ?= bcmcore
@@ -76,9 +76,6 @@ CFG_SDRAM_PARAM_FROM_EMBEDDED_NVRAM := 1
 COMPRESSED_CFE := 1
 RESCUE_MODE := 1        # disable for tmp
 RGMII_P5 := 0
-DSLAC68U := 0
-RTAC68U := 0
-PATYPE := 0
 MTDSIZE ?= 64
 DUAL_TRX := 0
 
@@ -140,27 +137,24 @@ ifeq ($(strip $(DUAL_TRX)),1)
 CFLAGS += -DDUAL_TRX
 endif
 
-ifeq ($(strip $(RTAC68U)),1)
-CFLAGS += -DRTAC68U
+ifeq ($(strip $(EA6900)),1)
+MTDSIZE := 64
+CFLAGS += -DEA6900
 endif
 
-ifeq ($(BUILD_NAME),$(filter $(BUILD_NAME),RT-AC88U RT-AC88B RT-AC5400))
-CFLAGS += -DRTAC68U
-CFLAGS += -DRTAC88U -DRTL8365MB
-CFLAGS += -L /opt/hndtools-arm-linux-2.6.36-uclibc-4.5.3/bin/../lib/gcc/arm-brcm-linux-uclibcgnueabi/4.5.3 -lgcc
+ifeq ($(strip $(R7000)),1)
+MTDSIZE := 64
+CFLAGS += -DR7000
 endif
 
-ifeq ($(strip $(DSLAC68U)),1)
-CFLAGS += -DDSLAC68U
+ifeq ($(strip $(R6300V2)),1)
+MTDSIZE := 64
+CFLAGS += -DR6300V2
 endif
 
-ifeq ($(strip $(RTAC87U)),1)
-MTDSIZE := 128
-CFLAGS += -DRTAC87U
-endif
-
-ifeq ($(strip $(RTN18U)),1)
-CFLAGS += -DRTN18U
+ifeq ($(strip $(WS880)),1)
+MTDSIZE := 64
+CFLAGS += -DWS880
 endif
 
 ifeq ($(strip $(COMPRESSED_CFE)),1)

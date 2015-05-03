@@ -90,7 +90,7 @@ OBJECTS		+= nflash.o
 endif
 
 # Default to lzma_4k
-COMPRESS	:= lzma_4k e
+COMPRESS	:= ../../../../../ctools/lzma_4k e
 
 ifneq ($(findstring lzma_4k,$(COMPRESS)),)
 CFLAGS		+= -DUSE_LZMA -DBCMLZMA
@@ -107,82 +107,41 @@ cfez.bin: cfez
 	$(OBJCOPY) $< $@
 	$(OBJCOPYSREC) $< cfez.srec
 
-ifeq ($(DSLAC68U), 1)
-ifeq ($(JDM), 1)
-	../../../../../ctools/nvserial -i cfez.bin -o cfe_dsl-ac68u_jdm.bin -s 00 dsl-ac68u_jdm_nvram.txt
-	cp cfe_dsl-ac68u_jdm.bin ../../../..
-else
-	../../../../../ctools/nvserial -i cfez.bin -o cfe_dsl-ac68u.bin -s 00 dsl-ac68u_nvram.txt
-	cp cfe_dsl-ac68u.bin ../../../..
-endif
-endif
-
-ifeq ($(RTAC87U), 1)
-	../../../../../ctools/nvserial -i cfez.bin -o cfe_rt-ac87u.bin -s 00 rt-ac87u_nvram.txt
-	cp cfe_rt-ac87u.bin ../../../..
+ifeq ($(EA6900), 1)
+	../../../../../ctools/nvserial -i cfez.bin -o cfe_ea6900.bin -s 01 ea6900_nvram.txt
+	cp cfe_ea6900.bin ../../../..
 	@if [ "$(CFEZ_MAXSIZE)" != "" ]; then \
-		if [ "`wc -c < cfe_rt-ac87u.bin`" -gt "$(CFEZ_MAXSIZE)" ]; then \
-			echo "*** ERROR *** : cfe_rt-ac87u.bin bootrom image size: `wc -c < cfe_rt-ac87u.bin` exceeds limit: $(CFEZ_MAXSIZE)"; \
-		fi ; \
-	fi
-else
-ifeq ($(RTAC68U), 1)
-ifeq ($(PATYPE), 0)
-	../../../../../ctools/nvserial -i cfez.bin -o cfe_rt-ac68u.bin -s 00 rt-ac68u_nvram.txt
-	cp cfe_rt-ac68u.bin ../../../..
-else ifeq ($(PATYPE), 5023)
-	../../../../../ctools/nvserial -i cfez.bin -o cfe_rt-ac68u_v2_5023.bin -s 00 rt-ac68u_v2_5023_nvram.txt
-	cp cfe_rt-ac68u_v2_5023.bin ../../../..
-else ifeq ($(PATYPE), 85402)
-	../../../../../ctools/nvserial -i cfez.bin -o cfe_rt-ac68u_v2_85402.bin -s 00 rt-ac68u_v2_85402_nvram.txt
-	cp cfe_rt-ac68u_v2_85402.bin ../../../..
-else ifeq ($(PATYPE), 5003)
-	../../../../../ctools/nvserial -i cfez.bin -o cfe_rt-ac68u_v2_5003.bin -s 00 rt-ac68u_v2_5003_nvram.txt
-	cp cfe_rt-ac68u_v2_5003.bin ../../../..
-else ifeq ($(PATYPE), 47094)
-	../../../../../ctools/nvserial -i cfez.bin -o cfe_rt-ac88b.bin -s 00 rt-ac88b_nvram.txt
-	cp cfe_rt-ac88b.bin ../../../..
-endif
-else
-ifeq ($(RTN18U), 1)
-		../../../../../ctools/nvserial -i cfez.bin -o cfe_rt-n18u.bin -s 00 rt-n18u_nvram.txt
-		cp cfe_rt-n18u.bin ../../../..
-endif
-ifeq ($(BUILD_NAME), RP-AC68U)
-		../../../../../ctools/nvserial -i cfez.bin -o cfe_rp-ac68u.bin -s 00 rp-ac68u_nvram.txt
-		cp cfe_rp-ac68u.bin ../../../..
-endif
-endif
-endif
-
-ifeq ($(DSLAC68U), 1)
-	@if [ "$(CFEZ_MAXSIZE)" != "" ]; then \
-		if [ "`wc -c < cfe_dsl-ac68u.bin`" -gt "$(CFEZ_MAXSIZE)" ]; then \
-			echo "*** ERROR *** : cfe_dsl-ac68u.bin bootrom image size: `wc -c < cfe_dsl-ac68u.bin` exceeds limit: $(CFEZ_MAXSIZE)"; \
+		if [ "`wc -c < cfe_ea6900.bin`" -gt "$(CFEZ_MAXSIZE)" ]; then \
+			echo "*** ERROR *** : cfe_ea6900.bin bootrom image size: `wc -c < cfe_ea6900.bin` exceeds limit: $(CFEZ_MAXSIZE)"; \
 		fi ; \
 	fi
 endif
-ifeq ($(RTAC68U), 1)
+ifeq ($(R7000), 1)
+	../../../../../ctools/nvserial -i cfez.bin -o cfe_r7000.bin -s 32 r7000_nvram.txt
+	cp cfe_r7000.bin ../../../..
 	@if [ "$(CFEZ_MAXSIZE)" != "" ]; then \
-		if [ "`wc -c < cfe_rt-ac68u.bin`" -gt "$(CFEZ_MAXSIZE)" ]; then \
-			echo "*** ERROR *** : cfe_rt-ac68u.bin bootrom image size: `wc -c < cfe_rt-ac68u.bin` exceeds limit: $(CFEZ_MAXSIZE)"; \
-		fi ; \
-	fi
-else
-ifeq ($(RTN18U), 1)
-	@if [ "$(CFEZ_MAXSIZE)" != "" ]; then \
-		if [ "`wc -c < cfe_rt-n18u.bin`" -gt "$(CFEZ_MAXSIZE)" ]; then \
-			echo "*** ERROR *** : cfe_rt-n18u.bin bootrom image size: `wc -c < cfe_rt-n18u.bin` exceeds limit: $(CFEZ_MAXSIZE)"; \
+		if [ "`wc -c < cfe_r7000.bin`" -gt "$(CFEZ_MAXSIZE)" ]; then \
+			echo "*** ERROR *** : cfe_r7000.bin bootrom image size: `wc -c < cfe_r7000.bin` exceeds limit: $(CFEZ_MAXSIZE)"; \
 		fi ; \
 	fi
 endif
-ifeq ($(BUILD_NAME), RP-AC68U)
+ifeq ($(R6300V2), 1)
+	../../../../../ctools/nvserial -i cfez.bin -o cfe_r6300v2.bin -s 679 r6300v2_nvram.txt
+	cp cfe_r6300v2.bin ../../../..
 	@if [ "$(CFEZ_MAXSIZE)" != "" ]; then \
-		if [ "`wc -c < cfe_rp-ac68u.bin`" -gt "$(CFEZ_MAXSIZE)" ]; then \
-			echo "*** ERROR *** : cfe_rp-ac68u.bin bootrom image size: `wc -c < cfe_rp-ac68u.bin` exceeds limit: $(CFEZ_MAXSIZE)"; \
+		if [ "`wc -c < cfe_r6300v2.bin`" -gt "$(CFEZ_MAXSIZE)" ]; then \
+			echo "*** ERROR *** : cfe_r6300v2.bin bootrom image size: `wc -c < cfe_r6300v2.bin` exceeds limit: $(CFEZ_MAXSIZE)"; \
 		fi ; \
 	fi
 endif
+ifeq ($(WS880), 1)
+	../../../../../ctools/nvserial -i cfez.bin -o cfe_ws880.bin -s 1234 ws880_nvram.txt
+	cp cfe_ws880.bin ../../../..
+	@if [ "$(CFEZ_MAXSIZE)" != "" ]; then \
+		if [ "`wc -c < cfe_ws880.bin`" -gt "$(CFEZ_MAXSIZE)" ]; then \
+			echo "*** ERROR *** : cfe_ws880.bin bootrom image size: `wc -c < cfe_ws880.bin` exceeds limit: $(CFEZ_MAXSIZE)"; \
+		fi ; \
+	fi
 endif
 
 # Link the loader and the kernel binary together

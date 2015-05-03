@@ -51,52 +51,71 @@ bool rmode_set(void);
 extern void LEDON(void);
 extern void LEDOFF(void);
 extern void GPIO_INIT(void);
-extern void FANON(void);
 
-/* define GPIOs*/
+#ifdef EA6900
+/* define EA6900 GPIO */
+#define	LOGO_LED1_GPIO	(1 << 6)	// GPIO 6
+#define	LOGO_LED2_GPIO	(1 << 8)	// GPIO 8
 
-#ifdef DSLAC68U
-#define PWR_LED_GPIO	(1 << 3)	// GPIO 3
+#define	USB1_PWR_GPIO	(1 << 9)	// GPIO 9
+#define	USB2_PWR_GPIO	(1 << 10)	// GPIO 10
+
 #define RST_BTN_GPIO	(1 << 11)	// GPIO 11
 #define WPS_BTN_GPIO	(1 << 7)	// GPIO 7
-
-#else	//not DSLAC68U
-
-#ifdef RTAC87U
-#define PWR_LED_GPIO	(1 << 3)	// GPIO 3
-#define RST_BTN_GPIO	(1 << 11)	// GPIO 11
-#define	TURBO_LED_GPIO	(1 << 4)	// GPIO 4
-#define WPS_BTN_GPIO	(1 << 2)	// GPIO 2
-
-#else	/* RTAC87U */
-
-#ifdef RTN18U
-#define PWR_LED_GPIO	(1 << 0)	// GPIO 0
-#define RST_BTN_GPIO	(1 << 7)	// GPIO 7
-#else
-#define PWR_LED_GPIO	(1 << 3)	// GPIO 3
-#define RST_BTN_GPIO	(1 << 11)	// GPIO 11
-#endif
-#ifdef RTAC68U
-#define	TURBO_LED_GPIO	(1 << 4)	// GPIO 4
-#define WPS_BTN_GPIO	(1 << 7)	// GPIO 7
-#else
-#ifdef RTN18U
-#define WPS_BTN_GPIO	(1 << 11)	// GPIO 11
-#else
-#define WPS_BTN_GPIO	(1 << 15)	// GPIO 15
-#endif
-#endif
 #endif
 
-#endif	/* end of RTAC87U */
+#ifdef R7000
+/* define R7000 GPIO */
+#define	PWR_WH_LED_GPIO	(1 << 2)	// GPIO 2
+#define	PWR_OR_LED_GPIO	(1 << 3)	// GPIO 3
+#define	WAN_OR_LED_GPIO	(1 << 8)	// GPIO 8
+#define	WAN_WH_LED_GPIO	(1 << 9)	// GPIO 9
+#define	WL_5G_LED_GPIO	(1 << 12)	// GPIO 12
+#define	WL_2G_LED_GPIO	(1 << 13)	// GPIO 13
+#define	WPS_LED_GPIO	(1 << 14)	// GPIO 14
+#define	WIFI_LED_GPIO	(1 << 15)	// GPIO 15
+#define	USB2_LED_GPIO	(1 << 17)	// GPIO 17
+#define	USB3_LED_GPIO	(1 << 18)	// GPIO 18
 
-#endif	//end of DSLAC68U
+#define	USB_PWR_GPIO	(1 << 0)	// GPIO 0
 
-#ifdef RTL8365MB
-#define SMI_SCK_GPIO	(1 << 6)	// GPIO 6
-#define SMI_SDA_GPIO	(1 << 7)	// GPIO 7
-#endif	/*~RTL8365MB*/
+#define WPS_BTN_GPIO	(1 << 4)	// GPIO 4
+#define WIFI_BTN_GPIO	(1 << 5)	// GPIO 5
+#define RST_BTN_GPIO	(1 << 6)	// GPIO 6
+#endif
+
+#ifdef R6300V2
+/* define R6300V2 GPIO */
+#define	LOGO_LED_GPIO	(1 << 1)	// GPIO 1
+#define	PWR_GR_LED_GPIO	(1 << 2)	// GPIO 2
+#define	PWR_OR_LED_GPIO	(1 << 3)	// GPIO 3
+#define	USB_LED_GPIO	(1 << 8)	// GPIO 8
+#define	WAN_LED_GPIO	(1 << 10)	// GPIO 10
+#define	WLAN_LED_GPIO	(1 << 11)	// GPIO 11
+
+#define	USB_PWR_GPIO	(1 << 0)	// GPIO 0
+
+#define WPS_BTN_GPIO	(1 << 4)	// GPIO 4
+#define WIFI_BTN_GPIO	(1 << 5)	// GPIO 5
+#define RST_BTN_GPIO	(1 << 6)	// GPIO 6
+#endif
+
+#ifdef WS880
+/* define WS880 GPIO */
+#define	WLAN_LED_GPIO	(1 << 0)	// GPIO 0
+#define	LAN_LED_GPIO	(1 << 1)	// GPIO 1
+#define	WPS_LED_GPIO	(1 << 6)	// GPIO 6
+#define	INET_LED_GPIO	(1 << 12)	// GPIO 12
+#define	USB_LED_GPIO	(1 << 14)	// GPIO 14
+
+#define	USB_PWR_GPIO	(1 << 7)	// GPIO 7
+
+#define RST_BTN_GPIO	(1 << 2)	// GPIO 2
+#define WPS_BTN_GPIO	(1 << 3)	// GPIO 3
+#define PWR_BTN_GPIO	(1 << 15)	// GPIO 15
+#endif
+
+#endif /* RESCUE_MODE */
 
 static int
 ui_cmd_reboot(ui_cmdline_t *cmd, int argc, char *argv[])
@@ -299,7 +318,7 @@ void get_gpio_data(rtk_uint32 gpioid, rtk_uint32 *pdata)
 #endif
 
 #ifdef RESCUE_MODE
-bool mmode_set(void)
+bool mmode_set(void) /* manual recovery mode */
 {
         unsigned long gpioin;
 
@@ -311,7 +330,7 @@ bool mmode_set(void)
         return gpioin & RST_BTN_GPIO ? FALSE : TRUE;
 }
 
-bool rmode_set(void) /* reset mode */
+bool rmode_set(void) /* reset nvram mode */
 {
         unsigned long gpioin;
 
@@ -327,39 +346,23 @@ extern void LEDON(void)
 {
 	sih = si_kattach(SI_OSH);
 	ASSERT(sih);
-	si_gpioouten(sih, PWR_LED_GPIO, PWR_LED_GPIO, GPIO_DRV_PRIORITY);
-#if defined(RTAC68U) || defined(RTAC87U)
-	si_gpioouten(sih, TURBO_LED_GPIO, TURBO_LED_GPIO, GPIO_DRV_PRIORITY);
+#ifdef EA6900
+	si_gpioouten(sih, LOGO_LED1_GPIO, LOGO_LED1_GPIO, GPIO_DRV_PRIORITY);
+	si_gpioouten(sih, LOGO_LED2_GPIO, LOGO_LED2_GPIO, GPIO_DRV_PRIORITY);
+	si_gpioout(sih, LOGO_LED1_GPIO, LOGO_LED1_GPIO, GPIO_DRV_PRIORITY);
+	si_gpioout(sih, LOGO_LED2_GPIO, LOGO_LED2_GPIO, GPIO_DRV_PRIORITY);
 #endif
-	/* led on */
-	/* negative logic and hence val==0 */
-	si_gpioout(sih, PWR_LED_GPIO, 0, GPIO_DRV_PRIORITY);
-#if defined(RTAC68U) || defined(RTAC87U)
-	si_gpioout(sih, TURBO_LED_GPIO, 0, GPIO_DRV_PRIORITY);
+#ifdef R7000
+	si_gpioouten(sih, PWR_OR_LED_GPIO, PWR_OR_LED_GPIO, GPIO_DRV_PRIORITY);
+	si_gpioout(sih, PWR_OR_LED_GPIO, PWR_OR_LED_GPIO, GPIO_DRV_PRIORITY);
 #endif
-}
-extern void GPIO_INIT(void)
-{
-	sih = si_kattach(SI_OSH);
-	ASSERT(sih);
-	si_gpiocontrol(sih, PWR_LED_GPIO, 0, GPIO_DRV_PRIORITY);
-#ifdef RTL8365MB
-	si_gpiocontrol(sih, SMI_SCK_GPIO, 0, GPIO_DRV_PRIORITY);
-	si_gpiocontrol(sih, SMI_SDA_GPIO, 0, GPIO_DRV_PRIORITY);
-#else
-#if defined(RTAC68U) || defined(RTAC87U)
-	si_gpiocontrol(sih, TURBO_LED_GPIO, 0, GPIO_DRV_PRIORITY);
+#ifdef R6300V2
+	si_gpioouten(sih, LOGO_LED_GPIO, LOGO_LED_GPIO, GPIO_DRV_PRIORITY);
+	si_gpioout(sih, LOGO_LED_GPIO, LOGO_LED_GPIO, GPIO_DRV_PRIORITY);
 #endif
-#endif
-
-	si_gpioouten(sih, PWR_LED_GPIO, 0, GPIO_DRV_PRIORITY);
-#ifdef RTL8365MB
-	si_gpioouten(sih, SMI_SCK_GPIO, 0, GPIO_DRV_PRIORITY);
-	si_gpioouten(sih, SMI_SDA_GPIO, 0, GPIO_DRV_PRIORITY);
-#else
-#if defined(RTAC68U) || defined(RTAC87U)
-	si_gpioouten(sih, TURBO_LED_GPIO, 0, GPIO_DRV_PRIORITY);
-#endif
+#ifdef WS880
+	si_gpioouten(sih, INET_LED_GPIO, INET_LED_GPIO, GPIO_DRV_PRIORITY);
+	si_gpioout(sih, INET_LED_GPIO, INET_LED_GPIO, GPIO_DRV_PRIORITY);
 #endif
 }
 
@@ -367,13 +370,47 @@ extern void LEDOFF(void)
 {
 	sih = si_kattach(SI_OSH);
 	ASSERT(sih);
-	si_gpioouten(sih, PWR_LED_GPIO, PWR_LED_GPIO, GPIO_DRV_PRIORITY);
-#if defined(RTAC68U) || defined(RTAC87U)
-	si_gpioouten(sih, TURBO_LED_GPIO, TURBO_LED_GPIO, GPIO_DRV_PRIORITY);
+#ifdef EA6900
+	si_gpioouten(sih, LOGO_LED1_GPIO, LOGO_LED1_GPIO, GPIO_DRV_PRIORITY);
+	si_gpioouten(sih, LOGO_LED2_GPIO, LOGO_LED2_GPIO, GPIO_DRV_PRIORITY);
+	si_gpioout(sih, LOGO_LED1_GPIO, LOGO_LED1_GPIO, GPIO_DRV_PRIORITY);
+	si_gpioout(sih, LOGO_LED2_GPIO, 0, GPIO_DRV_PRIORITY);
 #endif
-	si_gpioout(sih, PWR_LED_GPIO, PWR_LED_GPIO, GPIO_DRV_PRIORITY);
-#if defined(RTAC68U) || defined(RTAC87U)
-	si_gpioout(sih, TURBO_LED_GPIO, TURBO_LED_GPIO, GPIO_DRV_PRIORITY);
+#ifdef R7000
+	si_gpioouten(sih, PWR_OR_LED_GPIO, PWR_OR_LED_GPIO, GPIO_DRV_PRIORITY);
+	si_gpioout(sih, PWR_OR_LED_GPIO, 0, GPIO_DRV_PRIORITY);
+#endif
+#ifdef R6300V2
+	si_gpioouten(sih, LOGO_LED_GPIO, LOGO_LED_GPIO, GPIO_DRV_PRIORITY);
+	si_gpioout(sih, LOGO_LED_GPIO, 0, GPIO_DRV_PRIORITY);
+#endif
+#ifdef WS880
+	si_gpioouten(sih, INET_LED_GPIO, INET_LED_GPIO, GPIO_DRV_PRIORITY);
+	si_gpioout(sih, INET_LED_GPIO, 0, GPIO_DRV_PRIORITY);
+#endif
+}
+
+extern void GPIO_INIT(void)
+{
+	sih = si_kattach(SI_OSH);
+	ASSERT(sih);
+#ifdef EA6900
+	si_gpiocontrol(sih, LOGO_LED1_GPIO, 0, GPIO_DRV_PRIORITY);
+	si_gpiocontrol(sih, LOGO_LED2_GPIO, 0, GPIO_DRV_PRIORITY);
+	si_gpioouten(sih, LOGO_LED1_GPIO, 0, GPIO_DRV_PRIORITY);
+	si_gpioouten(sih, LOGO_LED2_GPIO, 0, GPIO_DRV_PRIORITY);
+#endif
+#ifdef R7000
+	si_gpiocontrol(sih, PWR_OR_LED_GPIO, 0, GPIO_DRV_PRIORITY);
+	si_gpioouten(sih, PWR_OR_LED_GPIO, 0, GPIO_DRV_PRIORITY);
+#endif
+#ifdef R6300V2
+	si_gpiocontrol(sih, LOGO_LED_GPIO, 0, GPIO_DRV_PRIORITY);
+	si_gpioouten(sih, LOGO_LED_GPIO, 0, GPIO_DRV_PRIORITY);
+#endif
+#ifdef WS880
+	si_gpiocontrol(sih, INET_LED_GPIO, 0, GPIO_DRV_PRIORITY);
+	si_gpioouten(sih, INET_LED_GPIO, 0, GPIO_DRV_PRIORITY);
 #endif
 }
 
@@ -565,12 +602,7 @@ ui_cmd_go(ui_cmdline_t *cmd, int argc, char *argv[])
 #else
         int  i = 0;
         GPIO_INIT();
-        LEDON();
-#if 0
-#if defined(RTAC68U) || defined(RTAC87U)
-	OTHERLEDOFF();
-#endif
-#endif
+        LEDOFF();
 #endif
 #ifdef FAILSAFE_UPGRADE
 	char *bootpartition = nvram_get(BOOTPARTITION);
@@ -622,8 +654,8 @@ ui_cmd_go(ui_cmdline_t *cmd, int argc, char *argv[])
                         if (i==0xffffff)
                                 i = 0;
                 }
+		LEDOFF();
         }
-#if 0
         else if (rmode_set()) {
                 xprintf("Wait until reset button released...\n");
                 while(rmode_set() == 1) {
@@ -639,10 +671,10 @@ ui_cmd_go(ui_cmdline_t *cmd, int argc, char *argv[])
                                 i = 0;
                         }
                 }
+		LEDOFF();
                 ui_docommand ("nvram erase");
                 ui_docommand ("reboot");
         }
-#endif
         else {
                 xprintf("boot the image...\n"); // tmp test
 #ifdef DUAL_TRX
@@ -700,6 +732,7 @@ ui_cmd_go(ui_cmdline_t *cmd, int argc, char *argv[])
                                 	if (i > 20)
 						break;
                         	}
+				LEDOFF();
 				/* try reboot if no actions at all */
                         	xprintf("\n\n3. rebooting...\n");
                 		ui_docommand ("reboot");
