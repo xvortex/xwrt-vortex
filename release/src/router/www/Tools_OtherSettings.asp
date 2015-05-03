@@ -105,7 +105,7 @@ function initial() {
 	if (document.form.usb_idle_exclude.value.indexOf("i") != -1)
 		document.form.usb_idle_exclude_i.checked = true;
 
-	if ((productid == "RT-AC56U") || (productid == "RT-AC68U") || (productid == "RT-AC87U") || (productid == "RT-AC3200"))
+	if ((productid == "RT-AC56U") || (productid == "RT-AC68U") || (productid == "EA6900") || (productid == "EA9200") || (productid == "R7000") || (productid == "R8000") || (productid == "WS880") || (productid == "RT-AC87U") || (productid == "RT-AC3200"))
 		document.getElementById("ct_established_default").innerHTML = "Default: 432000 (5 days)";
 
 	document.aidiskForm.protocol.value = PROTOCOL;

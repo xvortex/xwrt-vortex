@@ -220,6 +220,7 @@ function initial(){
 		if(	based_modelid == "RT-AC3200" || based_modelid == "RT-AC69U" ||
 			based_modelid == "RT-AC56S" || based_modelid == "RT-AC56U" ||
 			based_modelid == "RT-AC68U" || based_modelid == "RT-AC68U_V2" || based_modelid == "DSL-AC68U" ||
+			based_modelid == "EA6900" || based_modelid == "EA9200" || based_modelid == "R7000" || based_modelid == "R8000" || based_modelid == "WS880" ||
 			based_modelid == "RT-AC87U" || based_modelid == "EA-AC87")
 		{
 			$('wl_txbf_desc').innerHTML = "802.11ac Beamforming";
@@ -229,6 +230,7 @@ function initial(){
 		if(	based_modelid == "RT-AC3200" || based_modelid == "RT-AC69U" ||
 			based_modelid == "RT-AC56S" || based_modelid == "RT-AC56U" ||
 			based_modelid == "RT-AC68U" || based_modelid == "RT-AC68U_V2" || based_modelid == "DSL-AC68U" ||
+			based_modelid == "EA6900" || based_modelid == "EA9200" || based_modelid == "R7000" || based_modelid == "R8000" || based_modelid == "WS880" ||
 			based_modelid == "RT-AC87U" || based_modelid == "EA-AC87")
 		{
 			inputCtrl(document.form.wl_itxbf, 1);
@@ -245,6 +247,7 @@ function initial(){
 			based_modelid == "RT-AC87U" ||
 			based_modelid == "RT-AC55U" || based_modelid == "RT-AC55UHP" || based_modelid == "4G-AC55U" ||
 			based_modelid == "RT-AC56S" || based_modelid == "RT-AC56U" || 
+			based_modelid == "EA6900" || based_modelid == "EA9200" || based_modelid == "R7000" || based_modelid == "R8000" || based_modelid == "WS880" ||
 			based_modelid == "RT-AC68U" || based_modelid == "RT-AC68U_V2" || based_modelid == "DSL-AC68U")
 		{
 			inputCtrl(document.form.usb_usb3, 1);
@@ -254,6 +257,7 @@ function initial(){
 			based_modelid == "RT-N18U" ||
 			based_modelid == "RT-AC69U" ||
 			based_modelid == "RT-AC87U" ||
+			based_modelid == "EA6900" || based_modelid == "EA9200" || based_modelid == "R7000" || based_modelid == "R8000" || based_modelid == "WS880" ||
 			based_modelid == "RT-AC68U" || based_modelid == "RT-AC68U_V2" || based_modelid == "DSL-AC68U")
 		{
 			if(based_modelid == "RT-N18U" && bootLoader_ver < 2000)
@@ -347,6 +351,7 @@ function initial(){
 	if(	based_modelid == "RT-N18U" ||
 		based_modelid == "RT-AC56U" || based_modelid == "RT-AC56S" ||
 		based_modelid == "RT-AC68U" || based_modelid == "RT-AC68U_V2" || based_modelid == "DSL-AC68U" ||
+		based_modelid == "EA6900" || based_modelid == "EA9200" || based_modelid == "R7000" || based_modelid == "R8000" || based_modelid == "WS880" ||
 		based_modelid == "RT-AC69U" || based_modelid == "RT-AC87U" || based_modelid == "RT-AC3200"){
 		
 		inputCtrl(document.form.wl_atf, 1);

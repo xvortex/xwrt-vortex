@@ -51,7 +51,7 @@ function initial(){
 	if(band5g_support && band5g_11ac_support && document.form.wl_unit[1].selected == true){ //AC 5G
 		if(based_modelid == "RT-AC87U") 
 			document.getElementById('wl_mode_desc').onclick=function(){return openHint(1, 6)};//#WLANConfig11b_x_Mode_itemdescAC2#	
-		else if(based_modelid == "DSL-AC68U" || based_modelid == "RT-AC68U" || based_modelid == "RT-AC68U_V2" || based_modelid == "RT-AC69U" || 
+		else if(based_modelid == "DSL-AC68U" || based_modelid == "RT-AC68U" || based_modelid == "EA6900" || based_modelid == "R7000" || based_modelid == "WS880" || based_modelid == "RT-AC68U_V2" || based_modelid == "RT-AC69U" || 
 				based_modelid == "RT-AC56U" || based_modelid == "RT-AC56S" || based_modelid == "RT-AC53U"){
 			document.getElementById('wl_mode_desc').onclick=function(){return openHint(1, 7)};//#WLANConfig11b_x_Mode_itemdescAC3#
 		}	
@@ -114,9 +114,9 @@ function initial(){
 				
 	change_wl_nmode(document.form.wl_nmode_x);
 	if(country == "EU"){		//display checkbox of DFS channel under 5GHz
-		if(based_modelid == "RT-AC68U" || based_modelid == "RT-AC68U_V2" || based_modelid == "DSL-AC68U" || based_modelid == "RT-AC69U"
+		if(based_modelid == "RT-AC68U" || based_modelid == "EA6900" || based_modelid == "R7000" || based_modelid == "WS880" || based_modelid == "RT-AC68U_V2" || based_modelid == "DSL-AC68U" || based_modelid == "RT-AC69U"
 		|| based_modelid == "RT-AC87U"
-		|| based_modelid == "RT-AC3200"
+		|| based_modelid == "RT-AC3200" || based_modelid == "EA9200" || based_modelid == "R8000"
 		|| (based_modelid == "RT-AC66U" && wl1_dfs == "1")		//0: A2 not support, 1: B0 support
 		|| based_modelid == "RT-N66U"){
 				if(document.form.wl_channel.value  == '0' && '<% nvram_get("wl_unit"); %>' == '1'){
@@ -126,7 +126,7 @@ function initial(){
 		}
 	}
 	else if(country == "US" || country == "SG"){		//display checkbox of band1 channel under 5GHz
-		if(based_modelid == "RT-AC68U" || based_modelid == "RT-AC68U_V2" || based_modelid == "RT-AC69U" || based_modelid == "DSL-AC68U"
+		if(based_modelid == "RT-AC68U" || based_modelid == "EA6900" || based_modelid == "R7000" || based_modelid == "WS880" || based_modelid == "RT-AC68U_V2" || based_modelid == "RT-AC69U" || based_modelid == "DSL-AC68U"
 		|| based_modelid == "RT-AC56U" || based_modelid == "RT-AC56S"
 		|| based_modelid == "RT-N18U"
 		|| based_modelid == "RT-AC66U"
@@ -232,10 +232,10 @@ function genBWTable(_unit){
 					bwsDesc = ["20 MHz", "40 MHz", "80 MHz"];
 				}
 			}
-			else if((based_modelid == "DSL-AC68U" || based_modelid == "RT-AC68U" || based_modelid == "RT-AC68U_V2" || based_modelid == "RT-AC69U" || 
+			else if((based_modelid == "DSL-AC68U" || based_modelid == "RT-AC68U" || based_modelid == "EA6900" || based_modelid == "R7000" || based_modelid == "WS880" || based_modelid == "RT-AC68U_V2" || based_modelid == "RT-AC69U" || 
 				based_modelid == "RT-AC56U" || based_modelid == "RT-AC56S" || 
 				based_modelid == "RT-AC66U" || 
-				based_modelid == "RT-AC3200" || 
+				based_modelid == "RT-AC3200" || based_modelid == "EA9200" || based_modelid == "R8000" ||
 				based_modelid == "RT-AC53U") && document.form.wl_nmode_x.value == 1){		//N only
 				bws = [0, 1, 2];
 				bwsDesc = ["20/40 MHz", "20 MHz", "40 MHz"];

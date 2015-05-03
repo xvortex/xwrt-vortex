@@ -86,7 +86,7 @@ function update_temperatures(){
 			if (band5g_support) {
 				code += "&nbsp;&nbsp;-&nbsp;&nbsp;<b>5 GHz:</b> <span>" + curr_coreTmp_5_raw + "</span>";
 			}
-			if ((based_modelid == "RT-N18U") || (based_modelid == "RT-AC56U") || (based_modelid == "RT-AC56S") || (based_modelid == "RT-AC68U") || (based_modelid == "RT-AC87U") || (based_modelid == "RT-AC68U") || (based_modelid == "RT-AC3200")) {
+			if ((based_modelid == "RT-N18U") || (based_modelid == "RT-AC56U") || (based_modelid == "RT-AC56S") || (based_modelid == "RT-AC68U") || (based_modelid == "EA6900") || (based_modelid == "EA9200") || (based_modelid == "R7000") || (based_modelid == "R8000") || (based_modelid == "WS880") || (based_modelid == "RT-AC87U") || (based_modelid == "RT-AC68U") || (based_modelid == "RT-AC3200")) {
 				code +="&nbsp;&nbsp;-&nbsp;&nbsp;<b>CPU:</b> <span>" + curr_coreTmp_cpu +"&deg;C</span>";
 			}
 			document.getElementById("temp_td").innerHTML = code;
@@ -205,7 +205,7 @@ function show_etherstate(){
 			if (tmpPort == "0") {
 				port = "WAN";
 			} else {
-				if ((based_modelid == "RT-N16") || (based_modelid == "RT-AC87U") || (based_modelid == "RT-AC3200"))  tmpPort = 5 - tmpPort;
+				if ((based_modelid == "RT-N16") || (based_modelid == "RT-AC87U") || (based_modelid == "RT-AC3200") || (based_modelid == "EA9200") || (based_modelid == "R8000"))  tmpPort = 5 - tmpPort;
 				port = "LAN "+tmpPort;
 			}
 			entry = '<tr><td>' + port + '</td><td>' + (line[7] & 0xFFF) + '</td><td><span>' + state2 + '</span></td>';

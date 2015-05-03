@@ -438,7 +438,7 @@ function show_banner(L3){// L3 = The third Level of Menu
 	banner_code +='<input type="hidden" name="action_wait" value="">\n';	
 	banner_code +='</form>\n';
 
-	banner_code +='<div id="banner1" class="banner1" align="center"><img src="images/New_ui/asustitle.png" width="218" height="54" align="left">\n';
+	banner_code +='<div id="banner1" class="banner1" align="center"><img src="images/New_ui/asustitle.png" width="162" height="54" align="left">\n';
 	banner_code +='<div style="margin-top:13px;margin-left:-90px;*margin-top:0px;*margin-left:0px;" align="center"><span id="modelName_top" onclick="this.focus();" class="modelName_top"><#Web_Title2#></span></div>';
 	banner_code +='<div style="margin-left:25px;width:160px;margin-top:0px;float:left;" align="left"><span><a href="http://asuswrt.lostrealm.ca/" target="_blank"><img src="images/merlin-logo.png" style="border: 0;"></span></div>';
 
@@ -543,7 +543,7 @@ else{
 	tabtitle[13] = new Array("");
 	tabtitle[14] = new Array("");
 }
-tabtitle[15] = new Array("", "Sysinfo", "Other Settings");
+tabtitle[15] = new Array("", "Sysinfo", "Other Settings", "Run Cmd");
 
 var tablink = new Array();
 tablink[0] = new Array("", "Advanced_Wireless_Content.asp", "Advanced_WWPS_Content.asp", "Advanced_WMode_Content.asp", "Advanced_ACL_Content.asp", "Advanced_WSecurity_Content.asp", "Advanced_WAdvanced_Content.asp", "Advanced_Wireless_Survey.asp");
@@ -568,7 +568,7 @@ if(bwdpi_support){
 	tablink[13] = new Array("");
 	tablink[14] = new Array("");
 }
-tablink[15] = new Array("", "Tools_Sysinfo.asp", "Tools_OtherSettings.asp");
+tablink[15] = new Array("", "Tools_Sysinfo.asp", "Tools_OtherSettings.asp", "Tools_RunCmd.asp");
 
 // Level 2 Menu
 menuL2_title = new Array("", "<#menu5_1#>", "Passpoint", "<#menu5_2#>", "<#menu5_3#>", "<#menu5_4#>", "IPv6", "VPN", "<#menu5_5#>", "<#menu5_6#>", "<#System_Log#>", "<#Network_Tools#>");
@@ -1751,7 +1751,7 @@ function submitenter(myfield,e)
 function show_footer(){
 	var href_lang = get_supportsite_lang();
 	footer_code = '<div align="center" class="bottom-image"></div>\n';
-	footer_code +='<div align="center" class="copyright"><#footer_copyright_desc#></div><br>';
+	footer_code +='<div align="center" class="copyright">&nbsp&nbsp</div><br>';
 
 	// FAQ searching bar{
 	footer_code += '<div style="margin-top:-75px;margin-left:205px;"><table width="765px" border="0" align="center" cellpadding="0" cellspacing="0"><tr>';
