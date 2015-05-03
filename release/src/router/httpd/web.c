@@ -130,7 +130,7 @@ extern int ej_wl_sta_list_5g_2(int eid, webs_t wp, int argc, char_t **argv);
 #ifdef RTCONFIG_STAINFO
 extern int ej_wl_stainfo_list_2g(int eid, webs_t wp, int argc, char_t **argv);
 extern int ej_wl_stainfo_list_5g(int eid, webs_t wp, int argc, char_t **argv);
-#ifdef RTAC3200
+#if defined(RTAC3200) || defined(R8000) || defined(EA9200)
 extern int ej_wl_stainfo_list_5g_2(int eid, webs_t wp, int argc, char_t **argv);
 #endif
 #endif
@@ -10966,7 +10966,7 @@ struct ej_handler ej_handlers[] = {
 #ifdef RTCONFIG_STAINFO
 	{ "wl_stainfo_list_2g", ej_wl_stainfo_list_2g},
 	{ "wl_stainfo_list_5g", ej_wl_stainfo_list_5g},
-#ifdef RTAC3200
+#if defined(RTAC3200) || defined(R8000) || defined(EA9200)
 	{ "wl_stainfo_list_5g_2", ej_wl_stainfo_list_5g_2},
 #endif
 #endif

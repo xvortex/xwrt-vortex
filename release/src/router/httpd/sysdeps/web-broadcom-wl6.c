@@ -3456,7 +3456,7 @@ ej_wl_stainfo_list_5g(int eid, webs_t wp, int argc, char_t **argv)
 #endif
 }
 
-#ifdef RTAC3200
+#if defined(RTAC3200) || defined(R8000) || defined(EA9200)
 int
 ej_wl_stainfo_list_5g_2(int eid, webs_t wp, int argc, char_t **argv)
 {
