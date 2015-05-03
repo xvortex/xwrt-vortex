@@ -37,6 +37,13 @@ Supported devices are:
  * RT-AC87U
  * RT-AC3200
 
+XWRT-Vortex supported devices are:
+ * Linksys EA6900
+ * Linksys EA9200
+ * Netgear R7000
+ * Netgear R8000
+ * Huawei WS880
+
 Devices that are no longer officially supported (but forked builds might
 exist from other developers):
  * RT-N16
