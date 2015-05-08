@@ -1,7 +1,11 @@
 include ../common.mak
 include $(SRCBASE)/.config
 
+ifeq ($(XWRT),y)
+LCMODELNAME = xwrt
+else
 LCMODELNAME = $(shell echo $(BUILD_NAME) | tr '[:upper:]' '[:lower:]')
+endif
 LJPG = $(wildcard dlna/icon_lrg.$(LCMODELNAME).jpg)
 SJPG = $(wildcard dlna/icon_sm.$(LCMODELNAME).jpg)
 LPNG = $(wildcard dlna/icon_lrg.$(LCMODELNAME).png)
@@ -165,12 +169,12 @@ ifeq ($(RTAC3200),y)
 	cp -rf dlna/icon_sm.rtac3200.png $(INSTALLDIR)/rom/dlna/icon_sm.png
 	cp -rf dlna/icon_lrg.rtac3200.jpg $(INSTALLDIR)/rom/dlna/icon_lrg.jpg
 	cp -rf dlna/icon_lrg.rtac3200.png $(INSTALLDIR)/rom/dlna/icon_lrg.png
-else ifeq ($(RTAC56U)$(XWRT), y)
+else ifeq ($(RTAC56U),y)
 	cp -rf dlna/icon_sm.rtac56u.jpg $(INSTALLDIR)/rom/dlna/icon_sm.jpg
 	cp -rf dlna/icon_sm.rtac56u.png $(INSTALLDIR)/rom/dlna/icon_sm.png
 	cp -rf dlna/icon_lrg.rtac56u.jpg $(INSTALLDIR)/rom/dlna/icon_lrg.jpg
 	cp -rf dlna/icon_lrg.rtac56u.png $(INSTALLDIR)/rom/dlna/icon_lrg.png
-else ifeq ($(RTAC87U), y)
+else ifeq ($(RTAC87U),y)
 	cp -rf dlna/icon_sm.rtac87u.jpg $(INSTALLDIR)/rom/dlna/icon_sm.jpg
 	cp -rf dlna/icon_sm.rtac87u.png $(INSTALLDIR)/rom/dlna/icon_sm.png
 	cp -rf dlna/icon_lrg.rtac87u.jpg $(INSTALLDIR)/rom/dlna/icon_lrg.jpg
