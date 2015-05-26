@@ -5407,6 +5407,9 @@ int init_nvram(void)
 	add_rc_support("nfsd");
 #endif
 
+#ifdef RTCONFIG_IGD2
+	add_rc_support("igd2");
+#endif
 #ifdef RTCONFIG_WPSMULTIBAND
 	add_rc_support("wps_multiband");
 #endif

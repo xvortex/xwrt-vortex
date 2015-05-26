@@ -61,12 +61,21 @@ void start_vpnclient(int clientNum)
 	int pid;
 	int userauth, useronly;
 	int taskset_ret;
+	int i;
 
 	sprintf(&buffer[0], "start_vpnclient%d", clientNum);
 	if (getpid() != 1) {
 		notify_rc(&buffer[0]);
 		return;
 	}
+
+        for ( i = 1; i < 4; i++ ) {
+		if (!nvram_get_int("ntp_ready")) {
+			sleep(i*i);
+		} else {
+			i = 4;
+		}
+        }
 
 	vpnlog(VPN_LOG_INFO,"VPN GUI client backend starting...");
 
@@ -187,6 +196,7 @@ void start_vpnclient(int clientNum)
 	chmod(&buffer[0], S_IRUSR|S_IWUSR);
 	fprintf(fp, "# Automatically generated configuration\n");
 	fprintf(fp, "daemon\n");
+	fprintf(fp, "topology subnet\n");
 	if ( cryptMode == TLS )
 		fprintf(fp, "client\n");
 	fprintf(fp, "dev %s\n", &iface[0]);
@@ -596,11 +606,20 @@ void start_vpnserver(int serverNum)
 	char nv1[32], nv2[32], nv3[32], fpath[128];
 	int valid = 0;
 	int userauth = 0, useronly = 0;
+	int i;
 
 	sprintf(&buffer[0], "start_vpnserver%d", serverNum);
 	if (getpid() != 1) {
 		notify_rc(&buffer[0]);
 		return;
+	}
+
+	for ( i = 1; i < 4; i++ ) {
+		if (!nvram_get_int("ntp_ready")) {
+			sleep(i*i);
+		} else {
+			i = 4;
+		}
 	}
 
 	vpnlog(VPN_LOG_INFO,"VPN GUI server backend starting...");
@@ -787,6 +806,12 @@ void start_vpnserver(int serverNum)
 	//port
 	sprintf(&buffer[0], "vpn_server%d_port", serverNum);
 	fprintf(fp, "port %d\n", nvram_get_int(&buffer[0]));
+
+	// Don't explicitely set socket buffer size
+	sprintf(&buffer[0], "vpn_server%d_sockbuf", serverNum);
+	if (nvram_match(&buffer[0], "1")) {
+		fprintf(fp, "rcvbuf 0\nsndbuf 0\n");
+	}
 
 	if(nvram_get_int("ddns_enable_x"))
 		fprintf(fp_client, "remote %s %s\n", nvram_safe_get("ddns_hostname_x"), nvram_safe_get(&buffer[0]));

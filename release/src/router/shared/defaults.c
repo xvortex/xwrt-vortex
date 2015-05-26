@@ -954,7 +954,7 @@ struct nvram_tuple router_defaults[] = {
 	// miniupnpd - PCP-related values
 	{ "upnp_min_lifetime", "120" },
 	{ "upnp_max_lifetime", "86400" },
-
+	{ "upnp_pinhole_enable", "0" },
 #ifdef RTCONFIG_DUALWAN // RTCONFIG_DUALWAN
 #if defined(RT4GAC55U)
 	{ "wans_mode", "lb" },
@@ -1839,6 +1839,7 @@ struct nvram_tuple router_defaults[] = {
 	{ "vpn_server_if",		"tun"		},
 	{ "vpn_server_proto",		"udp"		},
 	{ "vpn_server_port",		"1194"		},
+	{ "vpn_server_sockbuf",		"1"		},
 	{ "vpn_server_firewall",	"auto"		},
 	{ "vpn_server_crypt",		"tls"		},
 	{ "vpn_server_comp",		"adaptive"	},
@@ -1867,6 +1868,7 @@ struct nvram_tuple router_defaults[] = {
 	{ "vpn_server1_if",		"tun"		},
 	{ "vpn_server1_proto",		"udp"		},
 	{ "vpn_server1_port",		"1194"		},
+	{ "vpn_server_sockbuf",         "1"     	},
 	{ "vpn_server1_firewall",	"auto"		},
 	{ "vpn_server1_crypt",		"tls"		},
 	{ "vpn_server1_comp",		"adaptive"	},
@@ -1905,6 +1907,7 @@ struct nvram_tuple router_defaults[] = {
 	{ "vpn_server2_if",		"tun"		},
 	{ "vpn_server2_proto",		"udp"		},
 	{ "vpn_server2_port",		"1194"		},
+	{ "vpn_server_sockbuf",         "1"     	},
 	{ "vpn_server2_firewall",	"auto"		},
 	{ "vpn_server2_crypt",		"tls"		},
 	{ "vpn_server2_comp",		"adaptive"	},
