@@ -196,7 +196,6 @@ void start_vpnclient(int clientNum)
 	chmod(&buffer[0], S_IRUSR|S_IWUSR);
 	fprintf(fp, "# Automatically generated configuration\n");
 	fprintf(fp, "daemon\n");
-	fprintf(fp, "topology subnet\n");
 	if ( cryptMode == TLS )
 		fprintf(fp, "client\n");
 	fprintf(fp, "dev %s\n", &iface[0]);
@@ -730,6 +729,7 @@ void start_vpnserver(int serverNum)
 	chmod(&buffer[0], S_IRUSR|S_IWUSR);
 	fprintf(fp, "# Automatically generated configuration\n");
 	fprintf(fp, "daemon\n");
+	fprintf(fp, "topology subnet\n");
 
 	sprintf(&buffer[0], "/etc/openvpn/server%d/client.ovpn", serverNum);
 	fp_client = fopen(&buffer[0], "w");
@@ -1515,6 +1515,10 @@ void start_vpn_eas()
 		start_vpnserver(nums[i]);
 	}
 
+	// Setup client routing in case some are set to be blocked when tunnel is down
+	update_vpnrouting(1);
+	update_vpnrouting(2);
+
 	// Parse and start clients
 	strlcpy(&buffer[0], nvram_safe_get("vpn_clientx_eas"), sizeof(buffer));
 	if ( strlen(&buffer[0]) != 0 ) vpnlog(VPN_LOG_INFO, "Starting clients (eas): %s", &buffer[0]);
@@ -1777,7 +1781,7 @@ int check_ovpn_client_enabled(int unit){
 }
 
 void update_vpnrouting(int unit){
-	char tmp[64];
+	char tmp[56];
 	snprintf(tmp, sizeof (tmp), "dev=tun1%d script_type=rmupdate /usr/sbin/vpnrouting.sh", unit);
 	system(tmp);
 }
