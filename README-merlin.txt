@@ -39,10 +39,13 @@ Supported devices are:
 
 XWRT-Vortex supported devices are:
  * Linksys EA6900
- * Linksys EA9200
  * Netgear R7000
- * Netgear R8000
  * Huawei WS880
+
+More models will be supported soon:
+ 
+ * Netgear R8000
+ * Linksys EA9200
 
 Devices that are no longer officially supported (but forked builds might
 exist from other developers):

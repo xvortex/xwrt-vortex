@@ -9,7 +9,10 @@ Asuswrt has a good reliability, feture set and speed, so it is often better than
 XWRT-Vortex supported devices are:
 
 - Linksys EA6900
-- Linksys EA9200
 - Netgear R7000
-- Netgear R8000
 - Huawei WS880
+
+More models will be supported soon:
+
+- Netgear R8000
+- Linksys EA9200
