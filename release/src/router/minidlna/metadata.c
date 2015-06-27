@@ -184,16 +184,16 @@ parse_nfo(const char *path, metadata_t *m)
 	val = GetValueFromNameValueList(&xml, "title");
 	if( val )
 	{
-		char *esc_tag = unescape_tag(val, 1);
+		char *esc_tag, *title;
 		val2 = GetValueFromNameValueList(&xml, "episodetitle");
-		if( val2 ) {
-			char *esc_tag2 = unescape_tag(val2, 1);
-			xasprintf(&m->title, "%s - %s", esc_tag, esc_tag2);
-			free(esc_tag2);
-		} else {
-			m->title = escape_tag(esc_tag, 1);
-		}
+		if( val2 )
+			xasprintf(&title, "%s - %s", val, val2);
+		else
+			title = strdup(val);
+		esc_tag = unescape_tag(title, 1);
+		m->title = escape_tag(esc_tag, 1);
 		free(esc_tag);
+		free(title);
 	}
 
 	val = GetValueFromNameValueList(&xml, "plot");
@@ -381,7 +381,7 @@ GetAudioMetadata(const char *path, char *name)
 	{
 		m.title = name;
 	}
-	for( i=ROLE_START; i<N_ROLE; i++ )
+	for( i = ROLE_START; i < N_ROLE; i++ )
 	{
 		if( song.contributor[i] && *song.contributor[i] )
 		{
@@ -400,12 +400,17 @@ GetAudioMetadata(const char *path, char *name)
 			break;
 		}
 	}
-	/* If there is a band associated with the album, use it for virtual containers. */
-	if( (i != ROLE_BAND) && (i != ROLE_ALBUMARTIST) )
+	/* If there is a album artist or band associated with the album,
+	   use it for virtual containers. */
+	if( i < ROLE_ALBUMARTIST )
 	{
-	        if( song.contributor[ROLE_BAND] && *song.contributor[ROLE_BAND] )
+		for( i = ROLE_ALBUMARTIST; i <= ROLE_BAND; i++ )
 		{
-			i = ROLE_BAND;
+			if( song.contributor[i] && *song.contributor[i] )
+				break;
+		}
+	        if( i <= ROLE_BAND )
+		{
 			m.artist = trim(song.contributor[i]);
 			if( strlen(m.artist) > 48 )
 			{
@@ -480,20 +485,6 @@ libjpeg_error_handler(j_common_ptr cinfo)
 	cinfo->err->output_message (cinfo);
 	longjmp(setjmp_buffer, 1);
 	return;
-}
-
-//- 20130708 Sungmin add
-static int
-thumb_cache_exists(const char *orig_path, char **cache_file)
-{	
-	if( asprintf(cache_file, "%s/art_cache%s", db_path, orig_path) < 0 )	
-	{		
-		*cache_file = NULL;		
-		return 0;	
-	}	
-	strcpy(strchr(*cache_file, '\0')-4, ".jpg");
-
-	return (!access(*cache_file, F_OK));
 }
 
 int64_t
@@ -601,30 +592,7 @@ GetImageMetadata(const char *path, char *name)
 			}
 		}
 		else
-		{
 			thumb = 1;
-			//- 20130708 Sungmin add
-			if(ed->data && ed->size)
-			{
-				char* art_file;
-				if( !thumb_cache_exists(path, &art_file) )
-				{
-					char cache_dir[MAXPATHLEN];
-					strncpyt(cache_dir, art_file, sizeof(cache_dir));
-					make_dir(dirname(cache_dir), S_IRWXU|S_IRGRP|S_IXGRP|S_IROTH|S_IXOTH);
-
-					FILE *thumb = fopen(art_file, "wb");
-					//DPRINTF(E_WARN, L_METADATA, " * cache_dir: %s\n", cache_dir);
-					//DPRINTF(E_WARN, L_METADATA, " * thumbnail: %s\n", art_file);
-					if(thumb)
-					{
-						fwrite(ed->data, 1, ed->size, thumb);
-						fclose(thumb);
-					}
-				}
-				free(art_file);
-			}
-		}
 	}
 	//DEBUG DPRINTF(E_DEBUG, L_METADATA, " * thumbnail: %d\n", thumb);
 

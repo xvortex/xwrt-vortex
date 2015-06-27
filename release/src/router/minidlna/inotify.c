@@ -328,6 +328,7 @@ inotify_insert_file(char * name, const char * path)
 			if( !is_audio(path) &&
 			    !is_video(path) &&
 			    !is_playlist(path) )
+				return -1;
 			break;
 		case TYPE_AUDIO|TYPE_IMAGES:
 			if( !is_image(path) &&
@@ -353,7 +354,7 @@ inotify_insert_file(char * name, const char * path)
 			break;
 	}
 	
-	/* If it's already in the database, remove it before re-inserting. */
+	/* If it's already in the database and hasn't been modified, skip it. */
 	if( stat(path, &st) != 0 )
 		return -1;
 
@@ -364,9 +365,9 @@ inotify_insert_file(char * name, const char * path)
 		inotify_remove_file(path);
 		next_pl_fill = 1;
 	}
-	else if( ts > 0 )
+	else if( ts < st.st_mtime )
 	{
-		if( ts < st.st_mtime )
+		if( ts > 0 )
 			DPRINTF(E_DEBUG, L_INOTIFY, "%s is newer than the last db entry.\n", path);
 		inotify_remove_file(path);
 	}
