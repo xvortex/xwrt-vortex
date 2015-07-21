@@ -203,7 +203,7 @@ function login(){
 						<td colspan="2"><div class="prod_madelName" style="margin-left:78px;"><#Web_Title2#></div></td>
 					</tr>
 					<tr>
-						<td colspan="2"><div class="p1" style="margin:25px 0px 0px 78px;">Sign In with Your ASUS Router Account</div></td>
+						<td colspan="2"><div class="p1" style="margin:25px 0px 0px 78px;">Sign In with Your Router Account</div></td>
 					</tr>					
 					<tr style="height:42px;">
 						<td colspan="2">
