@@ -189,7 +189,10 @@ wps_restore_defaults(void)
 	if (strlen(macstr))
 		for (i = 0; i < strlen(macstr); i++)
 			macstr[i] = tolower(macstr[i]);
-	nvram_set("boardnum", nvram_get("serial_no") ? : macstr);
+	if (!nvram_get("boardnum"))
+		nvram_set("boardnum", macstr);
+	if (!nvram_get("serial_no"))
+		nvram_set("serial_no", macstr);
 }
 #endif /* RTCONFIG_WPS */
 
@@ -3700,6 +3703,7 @@ int init_nvram(void)
 		nvram_set("vlan1hwname", "et0");
 		nvram_set("lan_ifname", "br0");
 		nvram_set("landevs", "vlan1 wl0 wl1");
+		nvram_set("boardnum", "01");
 
 #if 0
 		set_basic_ifname_vars("eth0", "vlan1", "eth1", "eth2", "usb", NULL, "vlan2", "vlan3", 0);
@@ -3831,6 +3835,7 @@ int init_nvram(void)
 
 		nvram_unset("et1macaddr");
 		nvram_set("bl_version", "1.0.0.0");
+		nvram_set("boardnum", "32");
 
 		if (!nvram_get("secret_code"))
 			nvram_set("secret_code", nvram_get("wps_device_pin") ? : "12345670");
@@ -4215,6 +4220,7 @@ int init_nvram(void)
 		nvram_set("vlan1hwname", "et0");
 		nvram_set("lan_ifname", "br0");
 		nvram_set("landevs", "vlan1 wl0 wl1");
+		nvram_set("boardnum", "1234");
 
 #if 0
 		set_basic_ifname_vars("eth0", "vlan1", "eth1", "eth2", "usb", NULL, "vlan2", "vlan3", 0);
