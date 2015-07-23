@@ -1968,6 +1968,12 @@ function show_footer(){
 		else if(odmpid.search("RT-N12E_B") != -1)	//RT-N12E_B or RT-N12E_B1
 			model_name_supportsite = "RTN12E_B1";
 
+		if(based_modelid == "EA6900" || based_modelid == "R7000" || based_modelid == "WS880")
+			model_name_supportsite = "RTAC68U";
+
+		if(based_modelid == "EA9200" || based_modelid == "R8000")
+			model_name_supportsite = "RTAC3200";
+
 		if(tmo_support){
 			footer_code += '<td width="300" id="bottom_help_link" align="left">&nbsp';
 			footer_code += '&nbsp|&nbsp<a style="font-weight:bolder;text-decoration:underline;cursor:pointer;" onClick="show_contactus();">Contact ASUS</a><div id="contactus_block" style="position:absolute;z-index:999;width:280px;height:155px;margin-top:-200px;*margin-top:-180px;margin-left:0px;*margin-left:-100px;background-color:#2B373B;box-shadow: 3px 10px 10px #000;-webkit-border-radius: 5px;-moz-border-radius: 5px;border-radius:5px;display:none;"></div>';
