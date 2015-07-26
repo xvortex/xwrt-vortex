@@ -104,6 +104,7 @@ int update_wan_leds(int wan_unit)
 	case SW_MODE_REPEATER:	/* fallthrough */
 	case SW_MODE_AP:
 		wan_red_led_control(LED_OFF);
+		led_control(LED_WAN, LED_ON);
 		break;
 	}
 #else	/* !RTCONFIG_WANRED_LED */
