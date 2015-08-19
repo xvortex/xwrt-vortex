@@ -44,10 +44,6 @@ export RT-AC69U += BUILD_NAME="RT-AC69U" XHCIMODE=y
 
 export VTX_BASE6 := $(filter-out RTAC68U=y JFFS2LOG=y DUMP_OOPS_MSG=y TURBO=y LINUX_MTD="64",$(RT-AC68U_BASE))
 export VTX_BASE6 += XWRT=y JFFS2LOG=n LINUX_MTD="32" XHCIMODE=y
-ifneq ($(DISABLE_DPI),)
-export VTX_BASE6 := $(filter-out BWDPI=y DEBUGFS=y CLOUDSYNC=y,$(VTX_BASE6))
-export VTX_BASE6 += DEBUGFS=n
-endif
 
 export EA6900 := $(filter-out LED_BTN=y LED_BTN_MODE=y,$(VTX_BASE6))
 export EA6900 += BUILD_NAME="EA6900"

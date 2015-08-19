@@ -308,7 +308,7 @@ ifneq ($(RTCONFIG_KYIVSTAR),y)
 	rm -rf $(INSTALLDIR)/www/userRpm/SoftwareUpgradeRpm.htm
 endif
 
-ifneq ($(RTCONFIG_BWDPI),y)
+ifeq ($(RTCONFIG_NOASUS),y)
 	rm -rf $(INSTALLDIR)/www/AdaptiveQoS_Adaptive.asp
 	rm -rf $(INSTALLDIR)/www/AdaptiveQoS_Bandwidth_Monitor.asp
 	rm -rf $(INSTALLDIR)/www/AdaptiveQoS_WebHistory.asp
@@ -399,7 +399,7 @@ ifeq ($(filter $(BUILD_NAME), RT-AC55U 4G-AC55U), )
 	rm -rf $(INSTALLDIR)/www/images/New_ui/wifi-logo.png
 endif
 
-ifneq ($(RTCONFIG_BWDPI),y)
+ifeq ($(RTCONFIG_NOASUS),y)
 	rm -rf $(INSTALLDIR)/www/TrafficAnalyzer_Statistic.asp
 	rm -rf $(INSTALLDIR)/www/images/New_ui/TrafficAnalyzer.gif
 	rm -rf $(INSTALLDIR)/www/images/New_ui/cancel.svg

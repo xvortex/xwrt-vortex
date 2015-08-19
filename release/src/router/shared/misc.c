@@ -1786,6 +1786,9 @@ int get_yandex_dns(int family, int mode, char **server, int max_count)
 */
 int check_bwdpi_nvram_setting()
 {
+#ifdef RTCONFIG_NOASUS
+	return 0;
+#else
 	int enabled = 1;
 	int debug = nvram_get_int("bwdpi_debug");
 
@@ -1810,6 +1813,7 @@ int check_bwdpi_nvram_setting()
 	if(debug) dbg("[check_bwdpi_nvram_setting] enabled= %d\n", enabled);
 
 	return enabled;
+#endif
 }
 #endif
 
