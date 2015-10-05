@@ -629,6 +629,7 @@ setAllLedOn(void)
 			led_control(LED_WPS, LED_ON);
 			led_control(LED_USB, LED_ON);
 			break;
+		}
 		case MODEL_EA6900:
 		{
 			eval("et", "robowr", "0", "0x18", "0x01ff");	// lan/wan ethernet/giga led
@@ -995,6 +996,7 @@ setAllLedOff(void)
 			led_control(LED_WPS, LED_OFF);
 			led_control(LED_USB, LED_OFF);
 			break;
+		}
 		case MODEL_EA6900:
 		{
 			eval("et", "robowr", "0", "0x18", "0x01e0");	// lan/wan ethernet/giga led
@@ -1189,6 +1191,7 @@ setATEModeLedOn(void){
 			led_control(LED_WPS, LED_ON);
 			led_control(LED_USB, LED_ON);
 			break;
+		}
 		case MODEL_EA6900:
 		{
 			eval("et", "robowr", "0", "0x18", "0x01ff");	// lan/wan ethernet/giga led
