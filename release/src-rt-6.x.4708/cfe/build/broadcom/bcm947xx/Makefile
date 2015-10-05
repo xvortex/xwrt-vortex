@@ -147,11 +147,6 @@ MTDSIZE := 64
 CFLAGS += -DR7000
 endif
 
-ifeq ($(strip $(R6300V2)),1)
-MTDSIZE := 64
-CFLAGS += -DR6300V2
-endif
-
 ifeq ($(strip $(WS880)),1)
 MTDSIZE := 64
 CFLAGS += -DWS880

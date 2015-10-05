@@ -64,22 +64,6 @@ extern int cpu_turbo_mode;
 #define RST_BTN_GPIO	(1 << 6)	// GPIO 6
 #endif
 
-#ifdef R6300V2
-/* define R6300V2 GPIO */
-#define	LOGO_LED_GPIO	(1 << 1)	// GPIO 1
-#define	PWR_GR_LED_GPIO	(1 << 2)	// GPIO 2
-#define	PWR_OR_LED_GPIO	(1 << 3)	// GPIO 3
-#define	USB_LED_GPIO	(1 << 8)	// GPIO 8
-#define	WAN_LED_GPIO	(1 << 10)	// GPIO 10
-#define	WLAN_LED_GPIO	(1 << 11)	// GPIO 11
-
-#define	USB_PWR_GPIO	(1 << 0)	// GPIO 0
-
-#define WPS_BTN_GPIO	(1 << 4)	// GPIO 4
-#define WIFI_BTN_GPIO	(1 << 5)	// GPIO 5
-#define RST_BTN_GPIO	(1 << 6)	// GPIO 6
-#endif
-
 #ifdef WS880
 /* define WS880 GPIO */
 #define	WLAN_LED_GPIO	(1 << 0)	// GPIO 0
@@ -159,31 +143,6 @@ board_pinmux_init(si_t *sih)
 	si_gpioout(sih, WIFI_LED_GPIO, 0, GPIO_DRV_PRIORITY);
 	si_gpioout(sih, USB2_LED_GPIO, USB2_LED_GPIO, GPIO_DRV_PRIORITY);
 	si_gpioout(sih, USB3_LED_GPIO, USB3_LED_GPIO, GPIO_DRV_PRIORITY);
-	si_gpioout(sih, USB_PWR_GPIO, USB_PWR_GPIO, GPIO_DRV_PRIORITY);
-#endif
-#ifdef R6300V2
-	si_gpiocontrol(sih, LOGO_LED_GPIO, 0, GPIO_DRV_PRIORITY);
-	si_gpiocontrol(sih, PWR_GR_LED_GPIO, 0, GPIO_DRV_PRIORITY);
-	si_gpiocontrol(sih, PWR_OR_LED_GPIO, 0, GPIO_DRV_PRIORITY);
-	si_gpiocontrol(sih, USB_LED_GPIO, 0, GPIO_DRV_PRIORITY);
-	si_gpiocontrol(sih, WAN_LED_GPIO, 0, GPIO_DRV_PRIORITY);
-	si_gpiocontrol(sih, WLAN_LED_GPIO, 0, GPIO_DRV_PRIORITY);
-	si_gpiocontrol(sih, USB_PWR_GPIO, 0, GPIO_DRV_PRIORITY);
-
-	si_gpioouten(sih, LOGO_LED_GPIO, LOGO_LED_GPIO, GPIO_DRV_PRIORITY);
-	si_gpioouten(sih, PWR_GR_LED_GPIO, PWR_GR_LED_GPIO, GPIO_DRV_PRIORITY);
-	si_gpioouten(sih, PWR_OR_LED_GPIO, PWR_OR_LED_GPIO, GPIO_DRV_PRIORITY);
-	si_gpioouten(sih, USB_LED_GPIO, USB_LED_GPIO, GPIO_DRV_PRIORITY);
-	si_gpioouten(sih, WAN_LED_GPIO, WAN_LED_GPIO, GPIO_DRV_PRIORITY);
-	si_gpioouten(sih, WLAN_LED_GPIO, WLAN_LED_GPIO, GPIO_DRV_PRIORITY);
-	si_gpioouten(sih, USB_PWR_GPIO, USB_PWR_GPIO, GPIO_DRV_PRIORITY);
-
-	si_gpioout(sih, LOGO_LED_GPIO, 0, GPIO_DRV_PRIORITY);
-	si_gpioout(sih, PWR_GR_LED_GPIO, PWR_GR_LED_GPIO, GPIO_DRV_PRIORITY);
-	si_gpioout(sih, PWR_OR_LED_GPIO, 0, GPIO_DRV_PRIORITY);
-	si_gpioout(sih, USB_LED_GPIO, USB_LED_GPIO, GPIO_DRV_PRIORITY);
-	si_gpioout(sih, WAN_LED_GPIO, WAN_LED_GPIO, GPIO_DRV_PRIORITY);
-	si_gpioout(sih, WLAN_LED_GPIO, WLAN_LED_GPIO, GPIO_DRV_PRIORITY);
 	si_gpioout(sih, USB_PWR_GPIO, USB_PWR_GPIO, GPIO_DRV_PRIORITY);
 #endif
 #ifdef WS880
