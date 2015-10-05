@@ -2512,7 +2512,7 @@ rt-% RT-% rp-% RP-% ea-% EA-% tm-% TM-% pl-% PL-%:
 	$(call save_src_config, $@)
 	$(MAKE) bin
 
-ea6900 EA6900 ea9200 EA9200 r7000 R7000 r8000 R8000 ws880 WS880:
+ea6900 EA6900 r7000 R7000 ws880 WS880:
 	$(call save_src_config, $@)
 	$(MAKE) bin
 

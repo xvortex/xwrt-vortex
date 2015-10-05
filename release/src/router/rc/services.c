@@ -5266,9 +5266,7 @@ check_ddr_done:
 		case MODEL_RTN66U:
 		case MODEL_RTN18U:
 		case MODEL_EA6900:
-		case MODEL_EA9200:
 		case MODEL_R7000:
-		case MODEL_R8000:
 		case MODEL_WS880:
 		//case MODEL_RTAC5300:
 		//case MODEL_RTAC3100:
@@ -6859,7 +6857,7 @@ void set_acs_ifnames()
 
 	nvram_set("acs_ifnames", acs_ifnames);
 
-#if defined(RTAC3200) || defined(RTAC5300) || defined(R8000) || defined(EA9200)
+#if defined(RTAC3200) || defined(RTAC5300)
 	nvram_set("wl0_acs_excl_chans", "");
 	if (nvram_match("wl1_country_code", "E0")) {
 		/* exclude acsd from selecting chanspec 52, 52l, 52/80, 56, 56u, 56/80, 60, 60l, 60/80, 64, 64u, 64/80, 100, 100l, 100/80, 104, 104u, 104/80, 108, 108l, 108/80, 112, 112u, 112/80, 116, 132, 132l, 136, 136u, 140 */
@@ -7562,7 +7560,7 @@ void setup_leds()
 		}
 #ifdef RTCONFIG_TURBO
 		if ((nvram_match("wl0_radio", "1") || nvram_match("wl1_radio", "1")
-#if defined(RTAC3200) || defined(R8000) || defined(EA9200)
+#if defined(RTAC3200)
 			|| nvram_match("wl2_radio", "1")
 #endif
 		)

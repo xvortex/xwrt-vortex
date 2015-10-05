@@ -79,9 +79,7 @@ static const struct model_s model_list[] = {
 	{ "RT-AC1200G", MODEL_RTAC1200G	},
 	{ "RT-AC1200G+", MODEL_RTAC1200GP},
 	{ "EA6900",	MODEL_EA6900	},
-	{ "EA9200",	MODEL_EA9200	},
 	{ "R7000",	MODEL_R7000	},
-	{ "R8000",	MODEL_R8000	},
 	{ "WS880",	MODEL_WS880	},
 #endif	/* !RTCONFIG_RALINK */
 	{ NULL, 0 },
@@ -155,14 +153,8 @@ int get_model(void)
 #ifdef EA6900
 	return MODEL_EA6900;
 #endif
-#ifdef EA9200
-	return MODEL_EA9200;
-#endif
 #ifdef R7000
 	return MODEL_R7000;
-#endif
-#ifdef R8000
-	return MODEL_R8000;
 #endif
 #ifdef WS880
 	return MODEL_WS880;

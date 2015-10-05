@@ -386,7 +386,7 @@ void disable_wan_wled()
 
 static void wan_led_control(int sig) {
 #if 0
-#if defined(RTAC87U) || defined(RTAC3200) || defined(EA9200) || defined(R8000) || defined(RTAC88U) || defined(RTAC3100) || defined(RTAC5300) 
+#if defined(RTAC87U) || defined(RTAC3200) || defined(RTAC88U) || defined(RTAC3100) || defined(RTAC5300) 
 	char buf[16];
         snprintf(buf, 16, "%s", nvram_safe_get("wans_dualwan"));
 	if (strcmp(buf, "wan none") != 0){
@@ -396,7 +396,7 @@ static void wan_led_control(int sig) {
 #endif
 #endif
 	if(!nvram_get_int("led_disable")){
-#if defined(RTAC87U) || defined(RTAC3200) || defined(EA9200) || defined(R8000) || defined(RTAC88U) || defined(RTAC3100) || defined(RTAC5300) 
+#if defined(RTAC87U) || defined(RTAC3200) || defined(RTAC88U) || defined(RTAC3100) || defined(RTAC5300) 
 		if (rule_setup) {
 			led_control(LED_WAN, LED_ON);
 			disable_wan_wled();
@@ -2998,7 +2998,7 @@ _dprintf("wanduck(%d)(all   end): state %d, state_old %d, changed %d, wan_state 
 						led_control(LED_WAN, LED_OFF);
 #elif defined(RTCONFIG_DSL)
 						led_control(LED_WAN, LED_OFF);
-#elif defined(RTAC87U) || defined(RTAC3200) || defined(EA9200) || defined(R8000) || defined(RTAC88U) || defined(RTAC3100) || defined(RTAC5300)
+#elif defined(RTAC87U) || defined(RTAC3200) || defined(RTAC88U) || defined(RTAC3100) || defined(RTAC5300)
 						if (strcmp(dualwan_mode, "lb") == 0 ||
 								strcmp(dualwan_mode, "fb") == 0 ||
 								strcmp(dualwan_mode, "fo") == 0) {
@@ -3071,7 +3071,7 @@ _dprintf("wanduck(%d)(all   end): state %d, state_old %d, changed %d, wan_state 
 						led_control(LED_WAN, LED_OFF);
 #elif defined(DSL_N55U) || defined(DSL_N55U_B)
 					led_control(LED_WAN, LED_ON);
-#elif defined(RTAC87U) || defined(RTAC3200) || defined(RTAC88U) || defined(RTAC3100) || defined(RTAC5300) || defined(EA9200) || defined(R8000)
+#elif defined(RTAC87U) || defined(RTAC3200) || defined(RTAC88U) || defined(RTAC3100) || defined(RTAC5300)
 					if(!nvram_get_int("led_disable")){
 						led_control(LED_WAN, LED_OFF);
 						enable_wan_wled();

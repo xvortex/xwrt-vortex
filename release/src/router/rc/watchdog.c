@@ -253,9 +253,7 @@ void erase_nvram(void)
 		case MODEL_RTAC1200G:
 		case MODEL_RTAC1200GP:
 		case MODEL_EA6900:
-		case MODEL_EA9200:
 		case MODEL_R7000:
-		case MODEL_R8000:
 		case MODEL_WS880:
 			eval("mtd-erase2", "nvram");
 			break;
@@ -278,9 +276,7 @@ int init_toggle(void)
 		case MODEL_RTAC88U:
 		case MODEL_RTAC3100:
 		case MODEL_EA6900:
-		case MODEL_EA9200:
 		case MODEL_R7000:
-		case MODEL_R8000:
 		case MODEL_WS880:
 			nvram_set("btn_ez_radiotoggle", "1");
 			return BTN_WIFI_TOG;
@@ -1837,7 +1833,7 @@ void fake_wl_led_2g(void)
 }
 #endif	/* RTCONFIG_WLAN_LED */
 
-#if defined(RTCONFIG_BRCM_USBAP) || defined(RTAC66U) || defined(BCM4352) || defined(R7000) || defined(R8000) || defined(WS880)
+#if defined(RTCONFIG_BRCM_USBAP) || defined(RTAC66U) || defined(BCM4352) || defined(R7000) || defined(WS880)
 unsigned long get_5g_count()
 {
 	FILE *f;
@@ -1894,11 +1890,11 @@ void fake_wl_led_5g(void)
 	}
 
 	if(blink_5g) {
-#if defined(RTAC66U) || defined(BCM4352) || defined(R7000) || defined(R8000) || defined(WS880)
+#if defined(RTAC66U) || defined(BCM4352) || defined(R7000) || defined(WS880)
 		j = rand_seed_by_time() % 3;
 #endif
 		for(i=0;i<10;i++) {
-#if defined(RTAC66U) || defined(BCM4352) || defined(R7000) || defined(R8000) || defined(WS880)
+#if defined(RTAC66U) || defined(BCM4352) || defined(R7000) || defined(WS880)
 			usleep(33*1000);
 
 			status_old = status;
@@ -1946,7 +1942,7 @@ void led_check(int sig)
 #ifdef RTCONFIG_WLAN_LED
 	if (nvram_contains_word("rc_support", "led_2g"))
 	{
-#if defined(RTN53) || defined(R7000) || defined(R8000) || defined(WS880)
+#if defined(RTN53) || defined(R7000) || defined(WS880)
 		if(nvram_get_int("wl0_radio") == 0)
 			led_control(LED_2G, LED_OFF);
 		else
@@ -3197,7 +3193,7 @@ void watchdog(int sig)
 	period_chk_cnt();
 #endif
 	/* handle button */
-#if defined(EA6900) || defined(EA9200) || defined(R7000) || defined(R8000) || defined(WS880)
+#if defined(EA6900) || defined(R7000) || defined(WS880)
 	btn_check_vtx();
 #else
 	btn_check();

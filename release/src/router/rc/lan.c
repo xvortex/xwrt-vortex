@@ -786,7 +786,7 @@ void start_wl(void)
 #endif
 #ifdef RTCONFIG_TURBO
 	if ((nvram_match("wl0_radio", "1") || nvram_match("wl1_radio", "1")
-#if defined(RTAC3200) || defined(RTAC5300) || defined(R8000) || defined(EA9200)
+#if defined(RTAC3200) || defined(RTAC5300)
 		|| nvram_match("wl2_radio", "1")
 #endif
 	)
@@ -1475,9 +1475,7 @@ void start_lan(void)
 	case MODEL_RTN18U:
 	case MODEL_RTN66U:
 	case MODEL_EA6900:
-	case MODEL_EA9200:
 	case MODEL_R7000:
-	case MODEL_R8000:
 	case MODEL_WS880:
 	//case MODEL_RTAC5300:
 	//case MODEL_RTAC3100:
@@ -2942,9 +2940,7 @@ static void led_bh_prep(int post)
 		case MODEL_RTAC68U:
 		case MODEL_RTAC87U:
 		case MODEL_EA6900:
-		case MODEL_EA9200:
 		case MODEL_R7000:
-		case MODEL_R8000:
 		case MODEL_WS880:
 			if(post)
 			{
@@ -2957,7 +2953,7 @@ static void led_bh_prep(int post)
 				eval("wl", "-i", "eth2", "ledbh", "9", "7");
 				eval("wl", "-i", "eth2", "ledbh", "0", "7");
 #endif
-#if defined(RTAC3200) || defined(R8000) || defined(EA9200)
+#if defined(RTAC3200)
 				eval("wl", "-i", "eth3", "ledbh", "10", "7");
 #endif
 			}
@@ -2972,7 +2968,7 @@ static void led_bh_prep(int post)
 				eval("wl", "-i", "eth2", "ledbh", "9", "1");
 				eval("wl", "-i", "eth2", "ledbh", "0", "1");
 #endif
-#if defined(RTAC3200) || defined(R8000) || defined(EA9200)
+#if defined(RTAC3200)
 				eval("wl", "-i", "eth3", "ledbh", "10", "1");
 #endif
 #ifdef BCM4352
@@ -2985,7 +2981,7 @@ static void led_bh_prep(int post)
 				eval("wl", "maxassoc", "0");
 				eval("wlconf", "eth2", "up");
 				eval("wl", "-i", "eth2", "maxassoc", "0");
-#if defined(RTAC3200) || defined(R8000) || defined(EA9200)
+#if defined(RTAC3200)
 				eval("wlconf", "eth3", "up");
 				eval("wl", "-i", "eth3", "maxassoc", "0");
 #endif
@@ -3500,9 +3496,7 @@ void start_lan_wl(void)
 	case MODEL_RTN18U:
 	case MODEL_RTN66U:
 	case MODEL_EA6900:
-	case MODEL_EA9200:
 	case MODEL_R7000:
-	case MODEL_R8000:
 	case MODEL_WS880:
 	//case MODEL_RTAC5300:
 	//case MODEL_RTAC3100:
@@ -3846,7 +3840,7 @@ void restart_wl(void)
 #endif
 #ifdef RTCONFIG_TURBO
 	if ((nvram_match("wl0_radio", "1") || nvram_match("wl1_radio", "1")
-#if defined(RTAC3200) || defined(RTAC5300) || defined(R8000) || defined(EA9200)
+#if defined(RTAC3200) || defined(RTAC5300)
 		|| nvram_match("wl2_radio", "1")
 #endif
 	)

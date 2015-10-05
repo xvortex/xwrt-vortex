@@ -117,7 +117,7 @@ function initial(){
 	if(country == "EU"){		//display checkbox of DFS channel under 5GHz
 		if(based_modelid == "RT-AC68U" || based_modelid == "EA6900" || based_modelid == "R7000" || based_modelid == "WS880" || based_modelid == "RT-AC68U_V2" || based_modelid == "DSL-AC68U" || based_modelid == "RT-AC69U"
 		|| based_modelid == "RT-AC87U"
-		|| based_modelid == "RT-AC3200" || based_modelid == "EA9200" || based_modelid == "R8000"
+		|| based_modelid == "RT-AC3200"
 		|| (based_modelid == "RT-AC66U" && wl1_dfs == "1")		//0: A2 not support, 1: B0 support
 		|| based_modelid == "RT-N66U"){
 				if(document.form.wl_channel.value  == '0' && wl_unit == '1'){
@@ -246,7 +246,7 @@ function genBWTable(_unit){
 			else if((based_modelid == "DSL-AC68U" || based_modelid == "RT-AC68U" || based_modelid == "EA6900" || based_modelid == "R7000" || based_modelid == "WS880" || based_modelid == "RT-AC68U_V2" || based_modelid == "RT-AC69U" || 
 				based_modelid == "RT-AC56U" || based_modelid == "RT-AC56S" || 
 				based_modelid == "RT-AC66U" || 
-				based_modelid == "RT-AC3200" || based_modelid == "EA9200" || based_modelid == "R8000" ||
+				based_modelid == "RT-AC3200" ||
 				based_modelid == "RT-AC53U") && document.form.wl_nmode_x.value == 1){		//N only
 				bws = [0, 1, 2];
 				bwsDesc = ["20/40 MHz", "20 MHz", "40 MHz"];

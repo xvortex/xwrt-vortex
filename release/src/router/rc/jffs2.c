@@ -87,9 +87,7 @@ void mount_2nd_jffs2(void)
                         case MODEL_RTN65U:
                         case MODEL_RTN14U: // it should be better to use LINUX_KERNEL_VERSION >= KERNEL_VERSION(2,6,36)
 			case MODEL_EA6900:
-			case MODEL_EA9200:
 			case MODEL_R7000:
-			case MODEL_R8000:
 			case MODEL_WS880:
                         {
                                 if (sf.f_type != 0x73717368 /* squashfs */) {
@@ -161,9 +159,7 @@ void format_mount_2nd_jffs2(void)
                         case MODEL_RTN65U:
                         case MODEL_RTN14U: // it should be better to use LINUX_KERNEL_VERSION >= KERNEL_VERSION(2,6,36)
 			case MODEL_EA6900:
-			case MODEL_EA9200:
 			case MODEL_R7000:
-			case MODEL_R8000:
 			case MODEL_WS880:
                         {
                                 if (sf.f_type != 0x73717368 /* squashfs */) {
@@ -193,7 +189,7 @@ void format_mount_2nd_jffs2(void)
         modprobe(JFFS_NAME);
         sprintf(s, MTD_BLKDEV(%d), part);
         if (mount(s, SECOND_JFFS2_PATH, JFFS_NAME, MS_NOATIME, "") != 0) {
-		if( (get_model()==MODEL_RTAC56U || get_model()==MODEL_RTAC56S || get_model()==MODEL_RTAC3200 || get_model()==MODEL_RTAC68U || get_model()==MODEL_EA6900 || get_model()==MODEL_EA9200 || get_model()==MODEL_R7000 || get_model()==MODEL_R8000 || get_model()==MODEL_WS880 || get_model()==MODEL_RPAC68U || get_model()==MODEL_DSLAC68U || get_model()==MODEL_RTAC87U || get_model()==MODEL_RTAC88U || get_model()==MODEL_RTAC3100 || get_model()==MODEL_RTAC5300 || get_model()==MODEL_RTN18U) ^ (mtd_erase(SECOND_JFFS2_PARTITION)) ){
+		if( (get_model()==MODEL_RTAC56U || get_model()==MODEL_RTAC56S || get_model()==MODEL_RTAC3200 || get_model()==MODEL_RTAC68U || get_model()==MODEL_EA6900 || get_model()==MODEL_R7000 || get_model()==MODEL_WS880 || get_model()==MODEL_RPAC68U || get_model()==MODEL_DSLAC68U || get_model()==MODEL_RTAC87U || get_model()==MODEL_RTAC88U || get_model()==MODEL_RTAC3100 || get_model()==MODEL_RTAC5300 || get_model()==MODEL_RTN18U) ^ (mtd_erase(SECOND_JFFS2_PARTITION)) ){
                         error("formatting");
                         return;
                 }
@@ -291,9 +287,7 @@ void start_jffs2(void)
 			case MODEL_RTN65U:
 			case MODEL_RTN14U: // it should be better to use LINUX_KERNEL_VERSION >= KERNEL_VERSION(2,6,36)
 			case MODEL_EA6900:
-			case MODEL_EA9200:
 			case MODEL_R7000:
-			case MODEL_R8000:
 			case MODEL_WS880:
 			{
 				if (sf.f_type != 0x73717368 /* squashfs */) {

@@ -607,10 +607,6 @@ ifeq ($(BUILD_NAME),R7000)
 KBUILD_CFLAGS += -DCONFIG_JFFS2GAP
 endif
 
-ifeq ($(BUILD_NAME),R8000)
-KBUILD_CFLAGS += -DCONFIG_JFFS2GAP
-endif
-
 include $(srctree)/arch/$(SRCARCH)/Makefile
 
 ifneq ($(CONFIG_FRAME_WARN),0)

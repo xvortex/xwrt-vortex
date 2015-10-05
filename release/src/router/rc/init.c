@@ -309,7 +309,7 @@ virtual_radio_restore_defaults(void)
 void
 misc_ioctrl(void)
 {
-#if defined(RTAC87U) || defined(RTAC3200) || defined(RTAC5300) || defined(RTAC88U) || defined(RTAC3100) || defined(R8000) || defined(EA9200)
+#if defined(RTAC87U) || defined(RTAC3200) || defined(RTAC5300) || defined(RTAC88U) || defined(RTAC3100)
 	/* default WAN_RED on  */
 	char buf[16];
 
@@ -990,7 +990,7 @@ restore_defaults(void)
 #ifdef RTCONFIG_DSL
 	dsl_defaults();
 #endif
-#if defined(RTAC3200) || defined(R8000) || defined(EA9200)
+#if defined(RTAC3200)
 	bsd_defaults();
 #endif
 #ifdef RTCONFIG_DHDAP
@@ -1204,9 +1204,7 @@ restore_defaults(void)
 			nvram_set("reboot_time", "90");		// default is 70 sec
 			break;
 		case MODEL_EA6900:
-		case MODEL_EA9200:
 		case MODEL_R7000:
-		case MODEL_R8000:
 		case MODEL_WS880:
 			nvram_set("reboot_time", "140");	// default is 70 sec
 			break;
@@ -3793,11 +3791,6 @@ int init_nvram(void)
 
 		break;
 
-	case MODEL_EA9200:
-		/// TODO !!!
-
-		break;
-
 	case MODEL_R7000:
 		dirty |= check_nv("wl0_leddc", "0x640000");
 		dirty |= check_nv("wl1_leddc", "0x640000");
@@ -3980,199 +3973,6 @@ int init_nvram(void)
 		nvram_set_int("AllLED", 1);
 #endif
 
-		break;
-
-	case MODEL_R8000:
-		dirty |= check_nv("wl0_leddc", "0x640000");
-		dirty |= check_nv("wl1_leddc", "0x640000");
-		dirty |= check_nv("wl2_leddc", "0x640000");
-		dirty |= check_nv("wl0_ifname", "eth1");
-		dirty |= check_nv("wl1_ifname", "eth2");
-		dirty |= check_nv("wl2_ifname", "eth3");
-		dirty |= check_nv("vlan1ports", "3 2 1 0 5 7 8*");
-		dirty |= check_nv("vlan2ports", "4 8u");
-		if (dirty) {
-			nvram_commit();
-			sync();
-			reboot(RB_AUTOBOOT);
-			exit(0);
-		}
-		
-		nvram_unset("et1macaddr");
-		nvram_unset("et2macaddr");
-		nvram_set("bl_version", "1.0.0.0");
-
-		if (!nvram_get("secret_code"))
-			nvram_set("secret_code", nvram_get("wps_device_pin") ? : "12345670");
-
-		if (!nvram_get("v_fix")) {
-			nvram_set("v_fix", "1");
-
-			nvram_set("gpio14", "wps_led");
-			nvram_set("gpio4", "wps_button");
-			nvram_set("reset_gpio", "6");
-			nvram_set("watchdog", "0");
-			nvram_set("odmpid", "NETGEAR");
-			nvram_set("model", "R8000");
-
-			nvram_set("wl_country_code", "#a");
-			nvram_set("wl0_country_code", "#a");
-			nvram_set("wl1_country_code", "#a");
-			nvram_set("wl2_country_code", "#a");
-			nvram_set("0:ccode", "#a");
-			nvram_set("1:ccode", "#a");
-			nvram_set("2:ccode", "#a");
-
-			nvram_set("wl_country_rev", "0");
-			nvram_set("wl0_country_rev", "0");
-			nvram_set("wl1_country_rev", "0");
-			nvram_set("wl2_country_rev", "0");
-			nvram_set("0:regrev", "0");
-			nvram_set("1:regrev", "0");
-			nvram_set("2:regrev", "0");
-
-			nvram_set("wl_reg_mode", "off");
-			nvram_set("wl0_reg_mode", "off");
-			nvram_set("wl1_reg_mode", "off");
-			nvram_set("wl2_reg_mode", "off");
-		}
-
-		if (!nvram_get("1:rpcal2g")) {
-			nvram_set("1:rpcal2g", "0x1506");
-			nvram_set("1:rxgainerr2ga0", "7");
-			nvram_set("1:rxgainerr2ga1", "7");
-			nvram_set("1:rxgainerr2ga2", "6");
-			nvram_set("0:rpcal5gb0", "0");
-			nvram_set("0:rpcal5gb1", "0");
-			nvram_set("0:rpcal5gb2", "0");
-			nvram_set("0:rpcal5gb3", "0xD140");
-			nvram_set("0:rxgainerr5ga0", "63,63,63,-10");
-			nvram_set("0:rxgainerr5ga1", "31,31,31,-10");
-			nvram_set("0:rxgainerr5ga2", "31,31,31,-9");
-			nvram_set("2:rpcal5gb0", "0x4D36");
-			nvram_set("2:rpcal5gb1", "0");
-			nvram_set("2:rpcal5gb2", "0");
-			nvram_set("2:rpcal5gb3", "0");
-			nvram_set("2:rxgainerr5ga0", "-5,63,63,63");
-			nvram_set("2:rxgainerr5ga1", "-9,31,31,31");
-			nvram_set("2:rxgainerr5ga2", "-8,31,31,31");
-		}
-
-		nvram_set("vlan1hwname", "et0");
-		nvram_set("lan_ifname", "br0");
-		nvram_set("landevs", "vlan1 wl0 wl1 wl2");
-
-#ifdef RTCONFIG_DUALWAN
-		if (get_wans_dualwan()&WANSCAP_WAN && get_wans_dualwan()&WANSCAP_LAN)
-			nvram_set("wandevs", "vlan2 vlan3");
-		else
-			nvram_set("wandevs", "et0");
-
-		set_lan_phy("vlan1");
-
-		if (!(get_wans_dualwan()&WANSCAP_2G))
-			add_lan_phy("eth2");
-		if (!(get_wans_dualwan()&WANSCAP_5G)) {
-			add_lan_phy("eth1");
-			add_lan_phy("eth3");
-		}
-
-		if (nvram_get("wans_dualwan")) {
-			set_wan_phy("");
-			for(unit = WAN_UNIT_FIRST; unit < WAN_UNIT_MAX; ++unit) {
-				if (get_dualwan_by_unit(unit) == WANS_DUALWAN_IF_LAN) {
-					if (get_wans_dualwan()&WANSCAP_WAN)
-						add_wan_phy("vlan3");
-					else
-						add_wan_phy(the_wan_phy());
-				}
-				else if (get_dualwan_by_unit(unit) == WANS_DUALWAN_IF_2G)
-					add_wan_phy("eth2");
-				else if (get_dualwan_by_unit(unit) == WANS_DUALWAN_IF_5G) {
-					add_wan_phy("eth1");
-					add_wan_phy("eth3");
-				}
-				else if (get_dualwan_by_unit(unit) == WANS_DUALWAN_IF_WAN) {
-					if (nvram_get("switch_wantag") && !nvram_match("switch_wantag", "") && !nvram_match("switch_wantag", "none")) {
-						if (!nvram_match("switch_wan0tagid", "")) {
-							sprintf(wan_if, "vlan%s", nvram_safe_get("switch_wan0tagid"));
-							add_wan_phy(wan_if);
-						}
-						else
-							add_wan_phy(the_wan_phy());
-					}
-					else if (get_wans_dualwan()&WANSCAP_LAN)
-						add_wan_phy("vlan2");
-					else
-						add_wan_phy(the_wan_phy());
-				}
-				else if (get_dualwan_by_unit(unit) == WANS_DUALWAN_IF_USB)
-					add_wan_phy("usb");
-			}
-		}
-		else
-			nvram_set("wan_ifnames", "eth0 usb");
-#else
-		nvram_set("lan_ifnames", "vlan1 eth2 eth1 eth3");
-		nvram_set("wan_ifnames", "eth0");
-#endif
-		nvram_set("wl_ifnames", "eth2 eth1 eth3");
-		nvram_set("wl0_vifnames", "wl0.1 wl0.2 wl0.3");
-		nvram_set("wl1_vifnames", "wl1.1 wl1.2 wl1.3");
-		nvram_set("wl2_vifnames", "wl2.1 wl2.2 wl2.3");
-
-		nvram_set_int("pwr_usb_gpio", 0);
-
-		nvram_set_int("led_usb_gpio", 17|GPIO_ACTIVE_LOW);
-		nvram_set_int("led_usb3_gpio", 18|GPIO_ACTIVE_LOW);
-		nvram_set_int("led_pwr_gpio", 1|GPIO_ACTIVE_LOW);
-		nvram_set_int("led_wps_gpio", 14);
-#ifdef RTCONFIG_TURBO
-		nvram_set_int("led_turbo_gpio", 15);
-#endif
-#ifdef RTCONFIG_WLAN_LED
-		nvram_set_int("led_2g_gpio", 13|GPIO_ACTIVE_LOW);
-#endif
-		nvram_set_int("led_5g_gpio", 12|GPIO_ACTIVE_LOW);
-		nvram_set_int("led_wan_red_gpio", 8|GPIO_ACTIVE_LOW);
-		nvram_set_int("led_wan_gpio", 9|GPIO_ACTIVE_LOW);
-
-		nvram_set_int("btn_led_gpio", 4|GPIO_ACTIVE_LOW);
-		nvram_set_int("btn_wps_gpio", 4|GPIO_ACTIVE_LOW);
-#ifdef RTCONFIG_WIFI_TOG_BTN
-		nvram_set_int("btn_wltog_gpio", 5|GPIO_ACTIVE_LOW);
-#endif
-		nvram_set_int("btn_rst_gpio", 6|GPIO_ACTIVE_LOW);
-
-#ifdef RTCONFIG_XHCIMODE
-		nvram_set("xhci_ports", "1-1");
-		nvram_set("ehci_ports", "2-1 2-2");
-		nvram_set("ohci_ports", "3-1 3-2");
-#else
-		if (nvram_get_int("usb_usb3") == 1) {
-			nvram_set("xhci_ports", "1-1");
-			nvram_set("ehci_ports", "2-1 2-2");
-			nvram_set("ohci_ports", "3-1 3-2");
-		}
-		else{
-			nvram_unset("xhci_ports");
-			nvram_set("ehci_ports", "1-1 1-2");
-			nvram_set("ohci_ports", "2-1 2-2");
-		}
-#endif
-
-		if (!nvram_get("ct_max"))
-			nvram_set("ct_max", "300000");
-		add_rc_support("mssid 2.4G 5G update usbX2");
-		add_rc_support("switchctrl"); // broadcom: for jumbo frame only
-		add_rc_support("manual_stb");
-		add_rc_support("pwrctrl");
-		add_rc_support("WIFI_LOGO");
-		add_rc_support("nandflash");
-		add_rc_support("smart_connect");
-#ifdef RTCONFIG_LED_BTN
-		nvram_set_int("AllLED", 1);
-#endif
 		break;
 
 	case MODEL_WS880:

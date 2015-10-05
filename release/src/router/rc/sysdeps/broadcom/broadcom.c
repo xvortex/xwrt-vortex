@@ -279,9 +279,7 @@ GetPhyStatus(int verbose)
 	case MODEL_RTN18U:
 	case MODEL_RTAC53U:
 	case MODEL_EA6900:
-	case MODEL_EA9200:
 	case MODEL_R7000:
-	case MODEL_R8000:
 	case MODEL_WS880:
 		/* WAN L1 L2 L3 L4 */
 		ports[0]=0; ports[1]=1; ports[2]=2; ports[3]=3; ports[4]=4;
@@ -473,8 +471,6 @@ setAllLedOn(void)
 		case MODEL_RTAC5300:
 		case MODEL_RTAC88U:
 		case MODEL_RTAC3100:
-		case MODEL_EA9200:
-		case MODEL_R8000:
 		{
 #if defined(RTAC68U) || defined(RTAC88U) || defined(RTAC3100) || defined(RTAC5300)
 			led_control(LED_USB, LED_ON);
@@ -485,7 +481,7 @@ setAllLedOn(void)
 #endif
 			eval("et", "robowr", "0", "0x18", "0x01ff");	// lan/wan ethernet/giga led
 			eval("et", "robowr", "0", "0x1a", "0x01e0");
-#if defined(RTAC3200) || defined(R8000) || defined(EA9200)
+#if defined(RTAC3200)
 			eval("wl", "ledbh", "10", "1");			// wl 5G low
 			eval("wl", "-i", "eth2", "ledbh", "10", "1");	// wl 2.4G
 			eval("wl", "-i", "eth3", "ledbh", "10", "1");	// wl 5G high
@@ -739,8 +735,6 @@ setWlOffLed(void)
 			break;
 		}
 		case MODEL_RTAC3200:
-		case MODEL_EA9200:
-		case MODEL_R8000:
 		{
 			if (wlon_unit != 0 && wlon_unit_ex != 0)
 				eval("wl", "-i", "eth2", "ledbh", "10", "0");	// wl 2.4G
@@ -858,8 +852,6 @@ setAllLedOff(void)
 		case MODEL_RTAC5300:
 		case MODEL_RTAC88U:
 		case MODEL_RTAC3100:
-		case MODEL_EA9200:
-		case MODEL_R8000:
 		{
 #if defined(RTAC68U) || defined(RTAC88U) || defined(RTAC3100) || defined(RTAC5300)
 			led_control(LED_USB, LED_OFF);
@@ -870,7 +862,7 @@ setAllLedOff(void)
 #endif
 			eval("et", "robowr", "0", "0x18", "0x01e0");	// lan/wan ethernet/giga led
 			eval("et", "robowr", "0", "0x1a", "0x01e0");
-#if defined(RTAC3200) || defined(R8000) || defined(EA9200)
+#if defined(RTAC3200)
 			eval("wl", "ledbh", "10", "0");			// wl 5G low
 			eval("wl", "-i", "eth2", "ledbh", "10", "0");	// wl 2.4G
 			eval("wl", "-i", "eth3", "ledbh", "10", "0");	// wl 5G high
@@ -1105,8 +1097,6 @@ setATEModeLedOn(void){
 		case MODEL_RTAC88U:
 		case MODEL_RTAC3100:
 		case MODEL_RTAC5300:
-		case MODEL_EA9200:
-		case MODEL_R8000:
 		{
                         led_control(LED_WPS, LED_ON);
                         led_control(LED_WAN, LED_ON);
@@ -1385,7 +1375,7 @@ int Get_ChannelList_5G(void)
 #endif
 }
 
-#if defined(RTAC3200) || defined(RTAC5300) || defined(R8000) || defined(EA9200)
+#if defined(RTAC3200) || defined(RTAC5300)
 int Get_ChannelList_5G_2(void)
 {
 	return Get_channel_list(2);
@@ -2058,7 +2048,7 @@ next_info:
 			snprintf(prefix, sizeof(prefix), "wl%d_", unit);
 #endif
 			for (i = 0; i < ap_count; i++){
-#if defined(RTAC3200) || defined(RTAC5300) || defined(R8000) || defined(EA9200)
+#if defined(RTAC3200) || defined(RTAC5300)
 				if (!strcmp(wif, "eth1") && (apinfos[i].ctl_ch > 48))
 					continue;
 				if (!strcmp(wif, "eth3")) {

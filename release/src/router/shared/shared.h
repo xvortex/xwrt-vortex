@@ -288,9 +288,7 @@ enum {
 	MODEL_RTAC1200G,
 	MODEL_RTAC1200GP,
 	MODEL_EA6900,
-	MODEL_EA9200,
 	MODEL_R7000,
-	MODEL_R8000,
 	MODEL_WS880,
 	MODEL_GENERIC
 };
@@ -464,7 +462,6 @@ static inline int have_usb3_led(int model)
 		case MODEL_RTAC3100:
 		case MODEL_RTAC5300:
 		case MODEL_R7000:
-		case MODEL_R8000:
 		case MODEL_WS880:
 			return 1;
 	}
@@ -1105,7 +1102,7 @@ static inline int is_usb3_port(char *usb_node)
 #define MIB_RX_REG 0x88
 #define MIB_TX_REG 0x00
 
-#if defined(RTN18U) || defined(RTAC56U) || defined(RTAC56S) || defined(RTAC68U) || defined(EA6900) || defined(R7000) || defined(WS880) || defined(RTAC3200) || defined(EA9200) || defined(R8000) || defined(DSL_AC68U)
+#if defined(RTN18U) || defined(RTAC56U) || defined(RTAC56S) || defined(RTAC68U) || defined(EA6900) || defined(R7000) || defined(WS880) || defined(RTAC3200) || defined(DSL_AC68U)
 #define CPU_PORT "5"
 #define WAN0DEV "vlan2"
 #endif

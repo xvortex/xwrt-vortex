@@ -698,9 +698,7 @@ void generate_switch_para(void)
 		case MODEL_RTN18U:						/* 0  1  2  3  4 */
 		case MODEL_RTAC53U:
 		case MODEL_EA6900:
-		case MODEL_EA9200:
 		case MODEL_R7000:
-		case MODEL_R8000:
 		case MODEL_WS880:
 		{				/* WAN L1 L2 L3 L4 CPU */	/*vision: WAN L1 L2 L3 L4 */
 			const int ports[SWPORT_COUNT] = { 0, 1, 2, 3, 4, 5 };
@@ -1717,8 +1715,6 @@ reset_mssid_hwaddr(int unit)
 			case MODEL_RTAC88U:
 			case MODEL_RTAC3100:
 			case MODEL_EA6900:
-			case MODEL_EA9200:
-			case MODEL_R8000:
 			case MODEL_WS880:
 				snprintf(macaddr_str, sizeof(macaddr_str), "%d:macaddr", unit);
 				break;
@@ -1892,9 +1888,7 @@ void init_wl(void)
 		case MODEL_RTAC68U:
 		case MODEL_RTAC88U:
 		case MODEL_EA6900:
-		case MODEL_EA9200:
 		case MODEL_R7000:
-		case MODEL_R8000:
 		case MODEL_WS880:
 			set_bcm4360ac_vars();
 			break;
@@ -2062,9 +2056,7 @@ void fini_wl(void)
 		(get_model() == MODEL_RPAC68U) ||
 		(get_model() == MODEL_RTAC68U) ||
 		(get_model() == MODEL_EA6900) ||
-		(get_model() == MODEL_EA9200) ||
 		(get_model() == MODEL_R7000) ||
-		(get_model() == MODEL_R8000) ||
 		(get_model() == MODEL_WS880) ||
 		(get_model() == MODEL_DSLAC68U) ||
 		(get_model() == MODEL_RTAC87U) ||
@@ -2208,8 +2200,6 @@ void init_syspara(void)
 			break;
 
 		case MODEL_RTAC3200:
-		case MODEL_EA9200:
-		case MODEL_R8000:
 			if (!nvram_get("et0macaddr"))				// eth0 (ethernet)
 				nvram_set("et0macaddr", "00:22:15:A5:03:00");
 			nvram_set("1:macaddr", nvram_safe_get("et0macaddr"));	// eth2 (2.4GHz)
@@ -3111,9 +3101,7 @@ void generate_wl_para(int unit, int subunit)
 					get_model() == MODEL_RPAC68U ||
 					get_model() == MODEL_RTAC68U ||
 					get_model() == MODEL_EA6900 ||
-					get_model() == MODEL_EA9200 ||
 					get_model() == MODEL_R7000 ||
-					get_model() == MODEL_R8000 ||
 					get_model() == MODEL_WS880 ||
 					get_model() == MODEL_DSLAC68U ||
 					get_model() == MODEL_RTAC87U ||
@@ -3926,9 +3914,7 @@ set_wan_tag(char *interface) {
 	case MODEL_RTAC68U:	/* WAN L1 L2 L3 L4 CPU */
 	case MODEL_RTN18U:	/* WAN L1 L2 L3 L4 CPU */
 	case MODEL_EA6900:
-	case MODEL_EA9200:
 	case MODEL_R7000:
-	case MODEL_R8000:
 	case MODEL_WS880:
 		if (wan_vid) { /* config wan port */
 			eval("vconfig", "rem", "vlan2");
