@@ -281,8 +281,8 @@ function initial(){
 			based_modelid == "RT-AC87U" ||
 			based_modelid == "RT-AC55U" || based_modelid == "RT-AC55UHP" || based_modelid == "4G-AC55U" ||
 			based_modelid == "RT-AC56S" || based_modelid == "RT-AC56U" || 
-			based_modelid == "EA6900" || based_modelid == "R7000" || based_modelid == "WS880" ||
 			based_modelid == "RT-AC68U" || based_modelid == "RT-AC68U_V2" || based_modelid == "DSL-AC68U" ||
+			based_modelid == "EA6900" || based_modelid == "R7000" || based_modelid == "WS880" ||
 			based_modelid == "RT-AC88U" || based_modelid == "RT-AC3100" || 
 			based_modelid == "RT-AC5300")
 		{
@@ -293,8 +293,8 @@ function initial(){
 			based_modelid == "RT-N18U" ||
 			based_modelid == "RT-AC69U" ||
 			based_modelid == "RT-AC87U" ||
-			based_modelid == "EA6900" || based_modelid == "R7000" || based_modelid == "WS880" ||
 			based_modelid == "RT-AC68U" || based_modelid == "RT-AC68U_V2" || based_modelid == "DSL-AC68U" ||
+			based_modelid == "EA6900" || based_modelid == "R7000" || based_modelid == "WS880" ||
 			based_modelid == "RT-AC88U" || based_modelid == "RT-AC3100" || 
 			based_modelid == "RT-AC5300")
 		{
@@ -413,7 +413,7 @@ function generate_region(){
 	var region_value = ["AP", "CN", "EU", "KR", "RU", "SG", "US"]; //Viz mod 2015.06.15
 	var current_region = '<% nvram_get("location_code"); %>';
 	var is_CN_sku = (function(){
-		if( productid !== "RT-AC87U" && productid !== "RT-AC68U" && productid !== "RT-AC66U" && productid !== "RT-N66U" && productid !== "RT-N18U" && productid != "RT-AC51U" &&
+		if( productid !== "RT-AC87U" && productid !== "RT-AC68U" && productid !== "EA6900" && productid !== "R7000" && productid !== "WS880" && productid !== "RT-AC66U" && productid !== "RT-N66U" && productid !== "RT-N18U" && productid != "RT-AC51U" &&
 			productid !== "RT-N12+" && productid !== "RT-N12D1" && productid !== "RT-N12HP_B1" && productid !== "RT-N12HP" && productid !== "RT-AC55U" && productid !== "RT-AC1200" && productid != "RT-AC51U" &&
 			productid !== "RT-AC88U" && productid !== "RT-AC5300" && productid !== "RT-AC55U"
 		  )	return false;

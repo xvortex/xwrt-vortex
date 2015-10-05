@@ -73,6 +73,9 @@ function initial(){
 	if( based_modelid != "RT-AC3200" &&
 		based_modelid != "RT-AC87U" && 
 		based_modelid != "RT-AC68U" &&
+		based_modelid != "EA6900" &&
+		based_modelid != "R7000" &&
+		based_modelid != "WS880" &&
 		based_modelid != "RT-AC66U" &&
 		based_modelid != "RT-AC51U" &&
 		based_modelid != "RT-N66U" &&

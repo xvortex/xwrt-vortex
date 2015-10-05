@@ -86,8 +86,8 @@ function update_temperatures(){
 			}
 			if ((based_modelid == "RT-N18U") || (based_modelid == "RT-AC56U") ||
 			    (based_modelid == "RT-AC56S") || (based_modelid == "RT-AC68U") ||
-			    (based_modelid == "EA6900") || (based_modelid == "R7000") || (based_modelid == "WS880") || 
 			    (based_modelid == "RT-AC87U") || (based_modelid == "RT-AC68U") ||
+			    (based_modelid == "EA6900") || (based_modelid == "R7000") || (based_modelid == "WS880") || 
 			    (based_modelid == "RT-AC3200") || (based_modelid == "RT-AC88U") ||
 			    (based_modelid == "RT-AC5300") || (based_modelid == "RT-AC3100")) {
 				code +="&nbsp;&nbsp;-&nbsp;&nbsp;<b>CPU:</b> <span>" + curr_coreTmp_cpu +"&deg;C</span>";
