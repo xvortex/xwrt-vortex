@@ -761,7 +761,7 @@ struct nvram_tuple router_defaults[] = {
 	{ "bsd_msglevel", "0x000010", 0 },	/* BSD_DEBUG_STEER */
 	{ "bsd_dbg", "1"},
 #endif
-#if defined (RTAC3200)
+#ifdef RTAC3200
 	{"bsd_ifnames", "eth2 eth1 eth3", 0 },
 	{"wl0_bsd_steering_policy", "0 5 3 -52 0 110 0x22", 0 },
 	{"wl1_bsd_steering_policy", "80 5 3 -82 0 0 0x0", 0 },

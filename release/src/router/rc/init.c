@@ -990,7 +990,7 @@ restore_defaults(void)
 #ifdef RTCONFIG_DSL
 	dsl_defaults();
 #endif
-#if defined(RTAC3200)
+#ifdef RTAC3200
 	bsd_defaults();
 #endif
 #ifdef RTCONFIG_DHDAP
