@@ -18,7 +18,7 @@
 <script language="JavaScript" type="text/javascript" src="/popup.js"></script>
 <script type="text/javascript" language="JavaScript" src="/merlin.js"></script>
 <script language="JavaScript" type="text/javascript" src="/validator.js"></script>
-<script type="text/javascript" src="/jquery.js"></script>
+<script type="text/javascript" src="/js/jquery.js"></script>
 <script type="text/javascript" src="/switcherplugin/jquery.iphone-switch.js"></script>
 <script language="JavaScript" type="text/javascript" src="/form.js"></script>
 <style type="text/css">
@@ -169,7 +169,7 @@ function formShowAndHide(server_enable, server_type) {
 			document.getElementById('exportViaEmail').style.display = "none";
 					
 		showopenvpnd_clientlist();
-		parseOpenVPNClients();
+		update_vpn_client_state();
 		openvpnd_connected_status();
 		check_vpn_server_state();
 		document.getElementById("divApply").style.display = "";
@@ -192,16 +192,15 @@ function openvpnd_connected_status(){
 		var ind = x;
 		username_status = "conn"+ind;
 		if(openvpnd_connected_clients.length >0){
+			if(document.getElementById(username_status)) {
+				document.getElementById(username_status).innerHTML = '<#Disconnected#>';
+			}
 			for(var y=0; y<openvpnd_connected_clients.length; y++){
 				if(document.getElementById("openvpnd_clientlist_table").rows[x].cells[1].title == openvpnd_connected_clients[y].username){
 					document.getElementById(username_status).innerHTML = '<a class="hintstyle2" href="javascript:void(0);" onClick="showOpenVPNClients(\''+openvpnd_connected_clients[y].username+'\');"><#Connected#></a>';
 					break;
 				}		
 			}
-			
-			if(document.getElementById(username_status).innerHTML == ""){
-				document.getElementById(username_status).innerHTML = '<#Disconnected#>';
-			}			
 		}else if(document.getElementById(username_status)){
 			document.getElementById(username_status).innerHTML = '<#Disconnected#>';
 		}	
@@ -551,8 +550,10 @@ function del_Row(rowdata){
 	}
 
 	vpn_server_clientlist_array = vpn_server_clientlist_value;
-	if(vpn_server_clientlist_array == "")
+	if(vpn_server_clientlist_array == "") {
 		showopenvpnd_clientlist();
+		openvpnd_connected_status();
+	}
 }
 
 var overlib_str2 = new Array();	//Viz add 2013.10 for record longer VPN client username/pwd for OpenVPN
@@ -599,8 +600,9 @@ function showopenvpnd_clientlist(){
 	document.getElementById("openvpnd_clientlist_Block").innerHTML = code;
 }
 
-function parseOpenVPNClients(){		//192.168.123.82:46954 10.8.0.6 pine\n	
-	var Loginfo = document.getElementById("openvpn_connected_info").firstChild.innerHTML;
+function parseOpenVPNClients(client_status){		//192.168.123.82:46954 10.8.0.6 pine\n	
+	openvpnd_connected_clients = [];
+	var Loginfo = client_status;
 	if (Loginfo == "") {return;}
 
 	Loginfo = Loginfo.replace('\r\n', '\n');
@@ -964,6 +966,24 @@ function save_keys() {
 }
 /* Advanced Setting end */ 
 
+function update_vpn_client_state() {
+	$.ajax({
+		url: '/ajax_openvpn_client_status.xml',
+		dataType: 'xml',
+
+		error: function(xml) {
+			setTimeout("update_vpn_client_state();", 1000);
+		},
+
+		success: function(xml) {
+			var vpnserverXML = xml.getElementsByTagName("vpnserver");
+			var client_status = vpnserverXML[0].firstChild.nodeValue;
+			parseOpenVPNClients(client_status);
+			openvpnd_connected_status();
+			setTimeout("update_vpn_client_state();", 3000);
+		}
+	});	
+}
 </script>
 </head>
 <body onload="initial();">
@@ -1000,7 +1020,7 @@ function save_keys() {
 		<tr>
 			<div style="margin-left:30px; margin-top:10px;">
 				<p><#vpn_openvpn_KC_Edit1#> <span style="color:#FFCC00;">----- BEGIN xxx ----- </span>/<span style="color:#FFCC00;"> ----- END xxx -----</span> <#vpn_openvpn_KC_Edit2#>
-				<p>Limit: 3499 characters per field
+				<p>Limit: 3999 characters per field
 			</div>
 			<div style="margin:5px;*margin-left:-5px;"><img style="width: 730px; height: 2px;" src="/images/New_ui/export/line_export.png"></div>
 		</tr>				
@@ -1014,42 +1034,42 @@ function save_keys() {
 								<tr>
 									<th><#vpn_openvpn_KC_StaticK#></th>
 									<td>
-										<textarea rows="8" class="textarea_ssh_table" id="edit_vpn_crt_server_static" name="edit_vpn_crt_server_static" cols="65" maxlength="3499"></textarea>
+										<textarea rows="8" class="textarea_ssh_table" id="edit_vpn_crt_server_static" name="edit_vpn_crt_server_static" cols="65" maxlength="3999"></textarea>
 									</td>
 								</tr>
 								<tr id="edit_tls1">
 									<th><#vpn_openvpn_KC_CA#></th>
 									<td>
-										<textarea rows="8" class="textarea_ssh_table" id="edit_vpn_crt_server_ca" name="edit_vpn_crt_server_ca" cols="65" maxlength="3499"></textarea>
+										<textarea rows="8" class="textarea_ssh_table" id="edit_vpn_crt_server_ca" name="edit_vpn_crt_server_ca" cols="65" maxlength="3999"></textarea>
 									</td>
 								</tr>
 								<tr id="edit_tls2">
 									<th><#vpn_openvpn_KC_SA#></th>
 									<td>
-										<textarea rows="8" class="textarea_ssh_table" id="edit_vpn_crt_server_crt" name="edit_vpn_crt_server_crt" cols="65" maxlength="3499"></textarea>
+										<textarea rows="8" class="textarea_ssh_table" id="edit_vpn_crt_server_crt" name="edit_vpn_crt_server_crt" cols="65" maxlength="3999"></textarea>
 									</td>
 								</tr>
 								<tr id="edit_tls3">
 									<th><#vpn_openvpn_KC_SK#></th>
 									<td>
-										<textarea rows="8" class="textarea_ssh_table" id="edit_vpn_crt_server_key" name="edit_vpn_crt_server_key" cols="65" maxlength="3499"></textarea>
+										<textarea rows="8" class="textarea_ssh_table" id="edit_vpn_crt_server_key" name="edit_vpn_crt_server_key" cols="65" maxlength="3999"></textarea>
 									</td>
 								</tr>
 								<tr id="edit_tls4">
 									<th><#vpn_openvpn_KC_DH#></th>
 									<td>
-										<textarea rows="8" class="textarea_ssh_table" id="edit_vpn_crt_server_dh" name="edit_vpn_crt_server_dh" cols="65" maxlength="3499"></textarea>
+										<textarea rows="8" class="textarea_ssh_table" id="edit_vpn_crt_server_dh" name="edit_vpn_crt_server_dh" cols="65" maxlength="3999"></textarea>
 									</td>
 								</tr>
 								<tr id="edit_tls5">
 									<th>Certificate Revocation List (Optional)</th>
 									<td>
-										<textarea rows="8" class="textarea_ssh_table" id="edit_vpn_crt_server_crl" name="edit_vpn_crt_server_crl" cols="65" maxlength="3499"></textarea>
+										<textarea rows="8" class="textarea_ssh_table" id="edit_vpn_crt_server_crl" name="edit_vpn_crt_server_crl" cols="65" maxlength="3999"></textarea>
 									</td>
 								</tr>
 								<tr id="edit_tls6">
 									<th>Extra Chain Certificates (Optional)</th>
-										<td><textarea rows="8" class="textarea_ssh_table" id="edit_vpn_crt_server_extra" name="edit_vpn_crt_server_extra" cols="65" maxlength="3499"></textarea>
+										<td><textarea rows="8" class="textarea_ssh_table" id="edit_vpn_crt_server_extra" name="edit_vpn_crt_server_extra" cols="65" maxlength="3999"></textarea>
 									</td>
 								</tr>
 							</table>
@@ -1071,7 +1091,6 @@ function save_keys() {
 <div id="Loading" class="popup_bg"></div>
 
 <iframe name="hidden_frame" id="hidden_frame" src="" width="0" height="0" frameborder="0"></iframe>
-<div id="openvpn_connected_info" style="display:none;"><pre><% nvram_dump("openvpn_connected",""); %></pre></div>
 <form method="post" name="form" action="/start_apply.htm" target="hidden_frame">
 <input type="hidden" name="current_page" value="Advanced_VPN_OpenVPN.asp">
 <input type="hidden" name="next_page" value="Advanced_VPN_OpenVPN.asp">
@@ -1196,8 +1215,8 @@ function save_keys() {
 											</thead>								
 											<tr>
 												<th><#PPPConnection_x_WANLink_itemname#></th>
-												<th><#PPPConnection_UserName_itemname#></th>
-												<th><#PPPConnection_Password_itemname#></th>
+												<th><#HSDPAConfig_Username_itemname#></th>
+												<th><#HSDPAConfig_Password_itemname#></th>
 												<th><#list_add_delete#></th>
 											</tr>			  
 											<tr>
@@ -1223,7 +1242,7 @@ function save_keys() {
 											<p><#vpn_openvpn_desc3#><br />
 											<p><#vpn_openvpn_hint1#><br />
 											<p><#vpn_openvpn_hint2#><br />
-											<p>Before changing any value in advanced settings, please check the openVPN client software ability.
+											<p><#vpn_openvpn_hint3#>
 										</div>
 										<!-- Advanced setting table start-->
 										<table width="100%" border="1" align="center" cellpadding="4" cellspacing="0" bordercolor="#6b8fa3"  class="FormTable" style="margin-top:8px;">
@@ -1458,7 +1477,7 @@ function save_keys() {
 											</tr>
 											</thead>
 											<tr>
-												<th width="36%"><#PPPConnection_UserName_itemname#></th>
+												<th width="36%"><#HSDPAConfig_Username_itemname#></th>
 												<th width="20%"><#IPConnection_ExternalIPAddress_itemname#></th>
 												<th width="20%"><#IPConnection_x_ExternalSubnetMask_itemname#></th>
 												<th width="12%"><#Push#></th>

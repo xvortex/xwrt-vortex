@@ -257,7 +257,7 @@ GEN_CONF:
 			eval("wl", "-i", ifname, "ldpc_cap", "1");	// driver default setting
 #endif
 #ifdef RTCONFIG_BCMWL6
-#ifndef RTCONFIG_BCM7
+#if !defined(RTCONFIG_BCM7) && !defined(RTCONFIG_BCM_7114)
 		if (nvram_match(strcat_r(prefix, "ack_ratio", tmp), "1"))
 			eval("wl", "-i", ifname, "ack_ratio", "4");
 		else
@@ -266,7 +266,7 @@ GEN_CONF:
 		if (nvram_match(strcat_r(prefix, "ampdu_mpdu", tmp), "1"))
 			eval("wl", "-i", ifname, "ampdu_mpdu", "64");
 		else
-#ifndef RTCONFIG_BCM7
+#if !defined(RTCONFIG_BCM7)
 			eval("wl", "-i", ifname, "ampdu_mpdu", "-1");	// driver default setting
 #else
 			eval("wl", "-i", ifname, "ampdu_mpdu", "32");	// driver default setting
@@ -276,7 +276,7 @@ GEN_CONF:
 			eval("wl", "-i", ifname, "ampdu_rts", "1");	// driver default setting
 		else
 			eval("wl", "-i", ifname, "ampdu_rts", "0");
-#ifndef RTCONFIG_BCM7
+#if 0
 		if (nvram_match(strcat_r(prefix, "itxbf", tmp), "1"))
 			eval("wl", "-i", ifname, "txbf_imp", "1");	// driver default setting
 		else
@@ -1055,15 +1055,16 @@ gen_qca_wifi_cfgs(void)
 #endif
 
 #if defined(PLN12)
-	led_control(LED_2G_GREEN, led_onoff[0]);
-	led_control(LED_2G_ORANGE, led_onoff[0]);
+	//led_control(LED_2G_GREEN, led_onoff[0]);
+	//led_control(LED_2G_ORANGE, led_onoff[0]);
 	led_control(LED_2G_RED, led_onoff[0]);
 	set_wifiled(1);
 #elif defined(PLAC56)
 	led_control(LED_2G_GREEN, led_onoff[0]);
-	led_control(LED_2G_RED, led_onoff[0]);
+	//led_control(LED_2G_RED, led_onoff[0]);
 	led_control(LED_5G_GREEN, led_onoff[0]);
-	led_control(LED_5G_RED, led_onoff[0]);
+	//led_control(LED_5G_RED, led_onoff[0]);
+	set_wifiled(1);
 #else
 	led_control(LED_2G, led_onoff[0]);
 #endif
@@ -1429,6 +1430,9 @@ void start_lan(void)
 	dpsta_enable_info_t info = { 0 };
 #endif
 	char name[80];
+#ifdef __CONFIG_DHDAP__
+        int is_dhd;
+#endif /* __CONFIG_DHDAP__ */
 
 	update_lan_state(LAN_STATE_INITIALIZING, 0);
 
@@ -1680,8 +1684,23 @@ void start_lan(void)
 					if (strcmp(mode, "wet") == 0) {
 						// Enable host DHCP relay
 						if (nvram_get_int("dhcp_relay")) {
-							wl_iovar_set(ifname, "wet_host_mac", ifr.ifr_hwaddr.sa_data, ETHER_ADDR_LEN);
-							wl_iovar_setint(ifname, "wet_host_ipv4", ip);
+#ifdef __CONFIG_DHDAP__
+							is_dhd = !dhd_probe(name);
+							if(is_dhd) {
+								char macbuf[sizeof("wet_host_mac") + 1 + ETHER_ADDR_LEN];
+								dhd_iovar_setbuf(name, "wet_host_mac", ifr.ifr_hwaddr.sa_data, ETHER_ADDR_LEN , macbuf, sizeof(macbuf));
+							}
+							else
+#endif /* __CONFIG_DHDAP__ */
+								wl_iovar_set(name, "wet_host_mac", ifr.ifr_hwaddr.sa_data, ETHER_ADDR_LEN);
+#ifdef __CONFIG_DHDAP__
+							is_dhd = !dhd_probe(ifname);
+							if(is_dhd) {
+								dhd_iovar_setint(ifname, "wet_host_ipv4", ip);
+							}
+							else
+#endif /* __CONFIG_DHDAP__ */
+								wl_iovar_setint(ifname, "wet_host_ipv4", ip);
 						}
 					}
 
@@ -1762,14 +1781,16 @@ void start_lan(void)
 						goto gmac3_no_swbr;
 #endif
 				if (!match)
+				{
 					eval("brctl", "addif", lan_ifname, ifname);
 #ifdef RTCONFIG_GMAC3
 gmac3_no_swbr:
 #endif
 #ifdef RTCONFIG_EMF
-				if (nvram_match("emf_enable", "1"))
-					eval("emf", "add", "iface", lan_ifname, ifname);
+					if (nvram_match("emf_enable", "1"))
+						eval("emf", "add", "iface", lan_ifname, ifname);
 #endif
+				}
 				enable_wifi_bled(ifname);
 			}
 
@@ -1859,8 +1880,11 @@ gmac3_no_swbr:
 #endif
 	start_snooper(lan_ifname);
 
-	if(nvram_match("lan_proto", "dhcp"))
-	{
+	if (nvram_match("lan_proto", "dhcp") 
+#ifdef RTCONFIG_DEFAULT_AP_MODE
+			&& !nvram_match("ate_flag", "1")
+#endif
+	) {
 		// only none routing mode need lan_proto=dhcp
 		if (pids("udhcpc"))
 		{
@@ -2522,7 +2546,6 @@ NEITHER_WDS_OR_PSTA:
 
 			/* Stop dhcp client */
 			stop_udhcpc(unit);
-			stop_zcip(unit);
 		}
 	}
 	// Beceem dongle, ASIX USB to RJ45 converter, ECM, rndis(LU-150: ethX with RNDIS).
@@ -2626,7 +2649,6 @@ NEITHER_WDS_OR_PSTA:
 
 			/* Stop dhcp client */
 			stop_udhcpc(unit);
-			stop_zcip(unit);
 
 #ifdef RTCONFIG_USB_BECEEM
 			if(strlen(port_path) <= 0)
@@ -3359,7 +3381,14 @@ void stop_lan_wl(void)
 				/* do nothing */
 #endif
 			ifconfig(ifname, 0, NULL, NULL);
+#ifdef RTCONFIG_GMAC3
+			if (nvram_match("gmac3_enable", "1") && find_in_list(nvram_get("fwd_wlandevs"), ifname))
+				goto gmac3_no_swbr;
+#endif
 			eval("brctl", "delif", lan_ifname, ifname);
+#ifdef RTCONFIG_GMAC3
+gmac3_no_swbr:
+#endif
 #ifdef RTCONFIG_EMF
 			if (nvram_match("emf_enable", "1"))
 				eval("emf", "del", "iface", lan_ifname, ifname);
@@ -3445,6 +3474,9 @@ void start_lan_wl(void)
 	struct ifreq ifr;
 	int unit, subunit, sta = 0;
 #endif
+#ifdef __CONFIG_DHDAP__
+        int is_dhd;
+#endif /* __CONFIG_DHDAP__ */
 
 #if defined(RTCONFIG_RALINK) || defined(RTCONFIG_QCA)
 	init_wl();
@@ -3608,7 +3640,22 @@ void start_lan_wl(void)
 					if (strcmp(mode, "wet") == 0) {
 						// Enable host DHCP relay
 						if (nvram_get_int("dhcp_relay")) {
+#ifdef __CONFIG_DHDAP__
+							is_dhd = !dhd_probe(ifname);
+							if(is_dhd) {
+								char macbuf[sizeof("wet_host_mac") + 1 + ETHER_ADDR_LEN];
+								dhd_iovar_setbuf(ifname, "wet_host_mac", ifr.ifr_hwaddr.sa_data, ETHER_ADDR_LEN , macbuf, sizeof(macbuf));
+							}
+							else
+#endif /* __CONFIG_DHDAP__ */
 							wl_iovar_set(ifname, "wet_host_mac", ifr.ifr_hwaddr.sa_data, ETHER_ADDR_LEN);
+#ifdef __CONFIG_DHDAP__
+							is_dhd = !dhd_probe(ifname);
+							if(is_dhd) {
+								dhd_iovar_setint(ifname, "wet_host_ipv4", ip);
+							}
+							else
+#endif /* __CONFIG_DHDAP__ */
 							wl_iovar_setint(ifname, "wet_host_ipv4", ip);
 						}
 					}

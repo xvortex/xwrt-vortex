@@ -93,6 +93,10 @@ if(yadns_support){
 	var yadns_mode = '<% nvram_get("yadns_mode"); %>';
 }
 
+var backup_mac = "";
+var backup_ip = "";
+var backup_name = "";
+
 function initial(){
 	show_menu();
 	//Viz 2011.10{ for LAN ip in DHCP pool or Static list
@@ -196,6 +200,9 @@ function addRow_Group(upper){
 		addRow(document.form.dhcp_staticmac_x_0 ,1);
 		addRow(document.form.dhcp_staticip_x_0, 0);
 		addRow(document.form.dhcp_staticname_x_0, 0);
+		backup_mac = "";
+		backup_ip = "";
+		backup_name = "";
 		showdhcp_staticlist();
 	}else{
 		return false;
@@ -223,11 +230,21 @@ function del_Row(r){
 }
 
 function edit_Row(r){
+	if (backup_mac != "") {
+		document.form.dhcp_staticmac_x_0.value = backup_mac;
+		document.form.dhcp_staticip_x_0.value = backup_ip;
+		document.form.dhcp_staticname_x_0.value = backup_name;
+		addRow_Group(128);
+	}
+
 	var i=r.parentNode.parentNode.rowIndex;
 	document.form.dhcp_staticmac_x_0.value = document.getElementById('dhcp_staticlist_table').rows[i].cells[0].innerHTML;
 	document.form.dhcp_staticip_x_0.value = document.getElementById('dhcp_staticlist_table').rows[i].cells[1].innerHTML;
 	document.form.dhcp_staticname_x_0.value = document.getElementById('dhcp_staticlist_table').rows[i].cells[2].innerHTML;
-  del_Row(r);
+	backup_mac = document.form.dhcp_staticmac_x_0.value;
+	backup_ip = document.form.dhcp_staticip_x_0.value;
+	backup_name = document.form.dhcp_staticname_x_0.value;
+ 	del_Row(r);
 }
 
 function showdhcp_staticlist(){
@@ -245,11 +262,11 @@ function showdhcp_staticlist(){
 					code +='<td width="27%">'+ dhcp_staticlist_col[j] +'</td>';		//IP  width="98"
 				}
 				if (j !=3) code +='<td width="27%"></td>';
-				code +='<td width="19%"><!--input class="edit_btn" onclick="edit_Row(this);" value=""/-->';
+				code +='<td width="19%"><input class="edit_btn" onclick="edit_Row(this);" value=""/>';
 				code +='<input class="remove_btn" onclick="del_Row(this);" value=""/></td></tr>';
 		}
 	}
-  code +='</table>';
+	code +='</table>';
 	document.getElementById("dhcp_staticlist_Block").innerHTML = code;
 }
 
@@ -394,7 +411,7 @@ function get_default_pool(ip, netmask){
 	}
 	var post_lan_netmask = document.form.lan_netmask.value.substr(tmp_nm,3);
 
-var nm = new Array("0", "128", "192", "224", "240", "248", "252");
+	var nm = new Array("0", "128", "192", "224", "240", "248", "252");
 	for(i=0;i<nm.length;i++){
 				 if(post_lan_netmask==nm[i]){
 							gap=256-Number(nm[i]);
@@ -529,6 +546,14 @@ function check_vpn(){		//true: (DHCP ip pool & static ip ) conflict with VPN cli
 	}
 
 	return false;
+}
+
+
+function validate_hostname(o){
+	if ((o.value != "") && (validator.hostName(o) != "")) {
+	        alert("Hostname must only contain alphanumeric characters, underline and dash symbol. The first character cannot be dash \"-\" or underline \"_\".");
+	        o.select();
+	}
 }
 </script>
 </head>
@@ -718,10 +743,10 @@ function check_vpn(){		//true: (DHCP ip pool & static ip ) conflict with VPN cli
 			  	</thead>
 
 			  	<tr>
-		  			<th><a class="hintstyle" href="javascript:void(0);" onClick="openHint(5,10);"><#MAC_Address#></a></th>
-        		<th><#IPConnection_ExternalIPAddress_itemname#></th>
-			<th>Name</th>
-        		<th><#list_add_delete#></th>
+					<th><a class="hintstyle" href="javascript:void(0);" onClick="openHint(5,10);"><#MAC_Address#></a></th>
+					<th><#IPConnection_ExternalIPAddress_itemname#></th>
+					<th>Hostame</th>
+					<th><#list_add_delete#></th>
 			  	</tr>
 			  	<tr>
 				<!-- client info -->
@@ -734,12 +759,12 @@ function check_vpn(){		//true: (DHCP ip pool & static ip ) conflict with VPN cli
             				<input type="text" class="input_15_table" maxlength="15" name="dhcp_staticip_x_0" onkeypress="return validator.isIPAddr(this,event)" autocorrect="off" autocapitalize="off">
             			</td>
             			<td width="27%">
-					<input type="text" class="input_15_table" maxlenght="15" onkeypress="return is_alphanum(this,event);" onblur="validator.safeName(this);" name="dhcp_staticname_x_0" autocorrect="off" autocapitalize="off">
+					<input type="text" class="input_15_table" maxlenght="30" onkeypress="return is_alphanum(this, event);" onblur="validate_hostname(this);" name="dhcp_staticname_x_0" autocorrect="off" autocapitalize="off">
 				</td>
 				<td width="19%">
-										<div>
-											<input type="button" class="add_btn" onClick="addRow_Group(128);" value="">
-										</div>
+					<div>
+						<input type="button" class="add_btn" onClick="addRow_Group(128);" value="">
+					</div>
             			</td>
 			  	</tr>
 			  </table>

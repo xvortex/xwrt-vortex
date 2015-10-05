@@ -17,10 +17,12 @@
 #endif
 
 #ifdef RTCONFIG_RALINK
-
 // TODO: make it switch model dependent, not product dependent
 #include "rtkswitch.h"
+#endif
 
+#ifdef RTCONFIG_EXT_RTL8365MB
+#include <rtk_switch.h>
 #endif
 
 int led_control(int which, int mode);
@@ -113,12 +115,11 @@ int init_gpio(void)
 #ifdef RT4GAC55U
 		, "led_lte_gpio", "led_sig1_gpio", "led_sig2_gpio", "led_sig3_gpio"
 #endif
-#ifdef PLN12
-		, "led_pwr_red_gpio", "led_2g_green_gpio", "led_2g_orange_gpio", "led_2g_red_gpio"
-#endif
-#ifdef PLAC56
-		, "led_2g_green_gpio", "led_2g_red_gpio"
-		, "led_5g_green_gpio", "led_5g_red_gpio"
+#if (defined(PLN12) || defined(PLAC56))
+		, "plc_wake_gpio"
+		, "led_pwr_red_gpio"
+		, "led_2g_green_gpio", "led_2g_orange_gpio", "led_2g_red_gpio"
+		, "led_5g_green_gpio", "led_5g_orange_gpio", "led_5g_red_gpio"
 #endif
 #ifdef RTCONFIG_MMC_LED
 		, "led_mmc_gpio"
@@ -184,7 +185,7 @@ int init_gpio(void)
 #endif	/* RT4GAC55U */
 	}
 
-#ifdef PLN12
+#if (defined(PLN12) || defined(PLAC56))
 	if((gpio_pin = (use_gpio = nvram_get_int("led_pwr_red_gpio")) & 0xff) != 0xff)
 #else
 	if((gpio_pin = (use_gpio = nvram_get_int("led_pwr_gpio")) & 0xff) != 0xff)
@@ -212,6 +213,13 @@ int init_gpio(void)
 	if((gpio_pin = (use_gpio = nvram_get_int("rpm_fan_gpio")) & 0xff) != 0xff){
 	enable = (use_gpio&GPIO_ACTIVE_LOW)==0 ? 1 : 0;
 	set_gpio(gpio_pin, enable);
+	}
+#endif
+
+#ifdef PLAC56
+	if((gpio_pin = (use_gpio = nvram_get_int("plc_wake_gpio")) & 0xff) != 0xff){
+		enable = (use_gpio&GPIO_ACTIVE_LOW)==0 ? 1 : 0;
+		set_gpio(gpio_pin, enable);
 	}
 #endif
 
@@ -318,16 +326,14 @@ void get_gpio_values_once(void)
 	led_gpio_table[RPM_FAN] = __get_gpio("rpm_fan_gpio");
 #endif
 
-#ifdef PLN12
+#if (defined(PLN12) || defined(PLAC56))
+	led_gpio_table[PLC_WAKE] = __get_gpio("plc_wake_gpio");
 	led_gpio_table[LED_POWER_RED] = __get_gpio("led_pwr_red_gpio");
 	led_gpio_table[LED_2G_GREEN] = __get_gpio("led_2g_green_gpio");
 	led_gpio_table[LED_2G_ORANGE] = __get_gpio("led_2g_orange_gpio");
 	led_gpio_table[LED_2G_RED] = __get_gpio("led_2g_red_gpio");
-#endif
-#ifdef PLAC56
-	led_gpio_table[LED_2G_GREEN] = __get_gpio("led_2g_green_gpio");
-	led_gpio_table[LED_2G_RED] = __get_gpio("led_2g_red_gpio");
 	led_gpio_table[LED_5G_GREEN] = __get_gpio("led_5g_green_gpio");
+	led_gpio_table[LED_5G_ORANGE] = __get_gpio("led_5g_orange_gpio");
 	led_gpio_table[LED_5G_RED] = __get_gpio("led_5g_red_gpio");
 #endif
 
@@ -544,6 +550,11 @@ int led_control_atomic(int which, int mode)
 					eval("wl", "ledbh", "10", "7");
 				else if (mode == LED_OFF)
 					eval("wl", "ledbh", "10", "0");
+			} else if ((model == MODEL_RTAC88U) || (model == MODEL_RTAC3100) || (model == MODEL_RTAC3100)) {
+				if (mode == LED_ON)
+					eval("wl", "ledbh", "9", "7");
+				else if (mode == LED_OFF)
+					eval("wl", "ledbh", "9", "0");
 			}
 			break;
 		case LED_5G_FORCED:
@@ -555,6 +566,11 @@ int led_control_atomic(int which, int mode)
 					nvram_set("led_5g", "0");
 					eval("wl", "-i", "eth2", "ledbh", "10", "0");
 				}
+			} else if ((model == MODEL_RTAC88U) || (model == MODEL_RTAC3100) || (model == MODEL_RTAC3100)) {
+				if (mode == LED_ON)
+					eval("wl", "-i", "eth2", "ledbh", "9", "7");
+				else if (mode == LED_OFF)
+					eval("wl", "-i", "eth2", "ledbh", "9", "0");
 			}
 			// Fall through regular LED_5G to handle other models
 		case LED_5G:
@@ -781,9 +797,14 @@ int lanport_ctrl(int ctrl)
 
 #else
 	char word[100], *next;
-	int mask;
+	int mask = 0;
 
-	mask = 0;
+#ifdef RTCONFIG_EXT_RTL8365MB
+	if(ctrl)
+		rtkswitch_ioctl(POWERUP_LANPORTS, -1, -1);
+	else
+		rtkswitch_ioctl(POWERDOWN_LANPORTS, -1, -1);
+#endif
 
 	foreach(word, nvram_safe_get("lanports"), next) {
 		mask |= (0x0001<<atoi(word));

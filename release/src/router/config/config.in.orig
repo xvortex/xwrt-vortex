@@ -57,6 +57,10 @@ config RTCONFIG_BCM10
 	bool "Bcm sdk 10_10_18_x"
 	default n
 
+config RTCONFIG_BCM9
+	bool "Bcm sdk 9_10_162_x"
+	default n
+
 config RTCONFIG_BUILDBCM7
 	bool "build Bcm sdk 7 on 6 platforms"
 	default n
@@ -136,7 +140,11 @@ config RTCONFIG_JFFSV1
 
 config RTCONFIG_ZEBRA
 	bool "Zebra"
-	default y
+	default n
+
+config RTCONFIG_QUAGGA
+	bool "Quagga"
+	default n
 
 config RTCONFIG_DDNS
 	bool "Dynamic DNS"
@@ -246,10 +254,6 @@ config RTCONFIG_TCPDUMP
 	bool "tcpdump"
 	default n
 
-config RTCONFIG_OLD_PARENTALCTRL
-	bool "Parental Control Function Old UI"
-	default n
-
 config RTCONFIG_PARENTALCTRL
 	bool "Parental Control Function"
 	default n
@@ -277,6 +281,10 @@ config RTCONFIG_VDSL
 
 config RTCONFIG_DUALWAN
 	bool "Dual WAN Support"
+	default n
+
+config RTCONFIG_HW_DUALWAN
+	bool "Dual WAN with Support"
 	default n
 
 config RTCONFIG_USER_LOW_RSSI
@@ -338,6 +346,11 @@ config RTCONFIG_FTPCLIENT
 
 config RTCONFIG_SAMBACLIENT
 	bool "SambaSync (samba Client)"
+	depends on RTCONFIG_CLOUDSYNC
+	default n
+
+config RTCONFIG_USBCLIENT
+	bool "UsbSync (usb Client)"
 	depends on RTCONFIG_CLOUDSYNC
 	default n
 
@@ -953,6 +966,10 @@ config RTCONFIG_ROG
 
 config RTCONFIG_GEOIP
 	bool "determine country by IP address"
+	default n
+
+config RTCONFIG_TRANSMISSION
+	bool "Transmission A Fast, Easy and Free BitTorrent client"
 	default n
 
 config RTCONFIG_NOWL

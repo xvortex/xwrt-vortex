@@ -15,7 +15,7 @@
 <link href="other.css"  rel="stylesheet" type="text/css">
 <link rel="stylesheet" type="text/css" href="/device-map/device-map.css">
 <script type="text/javascript" src="/state.js"></script>
-<script language="JavaScript" type="text/javascript" src="/jquery.js"></script>
+<script language="JavaScript" type="text/javascript" src="/js/jquery.js"></script>
 <script language="JavaScript" type="text/javascript" src="/client_function.js"></script>
 <script type="text/javascript" src="/help.js"></script>
 <script type="text/javascript" src="/general.js"></script>
@@ -400,11 +400,21 @@ function validForm(){
 	if(auth_mode == "psk" || auth_mode == "psk2" || auth_mode == "pskpsk2"){ //2008.08.04 lock modified
 		if(is_KR_sku){
 			if(!validator.psk_KR(document.form.wl_wpa_psk, document.form.wl_unit.value))
-                                return false;
+				return false;
 		}
 		else{
 			if(!validator.psk(document.form.wl_wpa_psk, document.form.wl_unit.value))
 				return false;
+		}
+		
+		//confirm common string combination	#JS_common_passwd#
+		var is_common_string = check_common_string(document.form.wl_wpa_psk.value, "wpa_key");
+		if(is_common_string){
+			if(confirm("<#JS_common_passwd#>")){
+				document.form.wl_wpa_psk.focus();
+				document.form.wl_wpa_psk.select();
+				return false;	
+			}	
 		}
 	}
 	else{
@@ -540,6 +550,7 @@ function change_guest_unit(_unit, _subunit){
 	document.form.wl_key2.value = decodeURIComponent(gn_array[idx][8]);
 	document.form.wl_key3.value = decodeURIComponent(gn_array[idx][9]);
 	document.form.wl_key4.value = decodeURIComponent(gn_array[idx][10]);
+	document.form.wl_phrase_x.value = decodeURIComponent(gn_array[idx][17]);
 	document.form.wl_expire.value = decodeURIComponent(gn_array[idx][11]);
 	document.form.wl_lanaccess.value = decodeURIComponent(gn_array[idx][12]);
 
@@ -1128,7 +1139,7 @@ function setClientmac(macaddr){
 									</tr>
 								</thead>
 									<tr>
-										<th width="80%"><a class="hintstyle" href="javascript:void(0);" onClick="openHint(5,10);">Client's MAC address<!--untranslated--></th> 
+										<th width="80%"><a class="hintstyle" href="javascript:void(0);" onClick="openHint(5,10);">Client Name (MAC address)<!--untranslated--></th> 
 										<th width="20%"><#list_add_delete#></th>
 									</tr>
 									<tr>

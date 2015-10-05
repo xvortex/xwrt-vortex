@@ -55,7 +55,7 @@
 <script language="JavaScript" type="text/javascript" src="/popup.js"></script>
 <script language="JavaScript" type="text/javascript" src="/help.js"></script>
 <script language="JavaScript" type="text/javascript" src="/validator.js"></script>
-<script language="JavaScript" type="text/javascript" src="/jquery.js"></script>
+<script language="JavaScript" type="text/javascript" src="/js/jquery.js"></script>
 <script language="JavaScript" type="text/javascript" src="/client_function.js"></script>
 <script type="text/javascript" src="/jquery.xdomainajax.js"></script>
 <script>
@@ -100,7 +100,7 @@ function onSubmitCtrl(o, s) {
 }
 
 function updateOptions(){
-	document.form.SystemCmd.value = "ether-wake -i br0 " + document.form.destIP.value;
+	document.form.SystemCmd.value = "ether-wake -i br0 -b " + document.form.destIP.value;
 	document.form.submit();
 	document.getElementById("cmdBtn").disabled = true;
 	document.getElementById("cmdBtn").style.color = "#666";
@@ -410,7 +410,7 @@ function applyRule(){
 									  	</thead>
 						
 									  	<tr>
-								  		<th><a class="hintstyle" href="javascript:void(0);" onClick="openHint(5,10);">Client's MAC address<!--untranslated--></a></th>
+								  		<th><a class="hintstyle" href="javascript:void(0);" onClick="openHint(5,10);">Client Name (MAC address)<!--untranslated--></a></th>
 						        		<th><#list_add_delete#></th>
 									  	</tr>			  
 									  	<tr>

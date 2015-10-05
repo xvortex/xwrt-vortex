@@ -106,11 +106,11 @@ function suspendconn(wan_index, wanenable){
 }
 
 function enableMonomode(){
-	showLoading(2);
 	document.titleForm.action = "/apply.cgi";
+	document.titleForm.current_page.value = top.location.pathname;
 	document.titleForm.action_mode.value = "mfp_monopolize";
-	document.titleForm.current_page.value = "/device-map/printer.asp";
-	document.form.target = "hidden_frame";
+	document.titleForm.action_wait.value = "2";
+	showLoading(2);
 	document.titleForm.submit();
 }
 
@@ -132,7 +132,7 @@ function gotocooler(){
 }
 
 function priority_change(){
-	top.location.href = "/AdaptiveQoS_Adaptive.asp";
+	top.location.href = "/QoS_EZQoS.asp";
 }
 
 function qos_disable(){	
@@ -307,17 +307,17 @@ function overHint(itemNum){
 	// Viz add 2015.07 bwdpi : Adpative QoS mode start
 	if(itemNum == "A"){
 		statusmenu = "<div class='StatusHint'><#Adaptive_QoS#> :</div>";
-		if(bwdpi_app_rulelist == "9,20<8<4<0,5,6,15,17<13,24<1,3,14<7,10,11,21,23<<"){
-			modeDesc = "Game mode";
+		if(bwdpi_app_rulelist == "9,20<8<4<0,5,6,15,17<13,24<1,3,14<7,10,11,21,23<<game"){
+			modeDesc = "Game mode";		/* untranslated */
 		}	
-		else if(bwdpi_app_rulelist == "9,20<4<0,5,6,15,17<8<13,24<1,3,14<7,10,11,21,23<<"){
-			modeDesc = "Media Streaming mode";
+		else if(bwdpi_app_rulelist == "9,20<4<0,5,6,15,17<8<13,24<1,3,14<7,10,11,21,23<<media"){
+			modeDesc = "Media Streaming mode";		/* untranslated */
 		}	
-		else if(bwdpi_app_rulelist == "9,20<13,24<4<0,5,6,15,17<8<1,3,14<7,10,11,21,23<<"){
-			modeDesc = "Web Surfing mode";
+		else if(bwdpi_app_rulelist == "9,20<13,24<4<0,5,6,15,17<8<1,3,14<7,10,11,21,23<<web"){
+			modeDesc = "Web Surfing mode";		/* untranslated */
 		}	
 		else{
-			modeDesc = "Customize mode";
+			modeDesc = "Customize mode";		/* untranslated */
 		}		
 		
 		statusmenu += "<span>" + modeDesc + "</span>";
@@ -884,8 +884,8 @@ function openHint(hint_array_id, hint_show_id, flag){
 		var _caption = "";
 
 		if(hint_show_id == 9){	//2015.07 Viz add for bwdpi : Adaptive QoS mode
-			statusmenu = "<span class='StatusClickHint' onclick='priority_change();' onmouseout='this.className=\"StatusClickHint\"' onmouseover='this.className=\"StatusClickHint_mouseover\"'>Change priority mode</span><br>";
-			statusmenu += "<span class='StatusClickHint' onclick='qos_disable();' onmouseout='this.className=\"StatusClickHint\"' onmouseover='this.className=\"StatusClickHint_mouseover\"'>Disable QoS</span>";
+			statusmenu = "<span class='StatusClickHint' onclick='priority_change();' onmouseout='this.className=\"StatusClickHint\"' onmouseover='this.className=\"StatusClickHint_mouseover\"'>Change priority mode</span><br>";	/* untranslated */
+			statusmenu += "<span class='StatusClickHint' onclick='qos_disable();' onmouseout='this.className=\"StatusClickHint\"' onmouseover='this.className=\"StatusClickHint_mouseover\"'>Disable QoS</span>";	/* untranslated */
 			_caption = "<#Adaptive_QoS#>";
 		}
 		else if(hint_show_id == 8){	//2014.10 Viz add for dsl dslx_diag_state
@@ -2557,6 +2557,53 @@ if ((olNs4 || olNs6 || olIe4)) {
 	nd = no_overlib;
 	ver3fix = true;
 }
+
+// ---------- Viz add common string check for password 2015.09 start--------
+function check_common_string(pwd, flag){
+	//Sequential
+	var termAlphas = "abcdefghijklmnopqrstuvwxyz";
+	var termNumerics = "01234567890";
+	var termSymbols = "~!@#$%^&*()_+";
+	var termKeyboards1 = "qwertyuiop";
+	var termKeyboards2 = "asdfghjkl";
+	var termKeyboards3 = "zxcvbnm";
+	var termCommon5 = ["123123","abc123","ashley","bailey","dragon","letmein","master","michael","monkey","qazwsx","shadow"];
+	var termCommon8 = ["adminpassword","baseball","football","iloveyou","loginpassword","passw0rd","password","sunshine","superman","trustno1","useradmin","userpassword"];
+	var nSeqString = 0;
+	if(flag == "httpd_password"){	//at lease length 5		
+		if(termAlphas.toLowerCase().indexOf(pwd) != -1 || termAlphas.strReverse().toLowerCase().indexOf(pwd) != -1) { nSeqString++; }
+		if(termNumerics.toLowerCase().indexOf(pwd) != -1 || termNumerics.strReverse().toLowerCase().indexOf(pwd) != -1) { nSeqString++; }
+		if(termSymbols.toLowerCase().indexOf(pwd) != -1 || termSymbols.strReverse().toLowerCase().indexOf(pwd) != -1) { nSeqString++; }
+		if(termKeyboards1.toLowerCase().indexOf(pwd) != -1 || termKeyboards1.strReverse().toLowerCase().indexOf(pwd) != -1) { nSeqString++; }
+		if(termKeyboards2.toLowerCase().indexOf(pwd) != -1 || termKeyboards2.strReverse().toLowerCase().indexOf(pwd) != -1) { nSeqString++; }
+		if(termKeyboards3.toLowerCase().indexOf(pwd) != -1 || termKeyboards3.strReverse().toLowerCase().indexOf(pwd) != -1) { nSeqString++; }
+		for(var s=0;s<termCommon5.length;s++){
+			if(pwd == termCommon5[s])	{ nSeqString++; }	
+		}
+		for(var t=0;t<termCommon8.length;t++){
+			if(pwd == termCommon8[t])	{ nSeqString++; }	
+		}		
+	}
+	else if(flag == "wpa_key"){	//at lease length 8
+		if(termAlphas.toLowerCase().indexOf(pwd) != -1 || termAlphas.strReverse().toLowerCase().indexOf(pwd) != -1) { nSeqString++; }
+		if(termNumerics.toLowerCase().indexOf(pwd) != -1 || termNumerics.strReverse().toLowerCase().indexOf(pwd) != -1) { nSeqString++; }
+		if(termSymbols.toLowerCase().indexOf(pwd) != -1 || termSymbols.strReverse().toLowerCase().indexOf(pwd) != -1) { nSeqString++; }
+		if(termKeyboards1.toLowerCase().indexOf(pwd) != -1 || termKeyboards1.strReverse().toLowerCase().indexOf(pwd) != -1) { nSeqString++; }
+		if(termKeyboards2.toLowerCase().indexOf(pwd) != -1 || termKeyboards2.strReverse().toLowerCase().indexOf(pwd) != -1) { nSeqString++; }
+		for(var s=0;s<termCommon8.length;s++){
+			if(pwd == termCommon8[s])	{ nSeqString++; }	
+		}		
+	}
+	
+	//pure repeat character string
+	if(pwd == pwd.charAt(0).repeat(pwd.length)) { nSeqString++; }
+	
+	if(nSeqString > 0)
+		return true;
+	else		
+		return false;
+}
+// ---------- Viz add common string check for password 2015.09 end--------
 
 // ---------- Viz add for pwd strength check [Start] 2012.12 -----
 

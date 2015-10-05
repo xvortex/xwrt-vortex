@@ -19,7 +19,7 @@
 <script language="JavaScript" type="text/javascript" src="/help.js"></script>
 <script language="JavaScript" type="text/javascript" src="/merlin.js"></script>
 <script language="JavaScript" type="text/javascript" src="/tmmenu.js"></script>
-<script type="text/javascript" src="/jquery.js"></script>
+<script type="text/javascript" src="/js/jquery.js"></script>
 <script type="text/javascript" src="/disk_functions.js"></script>
 <style type="text/css">
 /* folder tree */
@@ -104,8 +104,9 @@ function initial() {
 	if (document.form.usb_idle_exclude.value.indexOf("i") != -1)
 		document.form.usb_idle_exclude_i.checked = true;
 
-	if ((productid == "RT-AC56U") || (productid == "RT-AC68U") || (productid == "EA6900") || (productid == "EA9200") || (productid == "R7000") || (productid == "R8000") || (productid == "WS880") || (productid == "RT-AC87U") || (productid == "RT-AC3200"))
-		document.getElementById("ct_established_default").innerHTML = "Default: 432000 (5 days)";
+	if ((productid == "RT-AC56U") || (productid == "RT-AC68U") || (productid == "EA6900") || (productid == "R7000") || (productid == "WS880") ||  (productid == "RT-AC87U") ||
+	    (productid == "RT-AC3200") || (productid == "RT-AC88U") || (productid == "RT-AC3100") || (productid == "RT-AC5300"))
+		document.getElementById("ct_established_default").innerHTML = "Default: 2400";
 
 	document.aidiskForm.protocol.value = PROTOCOL;
 	initial_dir();

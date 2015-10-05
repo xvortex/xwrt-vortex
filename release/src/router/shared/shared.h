@@ -112,6 +112,9 @@ enum {
 #define GIF_LINKLOCAL  0x0001  /* return link-local addr */
 #define GIF_PREFIXLEN  0x0002  /* return addr & prefix */
 
+#define EXTEND_AIHOME_API_LEVEL		1
+#define EXTEND_HTTPD_AIHOME_VER		0
+
 enum {
 	ACT_IDLE,
 	ACT_TFTP_UPGRADE_UNUSED,
@@ -233,6 +236,7 @@ enum {
 	MODEL_DSLAC68U,
 	MODEL_EAN66,
 	MODEL_RTN11P,
+	MODEL_RTN300,
 	MODEL_RTN13U,
 	MODEL_RTN14U,
 	MODEL_RTAC52U,
@@ -503,16 +507,14 @@ struct ifaces_stats {
 #ifndef ARRAY_SIZE
 #define ARRAY_SIZE(ary) (sizeof(ary) / sizeof((ary)[0]))
 #endif
-#ifdef PLN12
+#if (defined(PLN12) || defined(PLAC56))
+	PLC_WAKE,
 	LED_POWER_RED,
 	LED_2G_GREEN,
 	LED_2G_ORANGE,
 	LED_2G_RED,
-#endif
-#ifdef PLAC56
-	LED_2G_GREEN,
-	LED_2G_RED,
 	LED_5G_GREEN,
+	LED_5G_ORANGE,
 	LED_5G_RED,
 #endif
 #ifdef RTCONFIG_MMC_LED
@@ -763,6 +765,7 @@ extern int rtkswitch_LanPort_linkDown(void);
 extern int rtkswitch_AllPort_linkUp(void);
 extern int rtkswitch_AllPort_linkDown(void);
 extern int rtkswitch_Reset_Storm_Control(void);
+extern int get_qca8337_PHY_power(int port);
 #endif
 
 // base64.c
@@ -974,7 +977,7 @@ extern int __config_swports_bled(const char *led_gpio, unsigned int port_mask, u
 extern int update_swports_bled(const char *led_gpio, unsigned int port_mask);
 extern int __config_usbbus_bled(const char *led_gpio, char *bus_list, unsigned int min_blink_speed, unsigned int interval);
 extern int is_swports_bled(const char *led_gpio);
-#if defined(PLN12)
+#if (defined(PLN12) || defined(PLAC56))
 extern void set_wifiled(int mode);
 #endif
 
@@ -1098,29 +1101,34 @@ static inline int is_usb3_port(char *usb_node)
 
 #ifdef RTCONFIG_BCM5301X_TRAFFIC_MONITOR
 
-#define MIB_P0_PAGE 0x20	/* port 0 */
+#define MIB_P0_PAGE 0x20       /* port 0 */
 #define MIB_RX_REG 0x88
 #define MIB_TX_REG 0x00
 
 #if defined(RTN18U) || defined(RTAC56U) || defined(RTAC56S) || defined(RTAC68U) || defined(EA6900) || defined(R7000) || defined(WS880) || defined(RTAC3200) || defined(EA9200) || defined(R8000) || defined(DSL_AC68U)
 #define CPU_PORT "5"
+#define WAN0DEV "vlan2"
 #endif
 
 #ifdef RTAC5300
 #define CPU_PORT "7"
+#define WAN0DEV "vlan2"
 #endif
 
 #if defined(RTAC88U) || defined(RTAC3100)/* || defined(RTAC5300)*/
 #ifdef RTCONFIG_EXT_RTL8365MB
 #define CPU_PORT "7"
+#define WAN0DEV "vlan2"
 #else
 #define CPU_PORT "5"
+#define WAN0DEV "vlan2"
 #endif
 #endif
 
 #ifdef RTAC87U
-#define CPU_PORT "7"	/* RT-AC87U */
-#define RGMII_PORT "5"	/* RT-AC87U */
+#define CPU_PORT "7"   /* RT-AC87U */
+#define RGMII_PORT "5" /* RT-AC87U */
+#define WAN0DEV "vlan2"
 #endif
 #endif	/* RTCONFIG_BCM5301X_TRAFFIC_MONITOR */
 

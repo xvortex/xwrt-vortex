@@ -1277,7 +1277,7 @@ ej_wl_status(int eid, webs_t wp, int argc, char_t **argv, int unit)
 #ifdef RTCONFIG_QTN
 	if (unit && rpc_qtn_ready())
 	{
-		ret = qcsapi_wifi_rfstatus(WIFINAME, (qcsapi_unsigned_int *) &val);
+		ret = qcsapi_wifi_rfstatus((qcsapi_unsigned_int *) &val);
 		if (ret < 0)
 			dbG("qcsapi_wifi_rfstatus error, return: %d\n", ret);
 		else
@@ -4061,7 +4061,8 @@ ej_wl_auth_psta(int eid, webs_t wp, int argc, char_t **argv)
 
 	snprintf(prefix, sizeof(prefix), "wl%d_", unit);
 
-	if (!nvram_match(strcat_r(prefix, "mode", tmp), "psta"))
+	if (!nvram_match(strcat_r(prefix, "mode", tmp), "psta") &&
+	    !nvram_match(strcat_r(prefix, "mode", tmp), "psr"))
 		goto PSTA_ERR;
 
 	name = nvram_safe_get(strcat_r(prefix, "ifname", tmp));
@@ -4282,7 +4283,7 @@ ej_wl_status_array(int eid, webs_t wp, int argc, char_t **argv, int unit)
 #ifdef RTCONFIG_QTN
 	if (unit && rpc_qtn_ready())
 	{
-		ret = qcsapi_wifi_rfstatus(WIFINAME, (qcsapi_unsigned_int *) &val);
+		ret = qcsapi_wifi_rfstatus((qcsapi_unsigned_int *) &val);
 		if (ret < 0) {
 			ret += websWrite(wp, "dataarray5 = [];wificlients5 = [];");
 			dbG("qcsapi_wifi_rfstatus error, return: %d\n", ret);
