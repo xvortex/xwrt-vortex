@@ -2420,6 +2420,8 @@ void chanspec_fix_5g(int unit)
 	}
 }
 
+static int set_wltxpower_vtx_once = 0;
+
 static const unsigned char txpower_list_vtx[] = { // 0-100% = 1-27 dBm = 1-500 mW
 	4, 29, 42, 50, 55, 59, 62, 65, 68, 70, 72, 73, 75, 76, 78, 79, 80, 81, 82, 83, 84, 85,
 	86, 87, 88, 88, 89, 90, 91, 91, 92, 92, 93, 94, 94, 95, 95, 96, 96, 97, 97, 98, 98, 98,
@@ -2437,6 +2439,8 @@ int set_wltxpower_vtx()
 	int i;
 	char tmp[100], prefix[]="wlXXXXXXX_";
 	char tmp2[100], prefix2[]="pci/x/1/";
+	char tmp3[100];
+	unsigned char p;
 	int txpower = 100;
 	int commit_needed = 0;
 	int model;
@@ -2500,7 +2504,7 @@ int set_wltxpower_vtx()
 			case MODEL_EA6900:
 			case MODEL_R7000:
 			case MODEL_WS880:
-				if (set_wltxpower_once) {
+				if (set_wltxpower_vtx_once) {
 					if (nvram_match(strcat_r(prefix, "nband", tmp), "2"))		// 2.4G
 					{
 						p = txpower_list_vtx[txpower];
@@ -2535,8 +2539,8 @@ int set_wltxpower_vtx()
 		i++;
 	}
 
-	if (!set_wltxpower_once)
-		set_wltxpower_once = 1;
+	if (!set_wltxpower_vtx_once)
+		set_wltxpower_vtx_once = 1;
 
 	if (commit_needed)
 		nvram_commit();
