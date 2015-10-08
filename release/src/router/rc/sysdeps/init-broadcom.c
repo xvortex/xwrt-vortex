@@ -1477,6 +1477,11 @@ void ether_led()
 	case MODEL_RTAC1200GP:
 		eval("et", "robowr", "0", "0x12", "0x24");
 		break;
+	case MODEL_R7000:
+		eval("et", "robowr", "0", "0x10", "0x3000");
+		eval("et", "robowr", "0", "0x12", "0x78");
+		eval("et", "robowr", "0", "0x14", "0x01");
+		break;
 	}
 }
 
@@ -1894,7 +1899,9 @@ void init_wl(void)
 			break;
 	}
 #endif
+#if !defined(EA6900) && !defined(R7000) && !defined(WS880)
 	check_wl_country();
+#endif
 #if defined(RTAC3200) || defined(RTAC68U) || defined(RTAC5300)
 	wl_disband5grp();
 #endif
@@ -2004,15 +2011,23 @@ void init_wl_compact(void)
 		case MODEL_RTAC88U:
 		case MODEL_RTAC1200G:
 		case MODEL_RTAC1200GP:
+		case MODEL_EA6900:
+		case MODEL_R7000:
+		case MODEL_WS880:
 			set_bcm4360ac_vars();
 			break;
 	}
 #endif
+#if !defined(EA6900) && !defined(R7000) && !defined(WS880)
 	check_wl_country();
+#endif
 #ifndef RTCONFIG_BRCM_USBAP
 	if ((get_model() == MODEL_RTAC3200) ||
 		(get_model() == MODEL_RPAC68U) ||
 		(get_model() == MODEL_RTAC68U) ||
+		(get_model() == MODEL_EA6900) ||
+		(get_model() == MODEL_R7000) ||
+		(get_model() == MODEL_WS880) ||
 		(get_model() == MODEL_DSLAC68U) ||
 		(get_model() == MODEL_RTAC87U) ||
 		(get_model() == MODEL_RTAC66U) ||
@@ -2403,6 +2418,130 @@ void chanspec_fix_5g(int unit)
 		dbG("fix nctrlsb of channel %d as %s\n", channel, "upper");
 		nvram_set(strcat_r(prefix, "nctrlsb", tmp), "upper");
 	}
+}
+
+static const unsigned char txpower_list_vtx[] = { // 0-100% = 1-27 dBm = 1-500 mW
+	4, 29, 42, 50, 55, 59, 62, 65, 68, 70, 72, 73, 75, 76, 78, 79, 80, 81, 82, 83, 84, 85,
+	86, 87, 88, 88, 89, 90, 91, 91, 92, 92, 93, 94, 94, 95, 95, 96, 96, 97, 97, 98, 98, 98,
+	99, 99, 100, 100, 100, 101, 101, 102, 102, 102, 103, 103, 103, 104, 104, 104, 105, 105,
+	105, 105, 106, 106, 106, 107, 107, 107, 107, 108, 108, 108, 108, 109, 109, 109, 109, 110,
+	110, 110, 110, 111, 111, 111, 111, 111, 112, 112, 112, 112, 112, 113, 113, 113, 113, 113,
+	114, 114, 114
+};
+
+int set_wltxpower_vtx()
+{
+	char ifnames[256];
+	char name[64], ifname[64], *next = NULL;
+	int unit = -1, subunit = -1;
+	int i;
+	char tmp[100], prefix[]="wlXXXXXXX_";
+	char tmp2[100], prefix2[]="pci/x/1/";
+	int txpower = 100;
+	int commit_needed = 0;
+	int model;
+
+	// generate nvram nvram according to system setting
+	model = get_model();
+
+	if (!nvram_contains_word("rc_support", "pwrctrl")) {
+		dbG("[rc] no Power Control on this model\n");
+		return -1;
+	}
+
+	if ((model != MODEL_EA6900)
+		&& (model != MODEL_R7000)
+		&& (model != MODEL_WS880)
+		)
+	{
+		dbG("\n\tDon't do this!\n\n");
+		return -1;
+	}
+
+	snprintf(ifnames, sizeof(ifnames), "%s %s",
+		 nvram_safe_get("lan_ifnames"), nvram_safe_get("wan_ifnames"));
+	remove_dups(ifnames, sizeof(ifnames));
+
+	i = 0;
+	foreach(name, ifnames, next) {
+		if (nvifname_to_osifname(name, ifname, sizeof(ifname)) != 0)
+			continue;
+
+		if (wl_probe(ifname) || wl_ioctl(ifname, WLC_GET_INSTANCE, &unit, sizeof(unit)))
+			continue;
+
+		/* Convert eth name to wl name */
+		if (osifname_to_nvifname(name, ifname, sizeof(ifname)) != 0)
+			continue;
+
+		/* Slave intefaces have a '.' in the name */
+		if (strchr(ifname, '.'))
+			continue;
+
+		if (get_ifname_unit(ifname, &unit, &subunit) < 0)
+			continue;
+
+		snprintf(prefix, sizeof(prefix), "wl%d_", unit);
+		switch(model) {
+			case MODEL_R7000:
+				snprintf(prefix2, sizeof(prefix2), "pci/%d/1/", unit + 1);
+				break;
+
+			case MODEL_EA6900:
+			case MODEL_WS880:
+				snprintf(prefix2, sizeof(prefix2), "%d:", unit);
+				break;
+		}
+
+		txpower = nvram_get_int(wl_nvname("txpower", unit, 0));
+		dbG("unit: %d, txpower: %d\n", unit, txpower);
+
+		switch(model) {
+			case MODEL_EA6900:
+			case MODEL_R7000:
+			case MODEL_WS880:
+				if (set_wltxpower_once) {
+					if (nvram_match(strcat_r(prefix, "nband", tmp), "2"))		// 2.4G
+					{
+						p = txpower_list_vtx[txpower];
+						sprintf(tmp3, "%d", p);
+						if (!nvram_match(strcat_r(prefix2, "maxp2ga0", tmp2), tmp3))
+						{
+							nvram_set(strcat_r(prefix2,"maxp2ga0", tmp2), tmp3);
+							nvram_set(strcat_r(prefix2,"maxp2ga1", tmp2), tmp3);
+							nvram_set(strcat_r(prefix2,"maxp2ga2", tmp2), tmp3);
+							commit_needed++;
+						}
+					}
+					else if (nvram_match(strcat_r(prefix, "nband", tmp), "1"))	// 5G
+					{
+						p = txpower_list_vtx[txpower];
+						sprintf(tmp3, "%d,%d,%d,%d", p, p, p, p);
+						if (!nvram_match(strcat_r(prefix2, "maxp5ga0", tmp2), tmp3))
+						{
+							nvram_set(strcat_r(prefix2, "maxp5ga0", tmp2), tmp3);
+							nvram_set(strcat_r(prefix2, "maxp5ga1", tmp2), tmp3);
+							nvram_set(strcat_r(prefix2, "maxp5ga2", tmp2), tmp3);
+							commit_needed++;
+						}
+					}
+				}
+				break;
+
+			default:
+				break;
+		}
+
+		i++;
+	}
+
+	if (!set_wltxpower_once)
+		set_wltxpower_once = 1;
+
+	if (commit_needed)
+		nvram_commit();
+
+	return 0;
 }
 
 #ifdef RTCONFIG_WIRELESSREPEATER
@@ -4996,7 +5135,7 @@ void wlconf_pre()
 #ifdef RTCONFIG_BCMARM
 		if (nvram_match(strcat_r(prefix, "nband", tmp), "2"))
 		{
-			if (model == MODEL_RTN18U || model == MODEL_RTAC3200 || model == MODEL_RTAC68U || model == MODEL_RPAC68U || model == MODEL_DSLAC68U || model == MODEL_RTAC88U || model == MODEL_RTAC3100 || model == MODEL_RTAC5300 || model == MODEL_RTAC87U) {
+			if (model == MODEL_RTN18U || model == MODEL_RTAC3200 || model == MODEL_RTAC68U || model == MODEL_EA6900 || model == MODEL_R7000 || model == MODEL_WS880 || model == MODEL_RPAC68U || model == MODEL_DSLAC68U || model == MODEL_RTAC88U || model == MODEL_RTAC3100 || model == MODEL_RTAC5300 || model == MODEL_RTAC87U) {
 				if (nvram_match(strcat_r(prefix, "turbo_qam", tmp), "1"))
 					eval("wl", "-i", word, "vht_features", "3");
 				else if (nvram_match(strcat_r(prefix, "turbo_qam", tmp), "2"))

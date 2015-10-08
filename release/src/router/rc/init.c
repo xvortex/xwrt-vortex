@@ -6755,14 +6755,16 @@ dbg("boot/continue fail= %d/%d\n", nvram_get_int("Ate_boot_fail"),nvram_get_int(
 				case MODEL_RTN12HP_B1:
 				case MODEL_RTN66U:
 				case MODEL_RTN18U:
-				case MODEL_EA6900:
-				case MODEL_R7000:
-				case MODEL_WS880:
 				//case MODEL_RTAC5300:
 				//case MODEL_RTAC3100:
 				//case MODEL_RTAC88U:
 				//case MODEL_RTAC1200G:
 					set_wltxpower();
+					break;
+				case MODEL_EA6900:
+				case MODEL_R7000:
+				case MODEL_WS880:
+					set_wltxpower_vtx();
 					break;
 				default:
 					if (nvram_contains_word("rc_support", "pwrctrl"))
