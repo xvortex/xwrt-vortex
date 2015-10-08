@@ -5265,14 +5265,16 @@ check_ddr_done:
 		case MODEL_APN12HP:
 		case MODEL_RTN66U:
 		case MODEL_RTN18U:
-		case MODEL_EA6900:
-		case MODEL_R7000:
-		case MODEL_WS880:
 		//case MODEL_RTAC5300:
 		//case MODEL_RTAC3100:
 		//case MODEL_RTAC88U:
 		//case MODEL_RTAC1200G:
 			set_wltxpower();
+			break;
+		case MODEL_EA6900:
+		case MODEL_R7000:
+		case MODEL_WS880:
+			set_wltxpower_vtx();
 			break;
 		default:
 			dbG("\n\tDon't do this!\n\n");

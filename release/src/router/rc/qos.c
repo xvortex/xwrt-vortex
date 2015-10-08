@@ -160,7 +160,8 @@ static int add_qos_rules(char *pcWANIF)
 
 	inuse = sticky_enable = 0;
 
-	if(get_model()==MODEL_RTAC56U || get_model()==MODEL_RTAC56S || get_model()==MODEL_RTAC68U || get_model()==MODEL_EA6900 || get_model()==MODEL_R7000 || get_model()==MODEL_WS880 ||
+	if(get_model()==MODEL_RTAC56U || get_model()==MODEL_RTAC56S || get_model()==MODEL_RTAC68U ||
+		get_model()==MODEL_EA6900 || get_model()==MODEL_R7000 || get_model()==MODEL_WS880 ||
 		get_model()==MODEL_DSLAC68U || get_model()==MODEL_RTAC87U || get_model()==MODEL_RTAC3200 || 
 		get_model()==MODEL_RTAC88U || get_model()==MODEL_RTAC3100 || get_model()==MODEL_RTAC5300 ||
 		get_model()==MODEL_RTAC1200G || get_model()==MODEL_RTAC1200GP)

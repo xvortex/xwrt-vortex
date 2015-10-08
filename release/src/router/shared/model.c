@@ -46,6 +46,15 @@ static const struct model_s model_list[] = {
 	{ "RT-AC56S",	MODEL_RTAC56S	},
 	{ "RT-AC56U",	MODEL_RTAC56U	},
 	{ "RT-AC66U",	MODEL_RTAC66U	},
+#ifdef EA6900
+	{ "EA6900",	MODEL_EA6900	},
+#endif
+#ifdef R7000
+	{ "R7000",	MODEL_R7000	},
+#endif
+#ifdef WS880
+	{ "WS880",	MODEL_WS880	},
+#endif
 	{ "RT-AC68U",	MODEL_RTAC68U	},
 	{ "RT-AC68U_V2",MODEL_RTAC68U	},
 	{ "RT-AC69U",	MODEL_RTAC68U	},
@@ -78,9 +87,15 @@ static const struct model_s model_list[] = {
 	{ "DSL-AC68U",	MODEL_DSLAC68U	},
 	{ "RT-AC1200G", MODEL_RTAC1200G	},
 	{ "RT-AC1200G+", MODEL_RTAC1200GP},
+#if !defined (EA6900)
 	{ "EA6900",	MODEL_EA6900	},
+#endif
+#if !defined (R7000)
 	{ "R7000",	MODEL_R7000	},
+#endif
+#if !defined (WS880)
 	{ "WS880",	MODEL_WS880	},
+#endif
 #endif	/* !RTCONFIG_RALINK */
 	{ NULL, 0 },
 };
