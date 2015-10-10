@@ -1899,7 +1899,7 @@ void init_wl(void)
 			break;
 	}
 #endif
-#if !defined(EA6900) && !defined(R7000) && !defined(WS880)
+#ifdef RTCONFIG_TCODE
 	check_wl_country();
 #endif
 #if defined(RTAC3200) || defined(RTAC68U) || defined(RTAC5300)
@@ -2018,7 +2018,7 @@ void init_wl_compact(void)
 			break;
 	}
 #endif
-#if !defined(EA6900) && !defined(R7000) && !defined(WS880)
+#ifdef RTCONFIG_TCODE
 	check_wl_country();
 #endif
 #ifndef RTCONFIG_BRCM_USBAP

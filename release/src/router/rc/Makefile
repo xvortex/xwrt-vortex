@@ -323,9 +323,10 @@ endif
 
 ifeq ($(RTCONFIG_TCODE),y)
 OBJS += tcode_rc.o
+endif
+
 ifeq ($(CONFIG_BCMWL5),y)
 OBJS += tcode_brcm.o
-endif
 endif
 
 ifeq ($(RTCONFIG_LACP),y)
@@ -653,11 +654,12 @@ ifneq ($(wildcard ./prebuild/tcode_rc.o),)
 tcode_rc.o:
 	@-cp -f ./prebuild/tcode_rc.o .
 endif
+endif
+
 ifeq ($(CONFIG_BCMWL5),y)
 ifneq ($(wildcard ./prebuild/tcode_brcm.o),)
 tcode_brcm.o:
 	@-cp -f ./prebuild/tcode_brcm.o .
-endif
 endif
 endif
 

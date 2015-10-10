@@ -1430,6 +1430,10 @@ define RouterOptions
 		sed -i "/RTCONFIG_REBOOT_SCHEDULE/d" $(1); \
 		echo "RTCONFIG_REBOOT_SCHEDULE=y" >>$(1); \
 	fi; \
+	if [ "$(TCODE)" = "n" ]; then \
+		sed -i "/RTCONFIG_TCODE/d" $(1); \
+		echo "# RTCONFIG_TCODE is not set" >>$(1); \
+	fi; \
 	)
 	$(call platformRouterOptions, $(1))
 endef
