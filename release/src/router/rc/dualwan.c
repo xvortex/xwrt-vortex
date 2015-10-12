@@ -41,6 +41,18 @@
 #define MODEL_PROTECT "RT-N18U"
 #endif
 
+#if defined(EA6900)
+#define MODEL_PROTECT "EA6900"
+#endif
+
+#if defined(R7000)
+#define MODEL_PROTECT "R7000"
+#endif
+
+#if defined(WS880)
+#define MODEL_PROTECT "WS880"
+#endif
+
 #ifndef MODEL_PROTECT
 #define MODEL_PROTECT "NOT_SUPPORT"
 #endif
@@ -121,6 +133,7 @@ void dualwan_control(void)
 	char wan0_proto[10];
 	char wan1_proto[10];
 
+#if !defined(EA6900) && !defined(R7000) && !defined(WS880)
 #if defined(RTCONFIG_CFEZ) && defined(RTCONFIG_BCMARM)
 	if (strcmp(nvram_safe_get("model"), MODEL_PROTECT) != 0){
 #else
@@ -129,7 +142,7 @@ void dualwan_control(void)
 		_dprintf("illegal, cannot enable DualWAN\n");
 		return;
 	}
-
+#endif
 	memset(dualwan_mode, 0, 8);
 	strcpy(dualwan_mode, nvram_safe_get("wans_mode"));
 	memset(dualwan_wans, 0, 16);
