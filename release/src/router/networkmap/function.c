@@ -248,41 +248,6 @@ int Nbns_query(unsigned char *src_ip, unsigned char *dest_ip, P_CLIENT_DETAIL_IN
     return 0;
 }
 
-#if 1
-/***** Printer server detect function *****/
-int lpd515(unsigned char *dest_ip)
-{
-        int sockfd1;
-	struct sockaddr_in other_addr1;
-	struct timeval timeout={1, 0};
-
-        if ((sockfd1 = socket(AF_INET, SOCK_STREAM, 0)) == -1)
-        {
-                NMP_DEBUG_F("LPD515: socket create error.\n");
-                return -1;
-        }
-
-	memset(&other_addr1, 0, sizeof(other_addr1));
-	other_addr1.sin_family = AF_INET;
-	other_addr1.sin_port = htons(LPD_PORT);
-	memcpy(&other_addr1.sin_addr, dest_ip, 4);
-
-	setsockopt(sockfd1, SOL_SOCKET, SO_SNDTIMEO, &timeout, sizeof(timeout));
-	setsockopt(sockfd1, SOL_SOCKET, SO_RCVTIMEO, &timeout, sizeof(timeout));
-
-	if (connect(sockfd1, (struct sockaddr*)&other_addr1, sizeof(other_addr1)) == -1)
-	{
-		NMP_DEBUG_F("LPD515: socket connect failed!\n");
-		close(sockfd1);
-		return -1;
-	}
-
-        /* Don't talk to the LPR service, as it will bring the printer out of sleep mode */
-        /* Assume that answering port 515 = printer server */
-        close(sockfd1);
-        return 0;
-}
-#else
 /***** Printer server detect function *****/
 int lpd515(unsigned char *dest_ip)
 {
@@ -339,7 +304,6 @@ int lpd515(unsigned char *dest_ip)
 	close(sockfd1);
        	return -1;
 }
-#endif
 
 int raw9100(unsigned char *dest_ip)
 {
@@ -1903,52 +1867,6 @@ int FindAllApp(unsigned char *src_ip, P_CLIENT_DETAIL_INFO_TABLE p_client_detail
 		fixstr(p_client_detail_info_tab->device_name[p_client_detail_info_tab->detail_info_num]);
 		NMP_DEBUG_F("Get device name from dhcp lease: %s\n", 
 		p_client_detail_info_tab->device_name[p_client_detail_info_tab->detail_info_num]);
-	}
-
-	return 1;
-}
-
-
-int FindHostname(P_CLIENT_DETAIL_INFO_TABLE p_client_detail_info_tab)
-{
-	unsigned char *dest_ip = p_client_detail_info_tab->ip_addr[p_client_detail_info_tab->detail_info_num];
-	char ipaddr[16];
-	sprintf(ipaddr, "%d.%d.%d.%d",(int)*(dest_ip),(int)*(dest_ip+1),(int)*(dest_ip+2),(int)*(dest_ip+3));
-
-	char *nv, *nvp, *b;
-	char *mac, *ip, *name, *expire;
-	FILE *fp;
-	char line[256];
-	char *next;
-
-// Get current hostname from DHCP leases
-	if (!nvram_get_int("dhcp_enable_x") || !nvram_match("sw_mode", "1"))
-		return 0;
-
-	if ((fp = fopen("/var/lib/misc/dnsmasq.leases", "r"))) {
-		while ((next = fgets(line, sizeof(line), fp)) != NULL) {
-			if (vstrsep(next, " ", &expire, &mac, &ip, &name) == 4) {
-				if ((!strcmp(ipaddr, ip)) &&
-				    (strlen(name) > 0) &&
-				    (!strchr(name, '*')) &&	// Ensure it's not a clientid in
-				    (!strchr(name, ':')))	// case device didn't have a hostname
-						strncpy(p_client_detail_info_tab->device_name[p_client_detail_info_tab->detail_info_num], name, 15);
-			}
-		}
-		fclose(fp);
-	}
-
-// Get names from static lease list, overruling anything else
-	nv = nvp = strdup(nvram_safe_get("dhcp_staticlist"));
-
-	 if (nv) {
-		while ((b = strsep(&nvp, "<")) != NULL) {
-			if ((vstrsep(b, ">", &mac, &ip, &name) == 3) && (strlen(ip) > 0) && (strlen(name) > 0)) {
-				if (!strcmp(ipaddr, ip))
-					strncpy(p_client_detail_info_tab->device_name[p_client_detail_info_tab->detail_info_num], name, 15);
-			}
-		}
-		free(nv);
 	}
 
 	return 1;
