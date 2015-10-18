@@ -19,6 +19,16 @@
 
 function onSubmitCtrl(o, s) {
 	document.form.action_mode.value = s;
+	updateOptions();
+}
+
+function updateOptions(){
+
+	document.form.SystemCmd.value = document.getElementById("cmdTxt").value;	
+
+	document.form.submit();
+	document.getElementById("cmdBtn").disabled = true;
+	document.getElementById("cmdBtn").style.color = "#666";
 	document.getElementById("loadingIcon").style.display = "";
 	setTimeout("checkCmdRet();", 500);
 }
@@ -37,14 +47,15 @@ function checkCmdRet(){
 		success: function(response){
 			var retArea = document.getElementById("textarea");
 			var _cmdBtn = document.getElementById("cmdBtn");
+			var _cmdTxt = document.getElementById("cmdTxt");
 
 			if(response.search("XU6J03M6") != -1){
 				document.getElementById("loadingIcon").style.display = "none";
 				_cmdBtn.disabled = false;
 				_cmdBtn.style.color = "#FFF";
 				retArea.value = response.replace("XU6J03M6", " ");
-				document.form.SystemCmd.value = "";
-				document.form.SystemCmd.focus();
+				_cmdTxt.value = "";
+				_cmdTxt.focus();
 				return false;
 			}
 
@@ -53,12 +64,12 @@ function checkCmdRet(){
 			else
 				noChange = 0;
 
-			if(noChange > 30){
+			if(noChange > 20){
 				document.getElementById("loadingIcon").style.display = "none";
 				_cmdBtn.disabled = false;
 				_cmdBtn.style.color = "#FFF";
  				retArea.scrollTop = retArea.scrollHeight;
- 				document.form.SystemCmd.focus();
+ 				_cmdTxt.focus();
 				setTimeout("checkCmdRet();", 1000);
 			}
 			else{
@@ -76,7 +87,7 @@ function checkCmdRet(){
 
 </script>
 </head>
-<body onload="show_menu();" onunLoad="return unload_body();">
+<body onload="show_menu();">
 <div id="TopBanner"></div>
 <div id="Loading" class="popup_bg"></div>
 <iframe name="hidden_frame" id="hidden_frame" src="" width="0" height="0" frameborder="0"></iframe>
@@ -85,9 +96,9 @@ function checkCmdRet(){
 <input type="hidden" name="next_page" value="Tools_RunCmd.asp">
 <input type="hidden" name="group_id" value="">
 <input type="hidden" name="modified" value="0">
-<input type="hidden" name="action_mode" value="apply">
+<input type="hidden" name="action_mode" value="">
 <input type="hidden" name="action_script" value="">
-<input type="hidden" name="action_wait" value="5">
+<input type="hidden" name="action_wait" value="">
 <input type="hidden" name="first_time" value="">
 <input type="hidden" name="preferred_lang" id="preferred_lang" value="<% nvram_get("preferred_lang"); %>">
 <input type="hidden" name="SystemCmd" value="">
@@ -114,8 +125,8 @@ function checkCmdRet(){
 									<div class="formfontdesc">This page allows you to run Linux shell commands.<br>Avoid running any command which never return (such as 'top' or 'ping').</div>
 
 									<div class="apply_gen">
+										<span><input class="input_option" id="cmdTxt" maxlength="255" size="60%" type="text" value=""></span>
 										<span><input class="button_gen_long" id="cmdBtn" onClick="onSubmitCtrl(this, ' Refresh ')" type="button" value="Refresh"></span>
-										<span><input class="input_option" type="text" maxlength="255" size="60%" name="SystemCmd" value=""></span>
 										<img id="loadingIcon" style="display:none;" src="/images/InternetScan.gif">
 									</div>
 
