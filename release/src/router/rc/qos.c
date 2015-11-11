@@ -149,7 +149,7 @@ static int add_qos_rules(char *pcWANIF)
 	int down_class_num=6; 	// for download class_num = 0x6 / 0x106
 	int i, inuse;
 	char q_inuse[32]; 	// for inuse
-	char dport[192], saddr_1[192], saddr_2[192], proto_1[8], proto_2[8],conn[256], end[256], end2[256];
+	char dport[192], saddr_1[256], saddr_2[256], proto_1[8], proto_2[8],conn[256], end[256], end2[256];
 	int method;
 	int gum;
 	int sticky_enable;
@@ -563,6 +563,9 @@ static int add_qos_rules(char *pcWANIF)
 	/* lan_addr for iptables use (LAN download) */
 	char *a, *b, *c, *d;
 	char lan_addr[20];
+	char ipv6_lan_addr[44];
+
+	/* ipv4 lan_addr for iptables use (LAN download) */
 	g = buf = strdup(nvram_safe_get("lan_ipaddr"));
 	if((vstrsep(g, ".", &a, &b, &c, &d)) != 4){
 		fprintf(stderr,"[qos] lan_ipaddr doesn't exist!!\n");
@@ -571,6 +574,11 @@ static int add_qos_rules(char *pcWANIF)
 		sprintf(lan_addr, "%s.%s.%s.0/24", a, b, c);
 		fprintf(stderr,"[qos] lan_addr=%s\n", lan_addr);
 	}
+	free(buf);
+
+	/* ipv6_lan_addr for ip6tables use (LAN download) */
+	buf = strdup(nvram_safe_get("ipv6_prefix"));
+	sprintf(ipv6_lan_addr, "%s/%d", buf, nvram_get_int("ipv6_prefix_length") ? : 64);
 	free(buf);
 
 	//fprintf(stderr, "[qos] down_class_num=%x\n", down_class_num);
@@ -627,13 +635,13 @@ static int add_qos_rules(char *pcWANIF)
 			add_EbtablesRules();
 
 			// for multicast
-			fprintf(fn_ipv6, "-A QOSO -d 224.0.0.0/4 -j CONNMARK --set-return 0x%x/0x7\n",  down_class_num);
+			fprintf(fn_ipv6, "-A QOSO -d ff00::/8 -j CONNMARK --set-return 0x%x/0xFF\n",  down_class_num);
 			if(manual_return)
-				fprintf(fn_ipv6, "-A QOSO -d 224.0.0.0/4 -j RETURN\n");
+				fprintf(fn_ipv6, "-A QOSO -d ff00::/8 -j RETURN\n");
 			// for download (LAN or wireless)
-			fprintf(fn_ipv6, "-A QOSO -d %s -j CONNMARK --set-return 0x%x/0x7\n", lan_addr, down_class_num);
+			fprintf(fn_ipv6, "-A QOSO -d %s -j CONNMARK --set-return 0x%x/0xFF\n", ipv6_lan_addr, down_class_num);
 			if(manual_return)
-				fprintf(fn_ipv6, "-A QOSO -d %s -j RETURN\n", lan_addr);
+				fprintf(fn_ipv6, "-A QOSO -d %s -j RETURN\n", ipv6_lan_addr);
 /* Requires bridge netfilter, but slows down and breaks EMF/IGS IGMP IPTV Snooping
 			// for WLAN to LAN bridge issue
 			fprintf(fn_ipv6, "-A POSTROUTING -d %s -m physdev --physdev-is-in -j CONNMARK --set-return 0x6/0x7\n", lan_addr);
