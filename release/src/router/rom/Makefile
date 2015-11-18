@@ -135,6 +135,12 @@ else
 	rm -f $(INSTALLDIR)/rom/etc/openssl.cnf
 endif
 
+ifeq ($(RTCONFIG_DNSSEC),y)
+	cp rom/etc/dnssec-trust-anchors $(INSTALLDIR)/rom/etc/dnssec-trust-anchors
+else
+	rm -rf $(INSTALLDIR)/rom/etc/dnssec-trust-anchors
+endif
+
 ifeq ($(RTCONFIG_DUALWAN),y)
 	cp -rf rom/etc/static_routes $(INSTALLDIR)/rom/etc/
 else
