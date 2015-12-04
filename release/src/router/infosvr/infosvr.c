@@ -89,7 +89,7 @@ void load_sysparam(void)
 #endif
 	strncpy(ssid_g, nvram_safe_get("wl0_ssid"), sizeof(ssid_g));
 	strncpy(netmask_g, nvram_safe_get("lan_netmask"), sizeof(netmask_g));
-	strncpy(productid_g, get_productid(), sizeof(productid_g));
+	strncpy(productid_g, get_productid_fake(), sizeof(productid_g));
 
 	snprintf(firmver_g, sizeof(firmver_g), "%s.%s", nvram_safe_get("firmver"), nvram_safe_get("buildno"));
 

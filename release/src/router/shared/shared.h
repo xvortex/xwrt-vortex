@@ -369,6 +369,7 @@ extern int check_hw_type(void);
 extern int get_model(void);
 extern char *get_modelid(int model);
 extern char *get_productid(void);
+extern char *get_productid_fake(void);
 extern int get_switch(void);
 extern int supports(unsigned long attr);
 

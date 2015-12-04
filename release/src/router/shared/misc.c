@@ -1079,6 +1079,12 @@ char *get_productid(void)
 	return productid;
 }
 
+char *get_productid_fake(void)
+{
+	char *productid = "RT-AC68U";
+	return productid;
+}
+
 long backup_rx = 0;
 long backup_tx = 0;
 int backup_set = 0;
