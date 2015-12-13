@@ -560,6 +560,10 @@ wl_defaults(void)
 
 		nvram_set("lan_ifnames", lan_ifnames);
 	}
+
+#if defined(RTCONFIG_BCMARM) && defined(RTCONFIG_PROXYSTA)
+	reset_psr_hwaddr();
+#endif
 }
 
 /* for WPS Reset */
@@ -2048,7 +2052,9 @@ int init_nvram(void)
 #endif
 
 #ifdef RTCONFIG_WIRELESSREPEATER
+#ifndef CONFIG_BCMWL5
 	if (nvram_get_int("sw_mode") != SW_MODE_REPEATER)
+#endif
 		nvram_unset("ure_disable");
 #endif
 
@@ -3703,9 +3709,6 @@ int init_nvram(void)
 		add_rc_support("pwrctrl");
 		add_rc_support("WIFI_LOGO");
 		add_rc_support("nandflash");
-#ifdef RTCONFIG_PUSH_EMAIL
-//		add_rc_support("feedback");
-#endif
 
 		if (nvram_match("bl_version", "1.0.0.0"))
 			add_rc_support("led_2g");
@@ -3823,7 +3826,6 @@ int init_nvram(void)
 		add_rc_support("nandflash");
 		add_rc_support("dsl");
 		add_rc_support("vdsl");
-		add_rc_support("feedback");
 		add_rc_support("spectrum");
 
 		if (	nvram_match("wl1_country_code", "EU") &&
@@ -4421,9 +4423,6 @@ int init_nvram(void)
 		add_rc_support("WIFI_LOGO");
 		add_rc_support("nandflash");
 		add_rc_support("smart_connect");
-#ifdef RTCONFIG_PUSH_EMAIL
-//		add_rc_support("feedback");
-#endif
 #ifdef RTCONFIG_LED_BTN
 		nvram_set_int("AllLED", 1);
 #endif
@@ -4546,9 +4545,6 @@ int init_nvram(void)
 		add_rc_support("pwrctrl");
 		add_rc_support("WIFI_LOGO");
 		add_rc_support("nandflash");
-#ifdef RTCONFIG_PUSH_EMAIL
-//		add_rc_support("feedback");
-#endif
 #ifdef RTCONFIG_LED_BTN
 		nvram_set_int("AllLED", 1);
 #endif
@@ -4611,7 +4607,7 @@ int init_nvram(void)
 		ldo_patch();
 		set_tcode_misc();
 #if defined(RTAC88U) || defined(RTAC3100)
-		nvram_set("et_rxlazy_timeout",  "300");
+		nvram_set("et_rxlazy_timeout",  "1000");
 #endif
 
 		nvram_set("0:ledbh9", "0x7");
@@ -4765,9 +4761,7 @@ int init_nvram(void)
 		add_rc_support("mssid 2.4G 5G update usbX2");
 		add_rc_support("switchctrl"); // broadcom: for jumbo frame only
 		add_rc_support("manual_stb");
-#if defined(RTAC88U) || defined(RTAC3100)	// 5300's pwrctrl table is not ready yet
 		add_rc_support("pwrctrl");
-#endif
 		add_rc_support("WIFI_LOGO");
 		add_rc_support("nandflash");
 #ifdef RTCONFIG_LED_BTN
@@ -4777,9 +4771,6 @@ int init_nvram(void)
 		nvram_set("xhci_irq", "112");
 #ifdef RTCONFIG_MMC_LED
 		nvram_set("mmc_irq", "177");
-#endif
-#ifdef RTCONFIG_PUSH_EMAIL
-//		add_rc_support("feedback");
 #endif
 #ifdef RTCONFIG_FORCE_AUTO_UPGRADE
 		add_rc_support("fupgrade");
@@ -4997,9 +4988,6 @@ int init_nvram(void)
 		add_rc_support("pwrctrl");
 		add_rc_support("WIFI_LOGO");
 		add_rc_support("nandflash");
-#ifdef RTCONFIG_PUSH_EMAIL
-//		add_rc_support("feedback");
-#endif
 #ifdef RTCONFIG_LED_BTN
 		nvram_set_int("AllLED", 1);
 #endif
@@ -5143,9 +5131,6 @@ int init_nvram(void)
 		add_rc_support("pwrctrl");
 		add_rc_support("WIFI_LOGO");
 		add_rc_support("nandflash");
-#ifdef RTCONFIG_PUSH_EMAIL
-//		add_rc_support("feedback");
-#endif
 		break;
 #endif
 
@@ -5255,9 +5240,6 @@ int init_nvram(void)
 		add_rc_support("manual_stb");
 		add_rc_support("pwrctrl");
 		add_rc_support("WIFI_LOGO");
-#ifdef RTCONFIG_PUSH_EMAIL
-//		add_rc_support("feedback");
-#endif
 		break;
 #endif
 
@@ -5377,6 +5359,10 @@ int init_nvram(void)
 
 		unit++;
 	}
+#endif
+
+#ifdef RTCONFIG_PUSH_EMAIL
+//	add_rc_support("feedback");
 #endif
 
 #ifdef RTCONFIG_IPV6
@@ -5686,6 +5672,12 @@ int init_nvram(void)
 #elif defined(RTCONFIG_TUXERA_HFS)
 	nvram_set("usb_hfs_mod", "tuxera");
 #endif
+#endif
+
+#ifdef RTCONFIG_TUXERA_SMBD
+	nvram_set("enable_samba_tuxera", "1");
+#else
+	nvram_set("enable_samba_tuxera", "0");
 #endif
 
 #ifdef RTCONFIG_BCMFA

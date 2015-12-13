@@ -315,7 +315,11 @@ else
 	ctools/trx -o image/linux-lzma.trx lzma-loader/loader.gz ctools/vmlinuz-lzma ctools/target.squashfs
 endif
 ifeq ($(BCMWL6A),y)
+ifeq ($(FAKEHDR),y)
+	ctools/trx_asus -i image/linux-lzma.trx -r $(BUILD_NAME),$(KERNEL_VER).$(FS_VER),$(FORCE_SN),$(FORCE_EN),image/$(IMGNAME).trx
+else
 	ctools/trx_asus -i image/linux-lzma.trx -r $(BUILD_NAME),$(KERNEL_VER).$(FS_VER),$(SERIALNO),$(EXTENDNO),image/$(IMGNAME).trx
+endif
 else
 	ctools/trx_asus -i image/linux-lzma.trx -r $(BUILD_NAME),$(KERNEL_VER).$(FS_VER),image/$(IMGNAME).trx
 endif
@@ -1464,6 +1468,10 @@ define RouterOptions
 	if [ "$(FORCE_AUTO_UPGRADE)" = "y" ]; then \
 		sed -i "/RTCONFIG_FORCE_AUTO_UPGRADE/d" $(1); \
 		echo "RTCONFIG_FORCE_AUTO_UPGRADE=y" >>$(1); \
+	fi; \
+	if [ "$(TUXERA_SMBD)" = "y" ]; then \
+		sed -i "/RTCONFIG_TUXERA_SMBD/d" $(1); \
+		echo "RTCONFIG_TUXERA_SMBD=y" >>$(1); \
 	fi; \
 	if [ "$(TCODE)" = "n" ]; then \
 		sed -i "/RTCONFIG_TCODE/d" $(1); \
