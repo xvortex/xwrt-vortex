@@ -38,6 +38,7 @@ Supported devices are:
  * RT-AC3200
  * RT-AC88U
  * RT-AC3100
+ * RT-AC5300
 
 XWRT-Vortex supported devices are:
  * Linksys EA6900
