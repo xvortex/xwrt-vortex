@@ -374,7 +374,7 @@ function initial(){
 		based_modelid == "EA6900" || based_modelid == "R7000" || based_modelid == "WS880" ||
 		based_modelid == "RT-AC69U" || based_modelid == "RT-AC87U" || based_modelid == "RT-AC3200" ||
 		based_modelid == "RT-AC88U" || based_modelid == "RT-AC3100" || based_modelid == "RT-AC5300" ||
-		based_modelid == "RT-AC1200G+"){
+		based_modelid == "RT-AC1200G" || based_modelid == "RT-AC1200G+"){
 		
 		inputCtrl(document.form.wl_atf, 1);
 		if(based_modelid == "RT-AC87U" && '<% nvram_get("wl_unit"); %>' == '1')	
