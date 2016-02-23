@@ -1,4 +1,4 @@
-/* $Id: upnpevents.c,v 1.35 2016/02/11 10:41:44 nanard Exp $ */
+/* $Id: upnpevents.c,v 1.37 2016/02/20 19:10:17 nanard Exp $ */
 /* MiniUPnP project
  * http://miniupnp.free.fr/ or http://miniupnp.tuxfamily.org/
  * (c) 2008-2016 Thomas Bernard
@@ -18,12 +18,6 @@
 #include <arpa/inet.h>
 #include <errno.h>
 #include "config.h"
-#if defined(LIB_UUID)
-/* as found on linux */
-#include <uuid/uuid.h>
-#elif defined(BSD_UUID)
-#include <uuid.h>
-#endif /* LIB_UUID / BSD_UUID */
 #include "upnpevents.h"
 #include "miniupnpdpath.h"
 #include "upnpglobalvars.h"
@@ -114,50 +108,10 @@ newSubscriber(const char * eventurl, const char * callback, int callbacklen)
 	}
 	memcpy(tmp->callback, callback, callbacklen);
 	tmp->callback[callbacklen] = '\0';
-#if defined(LIB_UUID)
-	{
-		uuid_t uuid;
-		uuid_generate(uuid);
-		memcpy(tmp->uuid, "uuid:", 5);
-		uuid_unparse(uuid, tmp->uuid + 5);
-	}
-#elif defined(BSD_UUID)
-	{
-		uuid_t uuid;
-		uint32_t status;
-		uuid_create(&uuid, &status);
-		if(status != uuid_s_ok) {
-			syslog(LOG_ERR, "uuid_create() failed (%u)", status);
-		} else {
-			char * uuid_str;
-			uuid_to_string(&uuid, &uuid_str, &status);
-			if(status != uuid_s_ok) {
-				syslog(LOG_ERR, "uuid_to_string() failed (%u)", status);
-			} else {
-				if(strlen(uuid_str) != 36) {
-					syslog(LOG_ERR, "uuid_to_string() returned %s", uuid_str);
-					status = (uint32_t)-1;
-				} else {
-					memcpy(tmp->uuid, "uuid:", 5);
-					memcpy(tmp->uuid + 5, uuid_str, 36);
-					tmp->uuid[sizeof(tmp->uuid)-1] = '\0';
-				}
-				free(uuid_str);
-			}
-		}
-		if(status != uuid_s_ok) {
-			/* make a dummy uuid */
-			strncpy(tmp->uuid, uuidvalue_igd, sizeof(tmp->uuid));
-			tmp->uuid[sizeof(tmp->uuid)-1] = '\0';
-			snprintf(tmp->uuid+sizeof(tmp->uuid)-5, 5, "%04lx", random() & 0xffff);
-		}
-	}
-#else
 	/* make a dummy uuid */
 	strncpy(tmp->uuid, uuidvalue_igd, sizeof(tmp->uuid));
 	tmp->uuid[sizeof(tmp->uuid)-1] = '\0';
 	snprintf(tmp->uuid+sizeof(tmp->uuid)-5, 5, "%04lx", random() & 0xffff);
-#endif
 	return tmp;
 }
 
