@@ -200,6 +200,37 @@ ciphersarray = [
 		["RC5-OF"]
 ];
 
+var digestsarray = [
+		["DSA"],
+		["DSA-SHA"],
+		["DSA-SHA1"],
+		["DSA-SHA1-old"],
+		["ecdsa-with-SHA1"],
+		["MD4"],
+		["MD5"],
+		["MDC2"],
+		["RIPEMD160"],
+		["RSA-MD4"],
+		["RSA-MD5"],
+		["RSA-MDC2"],
+		["RSA-RIPEMD160"],
+		["RSA-SHA"],
+		["RSA-SHA1"],
+		["RSA-SHA1-2"],
+		["RSA-SHA224"],
+		["RSA-SHA256"],
+		["RSA-SHA384"],
+		["RSA-SHA512"],
+		["SHA"],
+		["SHA1"],
+		["SHA224"],
+		["SHA256"],
+		["SHA384"],
+		["SHA512"],
+		["whirlpool"]
+];
+
+
 var clientlist_array = '<% nvram_get("vpn_client_clientlist"); %>';
 
 function initial()
@@ -211,8 +242,14 @@ function initial()
 	// Cipher list
 	free_options(document.form.vpn_client_cipher);
 	currentcipher = "<% nvram_get("vpn_client_cipher"); %>";
-	add_option(document.form.vpn_client_cipher, "Default","default",(currentcipher == "Default"));
+	add_option(document.form.vpn_client_cipher, "Default","default",(currentcipher == "default"));
 	add_option(document.form.vpn_client_cipher, "None","none",(currentcipher == "none"));
+
+	// Digest list
+	free_options(document.form.vpn_client_digest);
+	currentdigest = "<% nvram_get("vpn_client_digest"); %>";
+	add_option(document.form.vpn_client_digest, "Default","default",(currentdigest == "default"));
+	add_option(document.form.vpn_client_digest, "None","none",(currentdigest == "none"));
 
 	// Extract the type out of the interface name 
 	// (imported ovpn can result in this being tun3, for example)
@@ -224,6 +261,12 @@ function initial()
 		add_option(document.form.vpn_client_cipher,
 			ciphersarray[i][0], ciphersarray[i][0],
 			(currentcipher == ciphersarray[i][0]));
+	}
+
+	for(var i = 0; i < digestsarray.length; i++){
+		add_option(document.form.vpn_client_digest,
+			digestsarray[i][0], digestsarray[i][0],
+			(currentdigest == digestsarray[i][0]));
 	}
 
 	// Set these based on a compound field
@@ -765,6 +808,16 @@ function getConnStatus() {
 	}
 }
 
+function defaultSettings() {
+	if (confirm("WARNING: This will reset this OpenVPN client to factory default settings!\n\nKeys and certificates associated to this instance will also be DELETED!\n\nProceed?")) {
+		document.form.action_script.value = "stop_vpnclient" + openvpn_unit + ";clearvpnclient" + openvpn_unit;
+		showLoading();
+		document.form.submit();
+	} else {
+		return false;
+	}
+}
+
 </script>
 </head>
 
@@ -1084,6 +1137,15 @@ function getConnStatus() {
 			   			</td>
 					</tr>
 
+					<tr>
+						<th>Auth digest</th>
+						<td>
+							<select name="vpn_client_digest" class="input_option">
+								<option value="<% nvram_get("vpn_client_digest"); %>" selected><% nvram_get("vpn_client_digest"); %></option>
+							</select>
+						</td>
+					</tr>
+
 					<tr id="client_bridge">
 						<th>Server is on the same subnet</th>
 						<td>
@@ -1126,6 +1188,13 @@ function getConnStatus() {
 							<td colspan="2">Advanced Settings</td>
 						</tr>
 					</thead>
+
+					<tr>
+						<th>Global Log verbosity<br><i>(0-11, default=3)</i></th>
+						<td>
+							<input type="text" maxlength="2" class="input_6_table" name="vpn_loglevel" onKeyPress="return validator.isNumber(this,event);" onblur="validate_number_range(this, 0, 11)" value="<% nvram_get("vpn_loglevel"); %>">
+						</td>
+					</tr>
 
 					<tr>
 						<th><#vpn_openvpn_PollInterval#><br><i>( <#zero_disable#> )</i></th>
@@ -1262,6 +1331,7 @@ function getConnStatus() {
 					</tr>
 					</table>
 					<div class="apply_gen">
+						<input type="button" id="restoreButton" class="button_gen" value="<#Setting_factorydefault_value#>" onclick="defaultSettings();">
 						<input name="button" type="button" class="button_gen" onclick="applyRule();" value="<#CTL_apply#>"/>
 			        </div>
 				</td></tr>

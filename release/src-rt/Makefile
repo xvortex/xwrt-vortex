@@ -170,7 +170,7 @@ endif
 	@echo '#define RT_BUILD_NAME "$(BUILD_NAME)"' >> router/shared/version.h
 	@echo '#define RT_BUILD_INFO "$(BUILD_TIME) $(BUILD_USER)@$(BUILD_INFO)"' >> router/shared/version.h
 	@echo '#endif' >> router/shared/version.h
-	@echo '$(BUILD_NAME)_$(KERNEL_VER).$(FS_VER) $(BUILD_TIME)' > router/shared/version
+	@echo '$(BUILD_NAME) $(SERIALNO)-$(EXTENDNO)$(BUILDREV) $(BUILD_TIME)' > router/shared/version
 	@echo 'EXTENDNO=$(EXTENDNO)$(BUILDREV)' > router/extendno.conf
 
 rt_ver_ntools:
@@ -356,6 +356,10 @@ endif
 endif
 endif
 #	ln -sf $(IMGNAME).trx image/$(BUILD_NAME).trx
+#ifeq ($(ARM),y)
+#	ln -sf $(LINUXDIR)/vmlinux image/vmlinux
+#	ln -sf $(LINUXDIR)/vmlinux.o image/vmlinux.o
+#endif
 	@echo ""
 
 bin_file:
@@ -1270,13 +1274,17 @@ define RouterOptions
 		sed -i "/RTCONFIG_NOASUS/d" $(1); \
 		echo "RTCONFIG_NOASUS=y" >>$(1); \
 	fi; \
+	if [ "$(NOTIFICATION_CENTER)" = "y" ]; then \
+		sed -i "/RTCONFIG_NOTIFICATION_CENTER/d" $(1); \
+		echo "RTCONFIG_NOTIFICATION_CENTER=y" >>$(1); \
+	fi; \
 	if [ "$(ADBLOCK)" = "y" ]; then \
 		sed -i "/RTCONFIG_ADBLOCK/d" $(1); \
 		echo "RTCONFIG_ADBLOCK=y" >>$(1); \
 	fi; \
-	if [ "$(TRAFFIC_CONTROL)" = "y" ]; then \
-		sed -i "/RTCONFIG_TRAFFIC_CONTROL/d" $(1); \
-		echo "RTCONFIG_TRAFFIC_CONTROL=y" >>$(1); \
+	if [ "$(TRAFFIC_LIMITER)" = "y" ]; then \
+		sed -i "/RTCONFIG_TRAFFIC_LIMITER/d" $(1); \
+		echo "RTCONFIG_TRAFFIC_LIMITER=y" >>$(1); \
 	fi; \
 	if [ "$(BCM5301X_TRAFFIC_MONITOR)" = "y" ]; then \
 		sed -i "/RTCONFIG_BCM5301X_TRAFFIC_MONITOR/d" $(1); \
@@ -1385,12 +1393,23 @@ define RouterOptions
 		echo "RTCONFIG_JFFS2USERICON=y" >>$(1); \
 	fi; \
 	if [ "$(SWITCH2)" = "RTL8365MB" ]; then \
+		sed -i "/RTCONFIG_EXT_RTL8370MB/d" $(1); \
+		echo "# RTCONFIG_EXT_RTL8370MB is not set" >>$(1); \
 		sed -i "/RTCONFIG_EXT_RTL8365MB/d" $(1); \
 		echo "RTCONFIG_EXT_RTL8365MB=y" >>$(1); \
+	else \
+	if [ "$(SWITCH2)" = "RTL8370MB" ]; then \
+		sed -i "/RTCONFIG_EXT_RTL8365MB/d" $(1); \
+		echo "# RTCONFIG_EXT_RTL8365MB is not set" >>$(1); \
+		sed -i "/RTCONFIG_EXT_RTL8370MB/d" $(1); \
+		echo "RTCONFIG_EXT_RTL8370MB=y" >>$(1); \
 	else \
 	if [ "$(SWITCH2)" = "" ]; then \
 		sed -i "/RTCONFIG_EXT_RTL8365MB/d" $(1); \
 		echo "# RTCONFIG_EXT_RTL8365MB is not set" >>$(1); \
+		sed -i "/RTCONFIG_EXT_RTL8370MB/d" $(1); \
+		echo "# RTCONFIG_EXT_RTL8370MB is not set" >>$(1); \
+	fi; \
 	fi; \
 	fi; \
 	if [ "$(TOR)" = "y" ]; then \
@@ -1431,7 +1450,7 @@ define RouterOptions
 	fi; \
 	if [ "$(NATNL)" = "y" ]; then \
 		sed -i "/RTCONFIG_TUNNEL/d" $(1); \
-		echo "# RTCONFIG_TUNNEL is not set" >>$(1); \
+		echo "RTCONFIG_TUNNEL=y" >>$(1); \
 	fi; \
 	if [ "$(ERPTEST)" = "y" ]; then \
 		sed -i "/RTCONFIG_ERP_TEST/d" $(1); \
@@ -1461,6 +1480,10 @@ define RouterOptions
 		sed -i "/RTCONFIG_WTFAST/d" $(1); \
 		echo "RTCONFIG_WTFAST=y" >>$(1); \
 	fi; \
+	if [ "$(IFTTT)" = "y" ]; then \
+		sed -i "/RTCONFIG_IFTTT/d" $(1); \
+		echo "RTCONFIG_IFTTT=y" >>$(1); \
+	fi; \
 	if [ "$(REBOOT_SCHEDULE)" = "y" ]; then \
 		sed -i "/RTCONFIG_REBOOT_SCHEDULE/d" $(1); \
 		echo "RTCONFIG_REBOOT_SCHEDULE=y" >>$(1); \
@@ -1477,10 +1500,34 @@ define RouterOptions
 		sed -i "/RTCONFIG_QUAGGA/d" $(1); \
 		echo "RTCONFIG_QUAGGA=y" >>$(1); \
 	fi; \
+	if [ "$(ASMPD)" = "y" ]; then \
+		sed -i "/RTCONFIG_BCMASPMD/d" $(1); \
+		echo "RTCONFIG_BCMASPMD=y" >>$(1); \
+	fi; \
+	if [ "$(BCMEVENT)" = "y" ]; then \
+		sed -i "/RTCONFIG_BCMEVENTD/d" $(1); \
+		echo "RTCONFIG_BCMEVENTD=y" >>$(1); \
+	fi; \
+	if [ "$(WLCLMLOAD)" = "y" ]; then \
+		sed -i "/RTCONFIG_WLCLMLOAD/d" $(1); \
+		echo "RTCONFIG_WLCLMLOAD=y" >>$(1); \
+	fi; \
+	if [ "$(BCM_MUMIMO)" = "y" ]; then \
+		sed -i "/RTCONFIG_MUMIMO/d" $(1); \
+		echo "RTCONFIG_MUMIMO=y" >>$(1); \
+	fi; \
 	if [ "$(MULTICASTIPTV)" = "y" ]; then \
 		sed -i "/RTCONFIG_MULTICAST_IPTV/d" $(1); \
 		echo "RTCONFIG_MULTICAST_IPTV=y" >>$(1); \
 	fi; \
+	if [ "$(VLAN)" = "y" ]; then \
+		sed -i "/RTCONFIG_PORT_BASED_VLAN/d" $(1); \
+		echo "RTCONFIG_PORT_BASED_VLAN=y" >>$(1); \
+	fi; \
+        if [ "$(NOIPTV)" = "y" ]; then \
+                sed -i "/RTCONFIG_NOIPTV/d" $(1); \
+                echo "RTCONFIG_NOIPTV=y" >>$(1); \
+        fi; \
 	if [ "$(TCODE)" = "n" ]; then \
 		sed -i "/RTCONFIG_TCODE/d" $(1); \
 		echo "# RTCONFIG_TCODE is not set" >>$(1); \
@@ -2093,7 +2140,7 @@ fi; \
 			sed -i "/CONFIG_USB_NET_AX8817X/d" $(1); \
 			echo "# CONFIG_USB_NET_AX8817X is not set" >>$(1); \
 			sed -i "/CONFIG_USB_NET_CDCETHER/d" $(1); \
-			echo "# CONFIG_USB_NET_CDCETHER is not set" >>$(1); \
+			echo "CONFIG_USB_NET_CDCETHER=m" >>$(1); \
 			sed -i "/CONFIG_USB_NET_CDC_NCM/d" $(1); \
 			echo "# CONFIG_USB_NET_CDC_NCM is not set" >>$(1); \
 			sed -i "/CONFIG_USB_NET_CDC_MBIM/d" $(1); \
@@ -2246,6 +2293,18 @@ fi; \
 		echo "CONFIG_RTAC3200=y" >>$(1); \
 	else \
 		echo "# CONFIG_RTAC3200 is not set" >>$(1); \
+	fi; \
+	sed -i "/CONFIG_RTAC87U/d" $(1); \
+	if [ "$(BUILD_NAME)" = "RT-AC87U" ]; then \
+		echo "CONFIG_RTAC87U=y" >>$(1); \
+	else \
+		echo "# CONFIG_RTAC87U is not set" >>$(1); \
+	fi; \
+	sed -i "/CONFIG_RTAC88U/d" $(1); \
+	if [ "$(BUILD_NAME)" = "RT-AC88U" ]; then \
+		echo "CONFIG_RTAC88U=y" >>$(1); \
+	else \
+		echo "# CONFIG_RTAC88U is not set" >>$(1); \
 	fi; \
 	if [ "$(GMAC3)" = "y" ]; then \
 		sed -i "/CONFIG_BCM_GMAC3/d" $(1); \
@@ -2439,12 +2498,23 @@ fi; \
 		echo "CONFIG_RGMII_BCM_FA=y" >>$(1); \
 	fi; \
 	if [ "$(SWITCH2)" = "RTL8365MB" ]; then \
+		sed -i "/CONFIG_RTL8370MB/d" $(1); \
+		echo "# CONFIG_RTL8370MB is not set" >>$(1); \
 		sed -i "/CONFIG_RTL8365MB/d" $(1); \
 		echo "CONFIG_RTL8365MB=m" >>$(1); \
+	else \
+	if [ "$(SWITCH2)" = "RTL8370MB" ]; then \
+		sed -i "/CONFIG_RTL8365MB/d" $(1); \
+		echo "# CONFIG_RTL8365MB is not set" >>$(1); \
+		sed -i "/CONFIG_RTL8370MB/d" $(1); \
+		echo "CONFIG_RTL8370MB=m" >>$(1); \
 	else \
 	if [ "$(SWITCH2)" = "" ]; then \
 		sed -i "/CONFIG_RTL8365MB/d" $(1); \
 		echo "# CONFIG_RTL8365MB is not set" >>$(1); \
+		sed -i "/CONFIG_RTL8370MB/d" $(1); \
+		echo "# CONFIG_RTL8370MB is not set" >>$(1); \
+	fi; \
 	fi; \
 	fi; \
 	if [ "$(BCM_MMC)" = "y" ]; then \

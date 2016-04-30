@@ -17,7 +17,7 @@
 <script type="text/javascript" src="popup.js"></script>
 <script type="text/javascript" src="help.js"></script>
 <script type="text/javascript" src="validator.js"></script>
-<script type="text/javaScript" src="jquery.js"></script>
+<script type="text/javaScript" src="/js/jquery.js"></script>
 <script type="text/javascript" src="switcherplugin/jquery.iphone-switch.js"></script>
 
 <style>
@@ -84,30 +84,39 @@ function initial(){
 		document.form.switch_stb_x.remove(1);	//LAN1
 	}
 
-	if( based_modelid != "RT-AC3200" &&
+	if( based_modelid != "RT-AC5300" &&
+		based_modelid != "RT-AC3200" &&
+		based_modelid != "RT-AC3100" &&
+		based_modelid != "RT-AC1200G+" &&
+		based_modelid != "RT-AC88U" &&
 		based_modelid != "RT-AC87U" && 
 		based_modelid != "RT-AC68U" &&
 		based_modelid != "RT-AC66U" &&
+		based_modelid != "RT-AC56U" &&
+		based_modelid != "RT-AC56S" &&
 		based_modelid != "RT-AC51U" &&
 		based_modelid != "RT-N66U" &&
 		based_modelid != "RT-N18U"
-	){	// MODELDEP: RT-AC3200, RT-AC87U, RT-AC68U, RT-AC66U, RT-AC51U, RT-N66U, RT-N18U
+	){
 		document.getElementById('meoOption').outerHTML = "";
+		document.getElementById('vodafoneOption').outerHTML = "";
 	}
-        if( based_modelid != "RT-AC5300" &&
+	
+	if( based_modelid != "RT-AC5300" &&
 		based_modelid != "RT-AC3200" &&
 		based_modelid != "RT-AC3100" &&
 		based_modelid != "RT-AC88U" &&
-                based_modelid != "RT-AC87U" && 
-                based_modelid != "RT-AC68U" &&
-                based_modelid != "RT-AC66U" &&
+		based_modelid != "RT-AC87U" &&
+		based_modelid != "RT-AC68U" &&
+		based_modelid != "RT-AC66U" &&
 		based_modelid != "RT-AC56U" &&
-                //based_modelid != "RT-AC51U" &&
-                based_modelid != "RT-N66U" &&
-                based_modelid != "RT-N18U"
-        ){      
-                document.getElementById('movistarOption').outerHTML = "";
-        }
+		based_modelid != "RT-AC56S" &&
+		based_modelid != "RT-AC51U" &&
+		based_modelid != "RT-N66U" &&
+		based_modelid != "RT-N18U"
+        ){
+		document.getElementById('movistarOption').outerHTML = "";
+	}
 
 }
 
@@ -147,6 +156,9 @@ function load_ISP_profile(){
 	else if(document.form.switch_wantag.value == "meo") {
 		setting_value = [["12", "0"], ["12", "0"], ["", "0"], "4"]; 
 	}
+        else if(document.form.switch_wantag.value == "vodafone") {
+                setting_value = [["100", "1"], ["", "0"], ["105", "1"], "3"]; 
+        }
 	
 	if(setting_value.length == 4){
 		document.form.switch_wan0tagid.value = setting_value[0][0];
@@ -160,7 +172,8 @@ function load_ISP_profile(){
 
 	if(document.form.switch_wantag.value == "maxis_fiber_sp_iptv" || 
 	   document.form.switch_wantag.value == "maxis_fiber_iptv" ||
-	   document.form.switch_wantag.value == "meo"
+	   document.form.switch_wantag.value == "meo" ||
+	   document.form.switch_wantag.value == "vodafone"
 	) {
 		document.form.mr_enable_x.value = "1";
 		document.form.emf_enable.value = "1";
@@ -168,11 +181,11 @@ function load_ISP_profile(){
 		document.form.quagga_enable.value = "0";
 	}
 	else if(document.form.switch_wantag.value == "movistar") {
-                document.form.quagga_enable.value = "1";
-                document.form.mr_enable_x.value = "1";
-                document.form.wan_vpndhcp.value = "0";
+		document.form.quagga_enable.value = "1";
+		document.form.mr_enable_x.value = "1";
+		document.form.wan_vpndhcp.value = "0";
 		document.form.mr_altnet_x.value = "172.0.0.0/8";
-        }
+	}
 	else {
 		document.form.quagga_enable.value = "0";
 		document.form.mr_altnet_x.value = "";
@@ -188,7 +201,7 @@ function ISP_Profile_Selection(isp){
 			wan_voip_x.style.display,
 			wan_internet_x.style.display,
 			wan_iptv_port4_x.style.display,
-			wan_iptv_port3_x.style.display,
+			wan_voip_port3_x.style.display,
 			switch_stb_x.value,
 			mr_enable_field.style.display,
 			iptv_settings_btn.style.display,
@@ -216,8 +229,11 @@ function ISP_Profile_Selection(isp){
 	else if(isp == "movistar"){
 		ISP_setting = ["none", "", "", "none", "none", "none", "7", "none", "none", "", ""];
 	}
+	else if(isp == "vodafone"){
+		ISP_setting = ["none", "", "", "none", "none", "none", "3", "", "", "none", "none"];
+	}
 	else if(isp == "manual"){
-		ISP_setting = ["none", "none", "none", "none", "", "", "6", "", "", "none", "none"];
+		ISP_setting = ["none", "none", "none", "", "", "", "6", "", "", "none", "none"];
 	}
 	
 	document.form.switch_wantag.value = isp;
@@ -242,7 +258,10 @@ function ISP_Profile_Selection(isp){
 		document.getElementById("iptv_port").style.display = "none";
 	}
 	else{
-		document.getElementById("iptv_title").innerHTML = "IPTV STB Port";
+		if(isp == "vodafone" || isp == "meo")
+			document.getElementById("iptv_title").innerHTML = "Bridge Port";
+		else
+			document.getElementById("iptv_title").innerHTML = "IPTV STB Port";
 		document.getElementById("iptv_port").style.display = "";
 	}
 
@@ -251,7 +270,10 @@ function ISP_Profile_Selection(isp){
 		document.getElementById("voip_port").style.display = "none";
 	}
 	else{
-		document.getElementById("voip_title").innerHTML = "VoIP Port";
+		if(isp == "vodafone")
+			document.getElementById("voip_title").innerHTML = "IPTV STB Port";
+		else
+			document.getElementById("voip_title").innerHTML = "VoIP Port";
 		document.getElementById("voip_port").style.display = "";
 	}
 
@@ -1124,7 +1146,7 @@ function pass_checked(obj){
             	<tr id="tr_pppoe_password">
               		<th><a class="hintstyle" href="javascript:void(0);" onClick="openHint(7,5);"><#PPPConnection_Password_itemname#></a></th>
               		<td>
-					<div style="margin-top:2px;"><input type="password" autocapitalization="off" maxlength="64" class="input_32_table" id="wan_pppoe_passwd_now" name="wan_pppoe_passwd_now" value=""></div>
+					<div style="margin-top:2px;"><input type="password" autocapitalize="off" maxlength="64" class="input_32_table" id="wan_pppoe_passwd_now" name="wan_pppoe_passwd_now" value=""></div>
 					<div style="margin-top:1px;"><input type="checkbox" name="show_pass_1" onclick="pass_checked(document.form.wan_pppoe_passwd_now);"><#QIS_show_pass#></div>
 					</td>
             	</tr>
@@ -1228,6 +1250,7 @@ function pass_checked(obj){
 					<option value="maxis_fiber_sp" <% nvram_match("switch_wantag", "maxis_fiber_sp", "selected"); %>>Maxis-Fiber-Special</option>
 					<option id="movistarOption" value="movistar" <% nvram_match("switch_wantag", "movistar", "selected"); %>>Movistar Triple VLAN</option>
 					<option id="meoOption" value="meo" <% nvram_match("switch_wantag", "meo", "selected"); %>>Meo</option>
+					<option id="vodafoneOption" value="vodafone" <% nvram_match("switch_wantag", "vodafone", "selected"); %>>Vodafone</option>
 <!--					
 					<option value="maxis_fiber_iptv" <% nvram_match("switch_wantag", "maxis_fiber_iptv", "selected"); %>>Maxis-Fiber-IPTV</option>
 					<option value="maxis_fiber_sp_iptv" <% nvram_match("switch_wantag", "maxis_fiber_sp_iptv", "selected"); %>>Maxis-Fiber-Special-IPTV</option>

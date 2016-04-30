@@ -106,6 +106,10 @@ ifeq ($(RTCONFIG_EXT_RTL8365MB),y)
 CFLAGS += -I$(LINUXDIR)/drivers/char/rtl8365mb
 OBJS += rtl_8365mb.o
 endif
+ifeq ($(RTCONFIG_EXT_RTL8370MB),y)
+CFLAGS += -I$(LINUXDIR)/drivers/char/rtl8365mb
+OBJS += rtl_8365mb.o
+endif
 endif
 
 ifeq ($(RTCONFIG_USB),y)
@@ -145,9 +149,13 @@ ifeq ($(RTCONFIG_TCODE),y)
 OBJS    += tcode.o
 endif
 
-#ifeq ($(RTCONFIG_BCM5301X_TRAFFIC_MONITOR),y)
-#OBJS    += private.o
-#endif
+ifeq ($(RTCONFIG_BCM5301X_TRAFFIC_MONITOR),y)
+ifeq ($(wildcard ./prebuild/private.o),)
+CFLAGS += -DMISSING_PRIVATE
+else
+OBJS    += private.o
+endif
+endif
 
 vpath %.c sysdeps $(SRCBASE)/shared/ $(WLAN_ComponentSrcDirs)
 ifeq ($(RTCONFIG_RALINK),y)

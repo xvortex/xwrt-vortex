@@ -337,6 +337,7 @@ extern void wl_defaults(void);
 extern void wl_defaults_wps(void);
 extern void restore_defaults_module(char *prefix);
 extern void clean_modem_state(int flag);
+extern void clean_vlan_ifnames(void);
 
 // interface.c
 extern int _ifconfig(const char *name, int flags, const char *addr, const char *netmask, const char *dstaddr, int mtu);
@@ -413,6 +414,9 @@ extern void restart_wl(void);
 extern void lanaccess_mssid_ban(const char *ifname_in);
 extern void lanaccess_wl(void);
 extern void restart_wireless(void);
+#ifdef RTCONFIG_BCM_7114
+extern void stop_wl_bcm(void);
+#endif
 extern void restart_wireless_wps(void);
 extern void start_wan_port(void);
 extern void stop_wan_port(void);
@@ -595,11 +599,9 @@ extern int usbled_main(int argc, char *argv[]);
 // phy_tempsense.c
 extern int phy_tempsense_main(int argc, char *argv[]);
 #endif
-#ifdef RTCONFIG_BCMWL6
-#ifdef RTCONFIG_PROXYSTA
+#if defined(RTCONFIG_BCMWL6) && defined(RTCONFIG_PROXYSTA)
 // psta_monitor.c
 extern int psta_monitor_main(int argc, char *argv[]);
-#endif
 #endif
 
 #ifdef RTCONFIG_QTN
@@ -658,12 +660,6 @@ extern int mssid_mac_validate(const char *macaddr);
 extern int setup_dnsmq(int mode);
 #endif
 
-// ssh.c
-#ifdef RTCONFIG_SSH
-extern void start_sshd(void);
-extern void stop_sshd(void);
-#endif
-
 // usb.c
 #ifdef RTCONFIG_USB
 FILE* fopen_or_warn(const char *path, const char *mode);
@@ -671,7 +667,8 @@ extern void hotplug_usb(void);
 extern void start_usb(void);
 extern void remove_usb_module(void);
 extern void stop_usb_program(int mode);
-extern void stop_usb(void);
+extern void restart_usb(int f_stop);
+extern void stop_usb(int f_force);
 extern void start_lpd();
 extern void stop_lpd();
 extern void start_u2ec();
@@ -683,6 +680,7 @@ extern int start_usbled(void);
 extern int stop_usbled(void);
 extern void restart_nas_services(int stop, int start);
 extern void stop_nas_services(int force);
+extern int sd_partition_num();
 #endif
 #ifdef RTCONFIG_CROND
 extern void start_cron(void);
@@ -771,6 +769,7 @@ extern void create_openvpn_passwd();
 extern int check_ovpn_server_enabled(int unit);
 extern int check_ovpn_client_enabled(int unit);
 extern void update_vpnrouting(int unit);
+extern void reset_vpn_settings(int type, int unit);
 #endif
 
 // wanduck.c
@@ -847,9 +846,17 @@ extern void start_ipv6(void);
 extern void stop_ipv6(void);
 extern void ipv6_sysconf(const char *ifname, const char *name, int value);
 extern int ipv6_getconf(const char *ifname, const char *name);
+#ifdef RTCONFIG_6RELAYD
+extern void stop_6relayd(void);
+extern int start_6relayd(void);
+#endif
 #endif
 extern int wps_band_radio_off(int wps_band);
 #ifdef CONFIG_BCMWL5
+#ifdef BCM_ASPMD
+extern int start_aspmd(void);
+extern int stop_aspmd(void);
+#endif /* BCM_ASPMD */
 extern int start_eapd(void);
 extern void stop_eapd(void);
 extern int start_nas(void);
@@ -942,7 +949,17 @@ extern int hour_monitor_main(int argc, char **argv);
 extern int hour_monitor_function_check();
 extern void check_hour_monitor_service();
 extern void hm_traffic_analyzer_save();
-extern void hm_traffic_control_save();
+extern void hm_traffic_limiter_save();
+
+// traffic_limiter.c
+#ifdef RTCONFIG_TRAFFIC_LIMITER
+extern void traffic_limiter_sendSMS(const char *type, int unit);
+extern void traffic_limiter_limitdata_check(void);
+extern int traffic_limiter_wanduck_check(int unit);
+extern void reset_traffic_limiter_counter(int force);
+extern void init_traffic_limiter(void);
+#endif
+
 
 #ifdef RTCONFIG_INTERNAL_GOBI
 extern int lteled_main(int argc, char **argv);
@@ -982,10 +999,6 @@ extern int detectWAN_arp_main(int argc, char **argv);
 extern void am_send_mail(int type, char *path);
 #endif
 
-#ifdef RTCONFIG_TRAFFIC_CONTROL
-extern void traffic_control_sendSMS(int flag);
-#endif
-
 #if defined(RTCONFIG_KEY_GUARD)
 extern void stop_keyguard(void);
 extern void start_keyguard(void);
@@ -1020,11 +1033,12 @@ extern int start_watchdog(void);
 extern int get_apps_name(const char *string);
 extern int run_app_script(const char *pkg_name, const char *pkg_action);
 extern void set_hostname(void);
+extern int _start_telnetd(int force);
 extern int start_telnetd(void);
 extern void stop_telnetd(void);
-extern int run_telnetd(void);
 #ifdef RTCONFIG_SSH
-extern int run_sshd(void);
+extern int start_sshd(void);
+extern void stop_sshd(void);
 #endif
 #ifdef RTCONFIG_WTFAST
 extern void start_wtfast(void);
@@ -1047,12 +1061,17 @@ extern int start_ntpc(void);
 extern int start_miniupnpc(void);
 extern void stop_miniupnpc(void);
 #endif
+#ifdef RTCONFIG_BONJOUR
+extern int start_netmonitor(void);
+extern void stop_netmonitor(void);
+#endif
 extern void stop_networkmap(void);
 extern int start_networkmap(int bootwait);
 extern int stop_wps(void);
 extern int start_wps(void);
 extern void stop_upnp(void);
 extern void start_upnp(void);
+extern void reload_upnp(void);
 extern void stop_ddns(void);
 extern int start_ddns(void);
 extern void refresh_ntpc(void);
@@ -1135,10 +1154,23 @@ extern void ATE_BRCM_COMMIT(void);
 void config_lacp(void);
 #endif
 
-#ifdef RTCONFIG_DUALWAN
-#ifdef CONFIG_BCMWL5
+#if defined(CONFIG_BCMWL5) && defined(RTCONFIG_DUALWAN)
 void dualwan_control(void);
 #endif
+
+#ifdef RTCONFIG_PORT_BASED_VLAN
+// vlan.c
+extern int vlan_enable(void);
+extern int check_if_exist_vlan_ifnames(char *ifname);
+extern void start_vlan_ifnames(void);
+extern void stop_vlan_ifnames(void);
+extern void start_vlan_wl_ifnames(void);
+extern void restart_vlan_wl(void);
+extern void vlan_lanaccess_wl(void);
+extern void set_port_based_vlan_config(char *interface);
+extern void set_vlan_ifnames(int index, int wlmap, char *subnet_name, char *vlan_if);
+extern void stop_vlan_wl_ifnames(void);
+extern void start_vlan_wl(void);
 #endif
 
 #endif	/* __RC_H__ */

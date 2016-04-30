@@ -5,25 +5,31 @@ include $(SRCBASE)/.config
 all:
 
 install: all
+	echo $(CFLAGS)
 	install -d $(INSTALLDIR)/usr/sbin
-ifeq ($(RTAC3200), y)
+ifeq ($(BUILD_NAME), RT-AC3200)
 	install lld2d.rtac3200 $(INSTALLDIR)/usr/sbin/lld2d
 	install icon.rtac3200.ico $(INSTALLDIR)/usr/sbin/icon.ico
 	install icon.large.rtac3200.ico $(INSTALLDIR)/usr/sbin/icon.large.ico
-else ifeq ($(RTAC56U), y)
+else ifeq ($(BUILD_NAME), RT-AC56U)
 	install lld2d.rtac56u $(INSTALLDIR)/usr/sbin/lld2d
 	install icon.rtac56u.ico $(INSTALLDIR)/usr/sbin/icon.ico
 	install icon.large.rtac56u.ico $(INSTALLDIR)/usr/sbin/icon.large.ico
-else ifeq ($(RTAC87U), y)
+else ifeq ($(BUILD_NAME), RT-AC87U)
 	install lld2d.rtac87u $(INSTALLDIR)/usr/sbin/lld2d
 	install icon.rtac87u.ico $(INSTALLDIR)/usr/sbin/icon.ico
 	install icon.large.rtac87u.ico $(INSTALLDIR)/usr/sbin/icon.large.ico
-else ifeq ($(RTAC68U), y)
+else ifeq ($(BUILD_NAME), RT-AC68U)
 	install lld2d.rtac68u $(INSTALLDIR)/usr/sbin/lld2d
 	install lld2d.rtac68p $(INSTALLDIR)/usr/sbin/lld2d.rtac68p
 	install lld2d.rtac68r $(INSTALLDIR)/usr/sbin/lld2d.rtac68r
 	install lld2d.rtac68w $(INSTALLDIR)/usr/sbin/lld2d.rtac68w
 	install lld2d.rtac68rw $(INSTALLDIR)/usr/sbin/lld2d.rtac68rw
+	install lld2d.rtac1900 $(INSTALLDIR)/usr/sbin/lld2d.rtac1900
+	install lld2d.rtac1900p $(INSTALLDIR)/usr/sbin/lld2d.rtac1900p
+	install lld2d.rtac66u_v2 $(INSTALLDIR)/usr/sbin/lld2d.rtac66u_v2
+	install lld2d.rtac68a $(INSTALLDIR)/usr/sbin/lld2d.rtac68a
+	install lld2d.rtac68uf $(INSTALLDIR)/usr/sbin/lld2d.rtac68uf
 	install icon.rtac68u.ico $(INSTALLDIR)/usr/sbin/icon.ico
 	install icon.large.rtac68u.ico $(INSTALLDIR)/usr/sbin/icon.large.ico
 else ifeq ($(BUILD_NAME), RT-AC88U)

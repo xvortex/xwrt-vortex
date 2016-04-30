@@ -42,21 +42,36 @@ var wlc_state = '0';
 var wlc_sbstate = '0';
 var wlc_scan_state = '0';
 var systime = new Date();
-Date.prototype.stdTimezoneOffset_north = function() {
+
+Date.prototype.stdTimezoneOffset_if_dst = function() {
     var jan = new Date(this.getFullYear(), 0, 1);
     var jul = new Date(this.getFullYear(), 6, 1);
-    return Math.max(jan.getTimezoneOffset(), jul.getTimezoneOffset());
+    if(jan != jul)
+    	return true;	// w/ DST
+    else
+    	return false;	// w/o DST
 }
 
-Date.prototype.stdTimezoneOffset_south = function() {
+Date.prototype.stdTimezoneOffset_withoutDST = function() {
     var jan = new Date(this.getFullYear(), 0, 1);
     var jul = new Date(this.getFullYear(), 6, 1);
-    return Math.min(jan.getTimezoneOffset(), jul.getTimezoneOffset());
+    return Math.max(jan.getTimezoneOffset(), jul.getTimezoneOffset());	//DST w/o offset value
 }
 
 Date.prototype.dst = function() {
-		//alert(this.getTimezoneOffset()+" <= north:"+this.stdTimezoneOffset_north()+" ; "+this.getTimezoneOffset()+" => south:"+this.stdTimezoneOffset_south());
-    return (this.getTimezoneOffset() < this.stdTimezoneOffset_north() || this.getTimezoneOffset() > this.stdTimezoneOffset_south());
+	if(this.stdTimezoneOffset_if_dst()){	// w/ DST		
+		if(this.getTimezoneOffset() == this.stdTimezoneOffset_withoutDST()){
+			return 2; //is in not DST now
+		}	
+		else if(this.getTimezoneOffset() < this.stdTimezoneOffset_withoutDST()){
+			return 3; //is in DST now
+		}
+		else
+			return 2;
+	}
+	else{	// w/o DST
+		return 1;
+	}
 }
 
 var isDefault = false;
@@ -747,7 +762,7 @@ function submitForm(){
 		}else{
 			document.form.sw_mode.value = 2;
 		}
-		
+
 		document.form.flag.value = "wlcconnect";
 		document.form.action_script.value = "reboot";
 		parent.document.getElementById("stassid").innerHTML = document.form.wlc_ssid.value;
@@ -790,13 +805,19 @@ function submitForm(){
 			&& !parent.swisscom_support)
 	{
 				document.form.time_zone.disabled = false;				
-				if(systime.dst()){					
+				if(systime.dst() == 2){		// w/ DST and is not in DST now		
+					if(timezones_dst[systime.getTimezoneOffset()] != "")
+						document.form.time_zone.value = timezones_dst[systime.getTimezoneOffset()];
+					else if(document.form.time_zone.value == "")
+						document.form.time_zone.value = timezones_dst[0];
+				}
+				else if(systime.dst() == 3){		// w/ DST and is in DST now
 					if(timezones_dst[systime.getTimezoneOffset()+60] != "")
 						document.form.time_zone.value = timezones_dst[systime.getTimezoneOffset()+60];
 					else if(document.form.time_zone.value == "")
 						document.form.time_zone.value = timezones_dst[0];
 				}
-				else{
+				else{	// w/o DST
 					if(timezones[systime.getTimezoneOffset()] != "")
 						document.form.time_zone.value = timezones[systime.getTimezoneOffset()];	
 					else if(document.form.time_zone.value == "")
@@ -825,7 +846,8 @@ function submitForm(){
 			if(document.form.smart_connect_t[0].checked == true){
 				document.form.smart_connect_x.value = 1;
 				document.form.wl1_wpa_psk.value = document.form.wl0_wpa_psk.value;
-				document.form.wl2_wpa_psk.value = document.form.wl0_wpa_psk.value; 		
+				if(wl_info.band5g_2_support)
+					document.form.wl2_wpa_psk.value = document.form.wl0_wpa_psk.value; 		
 			}else if(document.form.smart_connect_t[1].checked == true)
 				document.form.smart_connect_x.value = 0;
 	}
@@ -1182,9 +1204,11 @@ function change_smart_con(v){
 		document.getElementById("wl_unit_field_1").style.display = "none";
 		document.getElementById("wl_unit_field_2").style.display = "none";
 		document.getElementById("wl_unit_field_3").style.display = "none";
-		document.getElementById("wl_unit_field_4").style.display = "none";
-		document.getElementById("wl_unit_field_5").style.display = "none";
-		document.getElementById("wl_unit_field_6").style.display = "none";
+		if(wl_info.band5g_2_support){
+			document.getElementById("wl_unit_field_4").style.display = "none";
+			document.getElementById("wl_unit_field_5").style.display = "none";
+			document.getElementById("wl_unit_field_6").style.display = "none";
+		}
 		document.getElementById("wl0_desc_name").innerHTML = "Tri-band Smart Connect Security";
 		document.getElementById("wl0_desc_name").style = "padding-bottom:10px";
 		parent.document.getElementById("contentM").height = contentM_height_orig;
@@ -1192,9 +1216,11 @@ function change_smart_con(v){
 		document.getElementById("wl_unit_field_1").style.display = "";
 		document.getElementById("wl_unit_field_2").style.display = "";
 		document.getElementById("wl_unit_field_3").style.display = "";
-		document.getElementById("wl_unit_field_4").style.display = "";
-		document.getElementById("wl_unit_field_5").style.display = "";
-		document.getElementById("wl_unit_field_6").style.display = "";
+		if(wl_info.band5g_2_support){
+			document.getElementById("wl_unit_field_4").style.display = "";
+			document.getElementById("wl_unit_field_5").style.display = "";
+			document.getElementById("wl_unit_field_6").style.display = "";
+		}
 		document.getElementById("wl0_desc_name").innerHTML = "2.4 GHz - <#Security#>";
 		parent.document.getElementById("contentM").height = document.body.scrollHeight + 20;
 	}
@@ -1558,7 +1584,7 @@ function detect_LANStatus(_flag){
 				</div>
 				<div class="row_end">
 					<label>Key</label>
-					<input id="wl0_wpa_psk_m" name="wl0_wpa_psk_m" type="text" onBlur="switchType(this, false);" onFocus="switchType(this, true);" placeholder="<#Network_key#>" maxlength="64" autocapitalization="off" autocomplete="off">	
+					<input id="wl0_wpa_psk_m" name="wl0_wpa_psk_m" type="text" onBlur="switchType(this, false);" onFocus="switchType(this, true);" placeholder="<#Network_key#>" maxlength="64" autocapitalize="off" autocomplete="off">	
 				</div>
 	</fieldset>	
 	<br />

@@ -129,7 +129,7 @@ function detect_httpd(){
     						document.getElementById('loading_block2').style.display = "none";
     						document.getElementById('loading_block3').style.display = "";
 						if(findasus_support){
-    							document.getElementById('loading_block3').innerHTML = "<div>You can also go to <a href=\"http://findasus.local\" style=\"font-family:Lucida Console;text-decoration:underline;color:#FC0;\">http://findasus.local</a> to search and enter device config page.</div>";
+    							document.getElementById('loading_block3').innerHTML = "<div><#OP_AP_hint#></div>";
 						}else{
 							document.getElementById('loading_block3').innerHTML = "<div><#Main_alert_proceeding_desc3#>.<#LANConfig_ChangedLANIP#></div>";
 						}
@@ -219,6 +219,11 @@ function detect_httpd(){
 										<div class="formfontdesc"><#Setting_save_upload_desc#></div>
 
 										<table width="100%" border="1" align="center" cellpadding="6" cellspacing="0" bordercolor="#6b8fa3"  class="FormTable">
+										<thead>
+										<tr>
+											<td colspan=2>Router settings</td>
+										</tr>
+										</thead>
 	          								<tr>
 	            								<th width="25%" align="right">
 	            									<a class="hintstyle"  href="javascript:void(0);" onclick="openHint(19,1)"><#Setting_factorydefault_itemname#></a>
@@ -256,6 +261,13 @@ function detect_httpd(){
 													</div>
 												</td>
 											</tr>
+											</table>
+											<table width="100%" border="1" align="center" cellpadding="4" cellspacing="0" bordercolor="#6b8fa3"  class="FormTable" style="margin-top:8px;">
+											<thead>
+											<tr>
+												<td colspan="2">JFFS Partition</td>
+											</tr>
+											</thead>
 											<tr id="jffsbackup">
 												<th align="right">
 													Backup JFFS partition

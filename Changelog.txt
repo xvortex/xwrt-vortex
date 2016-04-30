@@ -1,11 +1,87 @@
 Asuswrt-Merlin Changelog
 ========================
 
-380.58 (xx-xxx-2016)
+380.59 (xx-xxx-2016)
+    NOTE: This version isn't available for the RT-N66U and RT-AC56U due to 
+          missing GPL components.
+
+    - NEW: Merged with 380_2697 GPL.  This includes beta MU-MIMO support for 
+           the RT-AC87U/AC88U/AC3100/AC5300, and IPTV fixes.
+    - NEW: Option on OpenVPN client/server page to reset them back to the 
+           factory default settings.
+    - CHANGED: WAN -> NAT Passthrough now allows you to determine whether or 
+               not to load the NAT helper module for h323, rtsp and sip.  
+               Asus's old behaviour is "Enabled + NAT Helper".
+    - CHANGED: DNSFilter client dropdown now uses Asus's new one integrated 
+               with networkmap.
+    - CHANGED: minidlna now supports refreshing an existing database, so the 
+               Tweak setting was updated accordingly
+    - CHANGED: Enable SPNEGO support in Samba
+    - CHANGED: Integrated Asus's networkmap into the DHCP reservations page
+    - CHANGED: Updated Tor to 0.2.7.6
+    - FIXED: Daily/Monthly traffic monitoring shows invalid values on the 
+             RT-AC88U/3100/5300, even with CTF disabled.  Implemented a 
+             temporary workaround.
+    - FIXED: WPS wasn't working on the RT-AC3200
+    - FIXED: Backported security fixes from OpenWRT to Samba 3.6.25, 
+             addressing the following: 
+             CVE-2015-5252, CVE-2015-5370, CVE-2015-5296, 
+             CVE-2015-5299, CVE-2015-7560, CVE-2016-2110, 
+             CVE-2016-2111, CVE-2016-2112, CVE-2016-2115, 
+             CVE-2016-2118.
+   - FIXED: OpenVPN clients set to policy-based routing and Exclusive
+            DNS mode were still adding the tunnel nameservers to 
+            dnsmasq, causing both routed and non-routed clients to use 
+            them.
+
+
+380.58 (20-Mar-2016)
     - NEW: Merged with 380_1354 GPL
+    - NEW: Added Tweaks and Hacks settings to Tools -> Other Settings.
+           These are UNSUPPORTED tweaks, intended mostly for 
+           experimentation, or very specific situations.  If unsure how
+           to apply these, manually reboot after changing them.
+           One of new settings there lets you disable hourly network
+           rescans, to resolve issues with NAS/printers coming out
+           of sleep every hour.
+    - NEW: Added setting to configure OpenVPN's auth digest algo.
+    - NEW: Added setting to configure OpenVPN's logging verbosity.
+           Note that this setting is global to all clients/servers.
+    - CHANGED: Updated OpenVPN to 2.3.10
+    - CHANGED: Updated openssl to 1.0.2g
+    - CHANGED: Updated miniupnpd to 1.9.20160222
+    - CHANGED: Updated udpxy to 1.0-build 23-10 (backport from GPL 
+               380_2345)
+    - CHANGED: if you set an OpenVPN client DNS mode to "Exclusive"
+               and you enable policy-based routing, then those policies
+               will also determine which DNS to use (the tunnel's or
+               the ISP's).  This is based on DNSFilter's technology.
+               You no longer need to use DNSFilter to control
+               the DNS used by your OpenVPN clients.
+    - CHANGED: Made OpenVPN traffic bypass CTF, which resolves
+               some throughput issues with it
+    - CHANGED: Disabled X11 Forwarding support in Dropbear,
+               for security reasons.
     - FIXED: PPTP static route handling script was broken
     - FIXED: minidlna would check for the wrong database filename
              at start time
+    - FIXED: Wrong status shown for VPN Client 3
+    - FIXED: OpenVPN clients were run on the wrong CPU cores.
+             Now, odd instances correctly run on the second core.
+    - FIXED: Using DNSFilter with default mode set to "router" would
+             prevent using the router for IPv6 lookups.
+    - FIXED: Account limit wasn't properly allowing up to 10 
+             clients for SMB/FTP (patch by vit9696)
+    - FIXED: Having multiple OpenVPN clients configured with
+             multiple "Accept DNS configuration" modes would
+             only apply the last client's setting.  Now, we
+             apply the most restrictive setting of all
+             configured clients.
+    - FIXED: RT-AC68U 2.4 GHz was broken if CTF was disabled
+             (downgraded wifi driver to  6.37.14.105)
+    - FIXED: Diasbling the SIP NAT helper would also drop all port 5060 
+             traffic.  Some users need to keep the SIP helper disabled 
+             with their SIP client.  Reverted that GPL 858 change.
 
 
 380.57 (24-Dec-2015)

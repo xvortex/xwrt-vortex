@@ -26,6 +26,26 @@
 #include <ctype.h>
 #include <errno.h>
 #include <pj/errno.h>
+#include <pj/sock.h>
+
+#ifdef ROUTER
+#include <sys/ioctl.h>
+#include <net/if.h>
+#include <unistd.h>
+typedef struct natnl_wl_ioctl {
+	uint cmd;       /* common ioctl definition */
+	void *buf;      /* pointer to user buffer */
+	uint len;       /* length of user buffer */
+	unsigned char set;              /* 1=set IOCTL; 0=query IOCTL */
+	uint used;      /* bytes read or written (optional) */
+	uint needed;    /* bytes needed (optional) */
+} natnl_wl_ioctl_t;
+#define WLC_IOCTL_MEDLEN         1536
+#define WLC_GET_VAR             262
+#define WLC_SET_VAR             263
+#define WLC_GET_MAGIC                           0
+#define WLC_GET_BSSID                           23
+#endif
 
 #define NO_DEBUG     0
 #define DEBUG_LEVEL1 1
@@ -97,6 +117,67 @@ static _inline_ char* get_id_part_device_id(char *full_device_id)
 	if (tmp)
 		tmp = strtok(tmp, "@");
 	return tmp == NULL ? NULL : tmp;	
+}
+
+#ifdef ROUTER
+static _inline_ int natnl_wl_ioctl(char *name, int cmd, void *buf, int len)
+{
+	struct ifreq ifr;
+	natnl_wl_ioctl_t ioc;
+	int ret = 0;
+	int s;
+	char buffer[100];
+
+	/* open socket to kernel */
+	if ((s = socket(AF_INET, SOCK_DGRAM, 0)) < 0) {
+		perror("socket");
+		return errno;
+	}
+
+	/* do it */
+	ioc.cmd = cmd;
+	ioc.buf = buf;
+	ioc.len = len;
+
+	/* initializing the remaining fields */
+	ioc.set = 0;
+	ioc.used = 0;
+	ioc.needed = 0;
+
+	strncpy(ifr.ifr_name, name, sizeof(ifr.ifr_name) - 1);
+	ifr.ifr_name[sizeof(ifr.ifr_name) - 1] = '\0';
+	ifr.ifr_data = (caddr_t) &ioc;
+	if ((ret = ioctl(s, SIOCDEVPRIVATE, &ifr)) < 0)
+		;/*if (cmd != WLC_GET_MAGIC && cmd != WLC_GET_BSSID) {
+			if ((cmd == WLC_GET_VAR) || (cmd == WLC_SET_VAR)) {
+				snprintf(buffer, sizeof(buffer), "%s: WLC_%s_VAR(%s)", name,
+					cmd == WLC_GET_VAR ? "GET" : "SET", (char *)buf);
+			} else {
+				snprintf(buffer, sizeof(buffer), "%s: cmd=%d", name, cmd);
+			}
+			perror(buffer);
+		}*/
+		/* cleanup */
+		close(s);
+		return ret;
+}
+#endif
+
+static _inline_ int natnl_get_ip_addr_ver(const pj_str_t *host)
+{
+	pj_in_addr dummy;
+	pj_in6_addr dummy6;
+
+	/* First check with inet_aton() */
+	if (pj_inet_aton(host, &dummy) > 0)
+		return 4;
+
+	/* Then check if this is an IPv6 address */
+	if (pj_inet_pton(pj_AF_INET6(), host, &dummy6) == PJ_SUCCESS)
+		return 6;
+
+	/* Not an IP address */
+	return 0;
 }
 
 #endif /* COMMON_H */

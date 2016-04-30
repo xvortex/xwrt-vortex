@@ -76,8 +76,8 @@ body{
 	border-radius: 5px;
 	width: 380px;
 	border: 0;
-	color:#fff;
-	color:#000\9; /* IE6 IE7 IE8 */
+	color:#FFF;
+	color:#FFF\9; /* IE6 IE7 IE8 */
 	font-size:16px;
 }
 .div_table{
@@ -140,9 +140,9 @@ body{
 		background-size: 75%;
 	}
 	.form_input{	
-		padding:13px 11px;
+		padding:10px 11px;
 		width: 100%;
-		height:25px;
+		height:30px;
 		font-size:16px
 	}
 	.button{
@@ -191,6 +191,15 @@ body{
 }
 </style>
 <script>
+/* add Array.prototype.forEach() in IE8 */
+if(typeof Array.prototype.forEach != 'function'){
+	Array.prototype.forEach = function(callback){
+		for(var i = 0; i < this.length; i++){
+			callback.apply(this, [this[i], i, this]);
+		}
+	};
+}
+
 var lock_time = '<% get_parameter("lock_time"); %>';
 var remaining_time;
 remaining_time = 60 - lock_time;
@@ -407,10 +416,10 @@ function disable_button(val){
 		<div id="login_filed">
 			<div class="p1 title_gap"><#Sign_in_title#></div>
 			<div class="title_gap">
-				<input type="text" id="login_username" name="login_username" tabindex="1" class="form_input" maxlength="20" autocapitalization="off" autocomplete="off" placeholder="<#HSDPAConfig_Username_itemname#>">
+				<input type="text" id="login_username" name="login_username" tabindex="1" class="form_input" maxlength="20" autocapitalize="off" autocomplete="off" placeholder="<#HSDPAConfig_Username_itemname#>">
 			</div>
 			<div class="password_gap">
-				<input type="password" name="login_passwd" tabindex="2" class="form_input" maxlength="16" placeholder="<#HSDPAConfig_Password_itemname#>" autocapitalization="off" autocomplete="off">
+				<input type="password" name="login_passwd" tabindex="2" class="form_input" maxlength="16" placeholder="<#HSDPAConfig_Password_itemname#>" autocapitalize="off" autocomplete="off">
 			</div>
 			<div class="error_hint" style="display:none;" id="error_status_field"></div>
 				<div class="button" onclick="login();"><#CTL_signin#></div>

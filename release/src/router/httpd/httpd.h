@@ -271,6 +271,7 @@ extern asus_token_t* add_token_to_list(char *token, int add_to_end);
 extern asus_token_t* create_list(char *token);
 extern void get_ipv6_client_info(void);
 extern void get_ipv6_client_list(void);
+extern int inet_raddr6_pton(const char *src, void *dst, void *buf);
 
 /* web-*.c */
 extern int ej_wl_status(int eid, webs_t wp, int argc, char_t **argv, int unit);
@@ -279,6 +280,13 @@ extern int ej_wps_info_2g(int eid, webs_t wp, int argc, char_t **argv);
 extern int ej_wps_info(int eid, webs_t wp, int argc, char_t **argv);
 extern int ej_wl_status_array(int eid, webs_t wp, int argc, char_t **argv, int unit);
 extern int ej_wl_status_2g_array(int eid, webs_t wp, int argc, char_t **argv);
+
+/* web.c/web-*.c */
+extern char user_agent[1024];
+extern int check_user_agent(char* user_agent);
+#ifdef RTCONFIG_IFTTT
+extern void add_ifttt_flag(void);
+#endif
 
 #ifdef RTCONFIG_HTTPS
 extern char *pwenc(const char *input);

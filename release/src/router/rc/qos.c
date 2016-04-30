@@ -169,7 +169,7 @@ static int add_qos_rules(char *pcWANIF)
 	if(get_model()==MODEL_RTAC56U || get_model()==MODEL_RTAC56S || get_model()==MODEL_RTAC68U ||
 		get_model()==MODEL_EA6900 || get_model()==MODEL_R7000 || get_model()==MODEL_WS880 ||
 		get_model()==MODEL_DSLAC68U || get_model()==MODEL_RTAC87U || get_model()==MODEL_RTAC3200 || 
-		get_model()==MODEL_RTAC88U || get_model()==MODEL_RTAC3100 || get_model()==MODEL_RTAC5300 ||
+		get_model()==MODEL_RTAC88U || get_model()==MODEL_RTAC3100 || get_model()==MODEL_RTAC5300 || get_model()==MODEL_RTAC5300R ||
 		get_model()==MODEL_RTAC1200G || get_model()==MODEL_RTAC1200GP)
 		manual_return = 1;
 
@@ -188,7 +188,7 @@ static int add_qos_rules(char *pcWANIF)
 		":PREROUTING ACCEPT [0:0]\n"
 		":OUTPUT ACCEPT [0:0]\n"
 		":QOSO - [0:0]\n"
-		"-A QOSO -m mark --mark 0xb400 -j RETURN\n"
+		"-A QOSO -m mark --mark 0x8000/0x8000 -j RETURN\n"
 		"-A QOSO -j CONNMARK --restore-mark --mask 0x7\n"
 		"-A QOSO -m connmark ! --mark 0/0xff00 -j RETURN\n"
 		);
