@@ -1450,6 +1450,9 @@ struct nvram_tuple router_defaults[] = {
 #else
 	{ "qos_type",			"0"				}, // 0: Traditional, 1: Adaptive
 #endif
+#ifdef RTCONFIG_BCMARM
+	{ "qos_sched",			"0"				},
+#endif
 	{ "qos_method",			"0"				},
 	{ "qos_sticky",			"1"				},
 	{ "qos_ack",			"on"				},
