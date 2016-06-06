@@ -1,6 +1,19 @@
 Asuswrt-Merlin Changelog
 ========================
 
+380.60 (xx-xxx-2016)
+    IMPORTANT: The firmware image file format was changed by Asus.
+               Starting with 380.60, you will no longer be able to
+               flash versions older than 380.60, or Asus versions
+               older than 3.0.0.4.380_3000.
+
+    - NEW: Merged with GPL 3459.  This includes the new file format
+           required for certification purposes.
+    - CHANGED: Updated OpenVPN to 2.3.11
+    - FIXED: OpenVPN server instances weren't properly reporting
+             if an error occurred at start time.
+
+
 380.59 (10-May-2016)
     - NEW: Merged with 380_2697 GPL.  This includes beta MU-MIMO support for 
            the RT-AC87U/AC88U/AC3100/AC5300, and IPTV fixes.
@@ -32,6 +45,7 @@ Asuswrt-Merlin Changelog
     - CHANGED: Updated miniupnpd to 2.0
     - CHANGED: Fields on the DHCP static lease page are now sortable
                (original patch by Allan Jensen)
+    - CHANGED: Updated openssl to 1.0.2h
     - FIXED: Daily/Monthly traffic monitoring shows invalid values on the 
              RT-AC88U/3100/5300, even with CTF disabled.  Implemented a 
              temporary workaround.

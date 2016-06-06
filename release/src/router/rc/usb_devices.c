@@ -1684,6 +1684,13 @@ int write_3g_conf(FILE *fp, int dno, int aut, const unsigned int vid, const unsi
 			fprintf(fp, "TargetProduct=0x%04x\n",	0x0064);
 			fprintf(fp, "MessageContent=%s\n",	"555342431234567800000000000008FF000000000000030000000000000000");
 			break;
+		case SN_Huawei_K5160:
+			fprintf(fp, "DefaultVendor=0x%04x\n",	0x12d1);
+			fprintf(fp, "DefaultProduct=0x%04x\n",	0x1f1e);
+			fprintf(fp, "TargetVendor=0x%04x\n",	0x12d1);
+			fprintf(fp, "TargetProductList=%s\n", "157f,1592");
+			fprintf(fp, "HuaweiNewMode=1");
+			break;
 		default:
 			fprintf(fp, "\n");
 			if(vid != 0 && pid != 0){
@@ -2136,6 +2143,8 @@ usb_dbg("3G: Auto setting.\n");
 			write_3g_conf(fp, SN_Huawei_E303u, 1, vid, pid);
 		else if(vid == 0x12d1 && pid == 0x15cd)
 			write_3g_conf(fp, SN_Huawei_E3531s, 1, vid, pid);
+		else if(vid == 0x12d1 && pid == 0x1f1e)
+			write_3g_conf(fp, SN_Huawei_K5160, 1, vid, pid);
 		else if(vid == 0x12d1)
 			write_3g_conf(fp, UNKNOWNDEV, 1, vid, pid);
 		else{
@@ -4540,11 +4549,11 @@ int asus_usb_interface(const char *device_name, const char *action){
 	}
 	else if(isSerialInterface(device_name, 1, vid, pid)){
 		usb_dbg("(%s): Runing USB serial with (0x%04x/0x%04x)...\n", device_name, vid, pid);
-		sleep(1);
-		modprobe("usbserial");
+		eval("insmod", "usbserial");
 #if LINUX_KERNEL_VERSION >= KERNEL_VERSION(2,6,36)
-		modprobe("usb_wwan");
+		eval("insmod", "usb_wwan");
 #endif
+		sleep(2);
 		snprintf(modem_cmd, 128, "vendor=0x%04x", vid);
 		snprintf(buf, 128, "product=0x%04x", pid);
 		eval("insmod", "option", modem_cmd, buf);

@@ -57,22 +57,6 @@
 
 void update_lan_status(int);
 
-in_addr_t inet_addr_(const char *cp)
-{
-	struct in_addr a;
-
-	if (!inet_aton(cp, &a))
-		return INADDR_ANY;
-	else
-		return a.s_addr;
-}
-
-inline int inet_equal(char *addr1, char *mask1, char *addr2, char *mask2)
-{
-	return ((inet_network(addr1) & inet_network(mask1)) ==
-		(inet_network(addr2) & inet_network(mask2)));
-}
-
 /* remove space in the end of string */
 char *trim_r(char *str)
 {
@@ -272,28 +256,31 @@ void wanmessage(char *fmt, ...)
 	va_end(args);
 }
 
-int pppstatus(void)
+int _pppstatus(const char *statusfile)
 {
-	FILE *fp;
-	char sline[128], buf[128], *p;
+	char line[128], *status = line;
 
-	if ((fp = fopen("/tmp/wanstatus.log", "r")) && fgets(sline, sizeof(sline), fp))
-	{
-		fcntl(fileno(fp), F_SETFL, fcntl(fileno(fp), F_GETFL) | O_NONBLOCK);
-		p = strstr(sline, ",");
-		strcpy(buf, p+1);
-	}
+	if (statusfile && f_read_string(statusfile, line, sizeof(line)) > 0)
+		strsep(&status, ",");
+	if (!status || *status == '\0')
+		status = "unknown reason";
+
+	if (strstr(status, "No response from ISP.") != NULL)
+		return WAN_STOPPED_REASON_PPP_NO_ACTIVITY;
+	else if (strstr(status, "Failed to authenticate ourselves to peer") != NULL)
+		return WAN_STOPPED_REASON_PPP_AUTH_FAIL;
+	else if (strstr(status, "Terminating connection due to lack of activity") != NULL)
+		return WAN_STOPPED_REASON_PPP_LACK_ACTIVITY;
 	else
-	{
-		strcpy(buf, "unknown reason");
-	}
+		return WAN_STOPPED_REASON_NONE;
+}
 
-	if(fp) fclose(fp);
+int pppstatus(int unit)
+{
+	char statusfile[sizeof("/var/run/ppp-wanXXXXXXXXXX.status")];
 
-	if(strstr(buf, "Failed to authenticate ourselves to peer")) return WAN_STOPPED_REASON_PPP_AUTH_FAIL;
-	else if(strstr(buf, "Terminating connection due to lack of activity")) return WAN_STOPPED_REASON_PPP_LACK_ACTIVITY;
-	else if(strstr(buf, "No response from ISP.")) return WAN_STOPPED_REASON_PPP_NO_ACTIVITY;
-	else return WAN_STOPPED_REASON_NONE;
+	snprintf(statusfile, sizeof(statusfile), "/var/run/ppp-wan%d.status", unit);
+	return _pppstatus(statusfile);
 }
 
 void usage_exit(const char *cmd, const char *help)
@@ -1351,7 +1338,7 @@ int setup_dnsmq(int mode)
 	else {
 		eval("ebtables", "-F");
 		eval("ebtables", "-t", "broute", "-F");
-		eval("ebtables", "-I", "FORWARD", "-i", "eth1", "-j", "DROP");
+		eval("ebtables", "-I", "FORWARD", "-i", nvram_safe_get(wlc_nvname("ifname")), "-j", "DROP");
 	}	
 	
 	eval("iptables", "-t", "nat", "-F", "PREROUTING");
@@ -1362,9 +1349,11 @@ int setup_dnsmq(int mode)
 #if defined(RTCONFIG_BCMWL6) && defined(RTCONFIG_PROXYSTA)
 		if (!is_psta(nvram_get_int("wlc_band")) && !is_psr(nvram_get_int("wlc_band")))
 #endif
-		snprintf(tmp, sizeof(tmp), "%s:%d", nvram_safe_get("lan_ipaddr"), /*nvram_get_int("http_lanport") ? :*/ 80);
-		eval("iptables", "-t", "nat", "-I", "PREROUTING", "-p", "tcp", "-d", "10.0.0.1", "--dport", "80",
-			"-j", "DNAT", "--to-destination", tmp);
+		{
+			snprintf(tmp, sizeof(tmp), "%s:%d", nvram_safe_get("lan_ipaddr"), /*nvram_get_int("http_lanport") ? :*/ 80);
+			eval("iptables", "-t", "nat", "-I", "PREROUTING", "-p", "tcp", "-d", "10.0.0.1", "--dport", "80",
+				"-j", "DNAT", "--to-destination", tmp);
+		}
 	
 		//sprintf(v, "%x my.%s", inet_addr("10.0.0.1"), get_productid());
 		sprintf(v, "%x %s", inet_addr(nvram_safe_get("lan_ipaddr")), DUT_DOMAIN_NAME);

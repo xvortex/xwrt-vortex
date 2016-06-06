@@ -57,9 +57,8 @@ static const struct model_s model_list[] = {
 	{ "WS880",	MODEL_WS880	},
 #endif
 	{ "RT-AC68U",	MODEL_RTAC68U	},
-	{ "RT-AC68U_V2",MODEL_RTAC68U	},
-	{ "RT-AC69U",	MODEL_RTAC68U	},
 	{ "RP-AC68U",	MODEL_RPAC68U	},
+	{ "RT-AC68A",   MODEL_RTAC68U   },
 	{ "RT-AC87U",	MODEL_RTAC87U	},
 	{ "RT-AC53U",	MODEL_RTAC53U	},
 	{ "RT-AC3200",	MODEL_RTAC3200	},

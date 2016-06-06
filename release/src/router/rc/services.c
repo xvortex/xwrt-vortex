@@ -54,6 +54,9 @@
 #endif
 #ifdef RTCONFIG_USB
 #include <disk_io_tools.h>	//mkdir_if_none()
+#ifdef RTCONFIG_USB_SMS_MODEM
+#include "libsmspdu.h"
+#endif
 #else
 #ifdef RTCONFIG_MDNS
 extern int mkdir_if_none(const char *path)
@@ -359,7 +362,11 @@ static int build_temp_rootfs(const char *newroot)
 	const char *mdir[] = { "/proc", "/tmp", "/sys", "/usr", "/var", "/var/lock" };
 	const char *bin = "ash busybox cat cp dd df echo grep iwpriv kill ls ps mkdir mount nvram ping sh tar umount uname";
 	const char *sbin = "init rc hotplug2 insmod lsmod modprobe reboot rmmod rtkswitch";
-	const char *lib = "librt*.so* libnsl* libdl* libm* ld-* libiw* libgcc* libpthread* libdisk* libc*";
+	const char *lib = "librt*.so* libnsl* libdl* libm* ld-* libiw* libgcc* libpthread* libdisk* libc*"
+#if defined(RTCONFIG_PUSH_EMAIL)
+			     " libws* libpush_log*"
+#endif
+		;
 	const char *usrbin = "killall";
 #ifdef RTCONFIG_BCMARM
 	const char *usrsbin = "nvram";
@@ -367,6 +374,9 @@ static int build_temp_rootfs(const char *newroot)
 	const char *usrlib = "libnvram.so libshared.so libcrypto.so* libbcm*"
 #if defined(RTCONFIG_HTTPS) || defined(RTCONFIG_PUSH_EMAIL)
 			     " libssl*"
+#if defined(RTCONFIG_PUSH_EMAIL)
+			     " libcurl* libxml2*"
+#endif
 #endif
 		;
 	const char *kmod = "find /lib/modules -name '*.ko'|"
@@ -704,14 +714,10 @@ void start_hour_monitor_service()
 	char *cmd[] = {"hour_monitor", NULL};
 	int pid;
 
-	if(nvram_get_int("sw_mode") != SW_MODE_ROUTER)
+	if (nvram_get_int("sw_mode") != SW_MODE_ROUTER)
 		return;
 
-	if (!nvram_get_int("ntp_ready"))
-		return;
-
-	if(!pids("hour_monitor")){
-	//logmessage("hour monitor", "start again due to not pid");
+	if (!pids("hour_monitor")) {
 		_eval(cmd, NULL, 0, &pid);
 	}
 }
@@ -1093,24 +1099,25 @@ void start_dnsmasq()
 	}
 
 #ifdef RTCONFIG_IPV6
-	if (ipv6_enabled()
-#ifdef RTCONFIG_6RELAYD
-		&& get_ipv6_service() != IPV6_PASSTHROUGH
-#endif
-		&& is_routing_enabled()) {
+	if (ipv6_enabled() && is_routing_enabled()) {
 		struct in6_addr addr;
 		int ra_lifetime, dhcp_lifetime;
-		int service, stateful, dhcp_start, dhcp_end;
+		int service, stateful, announce, dhcp_start, dhcp_end;
 
 		service = get_ipv6_service();
 		stateful = (service == IPV6_NATIVE_DHCP || service == IPV6_MANUAL) ?
 			nvram_get_int(ipv6_nvname("ipv6_autoconf_type")) : 0;
+		announce = 
+#ifdef RTCONFIG_6RELAYD
+			service != IPV6_PASSTHROUGH &&
+#endif
+			nvram_get_int(ipv6_nvname("ipv6_radvd"));
 		ra_lifetime = 600; /* 10 minutes for now */
 		dhcp_lifetime = nvram_get_int(ipv6_nvname("ipv6_dhcp_lifetime"));
 		if (dhcp_lifetime <= 0)
 			dhcp_lifetime = 86400;
 
-		if (nvram_get_int(ipv6_nvname("ipv6_radvd"))) {
+		if (announce) {
 			fprintf(fp, "ra-param=%s,%d,%d\n"
 				    "enable-ra\n"
 				    "quiet-ra\n",
@@ -1130,7 +1137,7 @@ void start_dnsmasq()
 				(dhcp_start < dhcp_end) ? dhcp_end : dhcp_start,
 				lan_ifname, dhcp_lifetime);
 			have_dhcp |= 2; /* DHCPv6 */
-		} else if (nvram_get_int(ipv6_nvname("ipv6_radvd"))) {
+		} else if (announce) {
 			if (nvram_get_int("ipv6_dhcp6s_enable")) {
 				fprintf(fp, "dhcp-range=lan,::,constructor:%s,ra-stateless,%d,%d\n",
 					lan_ifname, 64, ra_lifetime);
@@ -1517,7 +1524,7 @@ void start_ipv6(void)
 		nvram_set(ipv6_nvname("ipv6_get_domain"), "");
 		break;
 #ifdef RTCONFIG_6RELAYD
-        case IPV6_PASSTHROUGH:
+	case IPV6_PASSTHROUGH:
 		nvram_set(ipv6_nvname("ipv6_prefix"), "");
 		nvram_set(ipv6_nvname("ipv6_rtr_addr"), "::1");
 		nvram_set_int(ipv6_nvname("ipv6_prefix_length"), 64);
@@ -1561,29 +1568,6 @@ void stop_ipv6(void)
 	eval("ip", "-6", "route", "flush", "scope", "global");
 	eval("ip", "-6", "neigh", "flush", "dev", lan_ifname);
 }
-
-#ifdef RTCONFIG_6RELAYD
-void stop_6relayd(void)
-{
-	killall_tk("6relayd");
-}
-
-int start_6relayd(void)
-{
-	char *wan_ifname = (char *) get_wan6face();
-	char tmp[INET6_ADDRSTRLEN + 2], tmp2[32];
-
-	if (get_ipv6_service() != IPV6_PASSTHROUGH)
-		return 0;
-
-	if (!wan_ifname || *wan_ifname == '\0')
-		return -1;
-
-	stop_6relayd();
-
-	return eval("6relayd", "-R", "relay", "-D", "server", "-N", strcat_r("-n", nvram_safe_get("ipv6_get_dns"), tmp), wan_ifname, strcat_r("~", nvram_safe_get("lan_ifname"), tmp2));
-}
-#endif
 #endif
 
 // -----------------------------------------------------------------------------
@@ -1599,6 +1583,7 @@ int no_need_to_start_wps(void)
 	if (nvram_match("asus_mfg", "1")) /* Paul add 2012/12/13 */
 		return 0;
 #endif
+
 	if ((nvram_get_int("sw_mode") != SW_MODE_ROUTER) &&
 		(nvram_get_int("sw_mode") != SW_MODE_AP))
 		return 1;
@@ -1940,38 +1925,38 @@ start_hspotap(void)
 int
 start_aspmd(void)
 {
-        int ret = eval("/usr/sbin/aspmd");
+	int ret = eval("/usr/sbin/aspmd");
 
-        return ret;
+	return ret;
 }
 
 int
 stop_aspmd(void)
 {
-        int ret = eval("killall", "aspmd");
+	int ret = eval("killall", "aspmd");
 
-        return ret;
+	return ret;
 }
 #endif /* BCM_ASPMD */
 
 #if defined(BCM_EVENTD)
 int start_eventd(void)
 {
-        int ret = 0;
-        char *ssd_argv[] = {"/usr/sbin/eventd", NULL};
-        pid_t pid;
+	int ret = 0;
+	char *ssd_argv[] = {"/usr/sbin/eventd", NULL};
+	pid_t pid;
 
-        if (nvram_match("eventd_enable", "1"))
-                ret = _eval(ssd_argv, NULL, 0, &pid);
+	if (nvram_match("eventd_enable", "1"))
+		ret = _eval(ssd_argv, NULL, 0, &pid);
 
-        return ret;
+	return ret;
 }
 
 int stop_eventd(void)
 {
-        int ret = eval("killall", "eventd");
+	int ret = eval("killall", "eventd");
 
-        return ret;
+	return ret;
 }
 #endif /* BCM_EVENTD */
 
@@ -2482,7 +2467,7 @@ start_ddns(void)
 		service = "dyndns", asus_ddns = 1;
 	}
 	else if (strcmp(server, "WWW.GOOGLE-DDNS.COM")==0)
-                service = "dyndns", asus_ddns=3;
+		service = "dyndns", asus_ddns=3;
 	else if (strcmp(server, "WWW.ORAY.COM")==0) {
 		service = "peanuthull", asus_ddns = 2;
 	} else {
@@ -2510,22 +2495,19 @@ start_ddns(void)
 	nvram_unset("ddns_status");
 	nvram_unset("ddns_updated");
 
-       	_dprintf("asus_ddns : %d\n",asus_ddns);
-#if 1
-       	if(3 == asus_ddns)
+	_dprintf("asus_ddns : %d\n",asus_ddns);
+
+	if(3 == asus_ddns)
 	{
 		if((time_fp=fopen("/tmp/ddns.cache","w")))
 		{				
 			fprintf(time_fp,"%ld,%s",time(&now),wan_ip);
 			fclose(time_fp);
 		}
-        	//_dprintf("run ddns-start.sh\n");
-               	eval("ddns-start.sh",user,passwd,host);
-               	//eval("ddns-start.sh",host,passwd);
-		
-       	}
-#endif
-        else if (asus_ddns == 2) { //Peanuthull DDNS	
+		eval("ddns-start.sh",user,passwd,host);
+		//eval("ddns-start.sh",host,passwd);		
+	}
+	else if (asus_ddns == 2) { //Peanuthull DDNS
 		if( (fp = fopen("/etc/phddns.conf", "w")) != NULL ) {
 			fprintf(fp, "[settings]\n");
 			fprintf(fp, "szHost = phddns60.oray.net\n");
@@ -2852,6 +2834,10 @@ stop_misc(void)
 #ifdef SW_DEVLED
 	if (pids("sw_devled"))
 		killall_tk("sw_devled");
+#endif
+#if defined(RTAC1200G) || defined(RTAC1200GP)
+	if (pids("wdg_monitor"))
+		killall_tk("wdg_monitor");
 #endif
 	if (pids("watchdog")
 #if defined(RTAC68U) || defined(RTCONFIG_FORCE_AUTO_UPGRADE)
@@ -3468,6 +3454,27 @@ void refresh_ntpc(void)
 		kill_pidfile_s("/var/run/ntp.pid", SIGALRM);
 }
 
+#ifdef RTCONFIG_BCMARM
+int write_lltd_conf(void)
+{
+	FILE *fp;
+	int alt = get_model() == MODEL_RTAC68U &&
+		!strcmp(nvram_safe_get("odmpid"), "RT-AC66U V2");
+
+	if (!(fp = fopen("/tmp/lld2d.conf", "w"))) {
+		perror("/tmp/lld2d.conf");
+		return -1;
+	}
+
+	fprintf(fp, "icon = /usr/sbin/icon%s.ico\n", alt ? "_alt" : "");
+	fprintf(fp, "jumbo-icon = /usr/sbin/icon%s.large.ico\n", alt ? "_alt" : "");
+
+	fclose(fp);
+
+	return 0;
+}
+#endif
+
 int start_lltd(void)
 {
 	chdir("/usr/sbin");
@@ -3475,6 +3482,10 @@ int start_lltd(void)
 #ifdef CONFIG_BCMWL5
 	char *odmpid = nvram_safe_get("odmpid");
 	int model = get_model();
+
+#ifdef RTCONFIG_BCMARM
+	write_lltd_conf();
+#endif
 
 	if (strlen(odmpid) && is_valid_hostname(odmpid))
 	{
@@ -3491,6 +3502,11 @@ int start_lltd(void)
 				eval("lld2d.rtac1750", "br0");
 			break;
 		case MODEL_RTAC68U:
+#ifdef RTAC68A
+			if (!strcmp(get_productid(), "RT-AC68A"))
+				eval("lld2d.rtac68a", "br0");
+			else
+#endif
 			if (!strcmp(odmpid, "RT-AC68P"))
 				eval("lld2d.rtac68p", "br0");
 			else if (!strcmp(odmpid, "RT-AC68R"))
@@ -3545,6 +3561,11 @@ void stop_lltd(void)
 			killall_tk("lld2d.rtac66r");
 			break;
 		case MODEL_RTAC68U:
+#ifdef RTAC68A
+			if (!strcmp(get_productid(), "RT-AC68A"))
+				killall_tk("lld2d.rtac68a");
+			else
+#endif
 			if (!strcmp(odmpid, "RT-AC68P"))
 				killall_tk("lld2d.rtac68p");
 			else if (!strcmp(odmpid, "RT-AC68R"))
@@ -3910,6 +3931,7 @@ start_plchost(void)
 	char *plchost_argv[] = {"/usr/local/bin/plchost", "-i", "br0", "-N", BOOT_NVM_PATH, "-P", BOOT_PIB_PATH, NULL};
 	pid_t pid;
 
+	nvram_set("plc_wake", "1");
 	return _eval(plchost_argv, NULL, 0, &pid);
 }
 
@@ -4071,6 +4093,9 @@ start_services(void)
 #ifdef SW_DEVLED
 	start_sw_devled();
 #endif
+#if defined(RTAC1200G) || defined(RTAC1200GP)
+	start_wdg_monitor();
+#endif
 #ifdef RTCONFIG_DUALWAN
 	restart_dualwan();
 #endif
@@ -4226,6 +4251,10 @@ stop_services(void)
 #ifdef RTCONFIG_DISK_MONITOR
 	stop_diskmon();
 #endif
+#ifdef RTCONFIG_USB_PRINTER
+	stop_lpd();
+	stop_u2ec();
+#endif
 #endif
 	stop_upnp();
 	stop_lltd();
@@ -4380,6 +4409,14 @@ stop_sw_devled(void)
 	return;
 }
 
+#if defined(RTAC1200G) || defined(RTAC1200GP)
+stop_wdg_monitor(void)
+{
+	killall_tk("wdg_monitor");
+	return;
+}
+#endif
+
 #ifdef RTCONFIG_DUALWAN
 int restart_dualwan(void)
 {
@@ -4401,7 +4438,7 @@ start_watchdog(void)
 	return _eval(watchdog_argv, NULL, 0, &whpid);
 }
 
-#if ! (defined(RTCONFIG_QCA) || defined(RTCONFIG_RALINK))
+#ifdef RTAC87U
 int
 start_watchdog02(void)
 {
@@ -4412,7 +4449,7 @@ start_watchdog02(void)
 
 	return _eval(watchdog_argv, NULL, 0, &whpid);
 }
-#endif  /* ! (RTCONFIG_QCA || RTCONFIG_RALINK) */
+#endif
 
 int
 start_sw_devled(void)
@@ -4424,6 +4461,20 @@ start_sw_devled(void)
 
 	return _eval(sw_devled_argv, NULL, 0, &whpid);
 }
+
+#if defined(RTAC1200G) || defined(RTAC1200GP)
+int
+start_wdg_monitor(void)
+{
+	char *wdg_monitor_argv[] = {"wdg_monitor", NULL};
+	pid_t whpid;
+
+	if (pidof("wdg_monitor") > 0) return -1;
+
+	return _eval(wdg_monitor_argv, NULL, 0, &whpid);
+
+}
+#endif
 
 #ifdef RTCONFIG_DSL
 #ifdef RTCONFIG_RALINK
@@ -4795,7 +4846,7 @@ again:
 #ifdef RTCONFIG_USB
 #if defined(RTCONFIG_USB_MODEM) && (defined(RTCONFIG_JFFS2) || defined(RTCONFIG_BRCM_NAND_JFFS2) || defined(RTCONFIG_UBIFS))
 		_dprintf("modem data: save the data during the reboot service\n");
-		eval("modem_status.sh", "bytes+");
+		eval("/usr/sbin/modem_status.sh", "bytes+");
 #endif
 
 #ifdef RTCONFIG_USB_MODEM
@@ -4880,7 +4931,7 @@ again:
 			stop_hour_monitor_service();
 #if defined(RTCONFIG_USB_MODEM) && (defined(RTCONFIG_JFFS2) || defined(RTCONFIG_BRCM_NAND_JFFS2) || defined(RTCONFIG_UBIFS))
 			_dprintf("modem data: save the data during upgrading\n");
-			eval("modem_status.sh", "bytes+");
+			eval("/usr/sbin/modem_status.sh", "bytes+");
 #endif
 
 			eval("/sbin/ejusb", "-1", "0");
@@ -5084,10 +5135,10 @@ again:
 		stop_udhcpc(-1);
 #ifdef RTCONFIG_USB
 		stop_usbled();
-#endif
 #ifdef RTCONFIG_USB_PRINTER
 		stop_lpd();
 		stop_u2ec();
+#endif
 #endif
 		platform_start_ate_mode();
 #ifdef RTCONFIG_QCA_PLC_UTILS
@@ -5105,6 +5156,10 @@ again:
 			// including switch setting
 			// used for system mode change and vlan setting change
 			sleep(2); // wait for all httpd event done
+#if defined(RTCONFIG_USB) && defined(RTCONFIG_USB_PRINTER)
+			stop_lpd();
+			stop_u2ec();
+#endif
 			stop_networkmap();
 			stop_httpd();
 			stop_telnetd();
@@ -5149,7 +5204,10 @@ again:
 			stop_dsl();
 #endif
 			stop_vlan();
-
+#if defined(RTCONFIG_USB) && defined(RTCONFIG_USB_PRINTER)
+			stop_lpd();
+			stop_u2ec();
+#endif
 
 			// TODO free memory here
 		}
@@ -5208,6 +5266,9 @@ again:
 			start_sshd();
 #endif
 			start_networkmap(0);
+#if defined(RTCONFIG_USB) && defined(RTCONFIG_USB_PRINTER)
+			start_usblpsrv();
+#endif
 			start_wl();
 			lanaccess_wl();
 #ifdef RTCONFIG_BCMWL6
@@ -5220,7 +5281,8 @@ again:
 	else if (strcmp(script, "net") == 0) {
 		if(action & RC_SERVICE_STOP) {
 			sleep(2); // wait for all httpd event done
-#ifdef RTCONFIG_USB_PRINTER
+#if defined(RTCONFIG_USB) && defined(RTCONFIG_USB_PRINTER)
+			stop_lpd();
 			stop_u2ec();
 #endif
 			stop_networkmap();
@@ -5319,8 +5381,8 @@ again:
 			start_sshd();
 #endif
 			start_networkmap(0);
-#ifdef RTCONFIG_USB_PRINTER
-			start_u2ec();
+#if defined(RTCONFIG_USB) && defined(RTCONFIG_USB_PRINTER)
+			start_usblpsrv();
 #endif
 			start_wl();
 			lanaccess_wl();
@@ -5332,20 +5394,23 @@ again:
 		}
 	}
 	else if (strcmp(script, "net_and_phy") == 0) {
+	script_net_and_phy:
 		if(action & RC_SERVICE_STOP) {
 			sleep(2); // wait for all httpd event done
 
+#ifdef RTCONFIG_QCA_PLC_UTILS
+			stop_plchost();
+#endif
 #ifdef RTCONFIG_MEDIA_SERVER
 			force_stop_dms();
 			stop_mt_daapd();
 #endif
-
 #if defined(RTCONFIG_SAMBASRV) && defined(RTCONFIG_FTP)
 			stop_ftpd();
 			stop_samba();
 #endif
-
-#ifdef RTCONFIG_USB_PRINTER
+#if defined(RTCONFIG_USB) && defined(RTCONFIG_USB_PRINTER)
+			stop_lpd();
 			stop_u2ec();
 #endif
 			stop_networkmap();
@@ -5457,10 +5522,9 @@ again:
 			start_sshd();
 #endif
 			start_networkmap(0);
-#ifdef RTCONFIG_USB_PRINTER
-			start_u2ec();
+#if defined(RTCONFIG_USB) && defined(RTCONFIG_USB_PRINTER)
+			start_usblpsrv();
 #endif
-
 #if defined(RTCONFIG_SAMBASRV) && defined(RTCONFIG_FTP)
 			setup_passwd();
 			start_samba();
@@ -5477,7 +5541,62 @@ again:
 			start_dms();
 			start_mt_daapd();
 #endif
+#ifdef RTCONFIG_QCA_PLC_UTILS
+			start_plchost();
+#endif
 		}
+	}
+	else if (!strcmp(script, "subnet")) {
+		char tmp[100], prefix[sizeof("wanXXXXXXXXXX_")];
+		/* no multilan support so far *//*
+		char prefix_lan[sizeof("lanXXXXXXXXXX_")]; */
+		char *lan_ipaddr, *lan_netmask;
+		char *wan_ipaddr, *wan_netmask;
+		struct in_addr addr;
+		in_addr_t new_addr;
+		int unit;
+
+		unit = get_primaryif_dualwan_unit();
+		if (unit < 0)
+			goto skip;
+
+		/* no multilan support so far *//*
+		snprintf(prefix_lan, sizeof(prefix_lan), "lan_");
+		lan_ipaddr = nvram_safe_get(strcat_r(prefix_lan, "ipaddr", tmp));
+		lan_netmask = nvram_safe_get(strcat_r(prefix_lan, "netmask", tmp)); */
+		lan_ipaddr = nvram_safe_get("lan_ipaddr");
+		lan_netmask = nvram_safe_get("lan_netmask");
+
+		if (!dualwan_unit__usbif(unit)) {
+			snprintf(prefix, sizeof(prefix), "wan%d_", unit);
+			wan_ipaddr = nvram_safe_get(strcat_r(prefix, "ipaddr", tmp));
+			wan_netmask = nvram_safe_get(strcat_r(prefix, "netmask", tmp));
+		} else {
+			/* force conflict per original design */
+			wan_ipaddr = lan_ipaddr;
+			wan_netmask = lan_netmask;
+		}
+
+		if (!inet_deconflict(lan_ipaddr, lan_netmask, wan_ipaddr, wan_netmask, &addr))
+			goto skip;
+
+		/* no multilan support so far *//*
+		nvram_set(strcat_r(prefix_lan, "ipaddr", tmp), inet_ntoa(addr));
+		nvram_set(strcat_r(prefix_lan, "ipaddr_rt", tmp), inet_ntoa(addr)); */ // Sync to lan_ipaddr_rt, added by jerry5.
+		nvram_set("lan_ipaddr", inet_ntoa(addr));
+		nvram_set("lan_ipaddr_rt", inet_ntoa(addr));
+
+		new_addr = ntohl(addr.s_addr);
+		addr.s_addr = htonl(new_addr + 1);
+		nvram_set("dhcp_start", inet_ntoa(addr));
+		addr.s_addr = htonl((new_addr | ~inet_network(lan_netmask)) & 0xfffffffe);
+		nvram_set("dhcp_end", inet_ntoa(addr));
+		nvram_commit();
+		nvram_set("freeze_duck", "15");
+
+		/* direct restart_net_and_phy call */
+		action |= RC_SERVICE_STOP | RC_SERVICE_START;
+		goto script_net_and_phy;
 	}
 #ifdef RTCONFIG_DUALWAN
 	else if(!strcmp(script, "multipath")){
@@ -5578,8 +5697,8 @@ _dprintf("multipath(%s): unit_now: (%d, %d, %s), unit_next: (%d, %d, %s).\n", mo
 
 			kill_pidfile_s("/var/run/wanduck.pid", SIGUSR1);
 #endif
-
-#ifdef RTCONFIG_USB_PRINTER
+#if defined(RTCONFIG_USB) && defined(RTCONFIG_USB_PRINTER)
+			stop_lpd();
 			stop_u2ec();
 #endif
 			stop_networkmap();
@@ -5595,8 +5714,8 @@ _dprintf("multipath(%s): unit_now: (%d, %d, %s), unit_next: (%d, %d, %s).\n", mo
 #endif
 
 			start_networkmap(0);
-#ifdef RTCONFIG_USB_PRINTER
-			start_u2ec();
+#if defined(RTCONFIG_USB) && defined(RTCONFIG_USB_PRINTER)
+			start_usblpsrv();
 #endif
 			start_ecoguard(); //for app eco mode
 		}
@@ -5701,13 +5820,13 @@ check_ddr_done:
 			if(action & RC_SERVICE_STOP)
 			{
 				stop_wan_if(atoi(cmd[1]));
-#if defined(RTCONFIG_IPV6) && defined(RTCONFIG_DUALWAN)
+#ifdef RTCONFIG_IPV6
 				stop_lan_ipv6();
 #endif
 			}
 			if(action & RC_SERVICE_START)
 			{
-#if defined(RTCONFIG_IPV6) && defined(RTCONFIG_DUALWAN)
+#ifdef RTCONFIG_IPV6
 				start_lan_ipv6();
 #endif
 #ifdef DSL_AC68U	//Andy Chiu, 2015/09/15.
@@ -5740,7 +5859,8 @@ check_ddr_done:
 	}
 	else if (strcmp(script, "dsl_wireless") == 0) {
 		if(action&RC_SERVICE_STOP) {
-#ifdef RTCONFIG_USB_PRINTER
+#if defined(RTCONFIG_USB) && defined(RTCONFIG_USB_PRINTER)
+			stop_lpd();
 			stop_u2ec();
 #endif
 			stop_networkmap();
@@ -5755,8 +5875,8 @@ check_ddr_done:
 		}
 		if(action & RC_SERVICE_START) {
 			start_networkmap(0);
-#ifdef RTCONFIG_USB_PRINTER
-			start_u2ec();
+#if defined(RTCONFIG_USB) && defined(RTCONFIG_USB_PRINTER)
+			start_usblpsrv();
 #endif
 		}
 	}
@@ -5974,8 +6094,7 @@ check_ddr_done:
 		killall("wtfslhd", SIGHUP);
 	}
 #endif
-//#endif
-#ifdef RTCONFIG_USB_PRINTER
+#if defined(RTCONFIG_USB) && defined(RTCONFIG_USB_PRINTER)
 	else if (strcmp(script, "lpd") == 0)
 	{
 		if(action & RC_SERVICE_STOP) stop_lpd();
@@ -6026,21 +6145,21 @@ check_ddr_done:
 	{
 		if(action & RC_SERVICE_START) {
 			if(strcmp(script, "apps_update")==0)
-				strcpy(nvtmp, "app_update.sh");
+				strcpy(nvtmp, "/usr/sbin/app_update.sh");
 			else if(strcmp(script, "apps_stop")==0)
-				strcpy(nvtmp, "app_stop.sh");
+				strcpy(nvtmp, "/usr/sbin/app_stop.sh");
 			else if(strcmp(script, "apps_upgrade")==0)
-				strcpy(nvtmp, "app_upgrade.sh");
+				strcpy(nvtmp, "/usr/sbin/app_upgrade.sh");
 			else if(strcmp(script, "apps_install")==0)
-				strcpy(nvtmp, "app_install.sh");
+				strcpy(nvtmp, "/usr/sbin/app_install.sh");
 			else if(strcmp(script, "apps_remove")==0)
-				strcpy(nvtmp, "app_remove.sh");
+				strcpy(nvtmp, "/usr/sbin/app_remove.sh");
 			else if(strcmp(script, "apps_enable")==0)
-				strcpy(nvtmp, "app_set_enabled.sh");
+				strcpy(nvtmp, "/usr/sbin/app_set_enabled.sh");
 			else if(strcmp(script, "apps_switch")==0)
-				strcpy(nvtmp, "app_switch.sh");
+				strcpy(nvtmp, "/usr/sbin/app_switch.sh");
 			else if(strcmp(script, "apps_cancel")==0)
-				strcpy(nvtmp, "app_cancel.sh");
+				strcpy(nvtmp, "/usr/sbin/app_cancel.sh");
 			else strcpy(nvtmp, "");
 
 			if(strlen(nvtmp) > 0) {
@@ -6064,14 +6183,14 @@ check_ddr_done:
 	}
 #ifdef RTCONFIG_USB_MODEM
 	else if(!strncmp(script, "simauth", 7)){
-		char *at_cmd[] = {"modem_status.sh", "simauth", NULL};
+		char *at_cmd[] = {"/usr/sbin/modem_status.sh", "simauth", NULL};
 
 		_eval(at_cmd, NULL, 0, NULL);
 	}
 	else if(!strncmp(script, "simpin", 6)){
 		char pincode[8];
-		char *at_cmd[] = {"modem_status.sh", "simpin", pincode, NULL};
-		char *at_cmd2[] = {"modem_status.sh", "simauth", NULL};
+		char *at_cmd[] = {"/usr/sbin/modem_status.sh", "simpin", pincode, NULL};
+		char *at_cmd2[] = {"/usr/sbin/modem_status.sh", "simauth", NULL};
 
 		if(nvram_get_int("usb_modem_act_sim") == 2){
 			snprintf(pincode, 8, "%s", cmd[1]);
@@ -6082,8 +6201,8 @@ check_ddr_done:
 	}
 	else if(!strncmp(script, "simpuk", 6)){
 		char pukcode[10], pincode[8];
-		char *at_cmd[] = {"modem_status.sh", "simpuk", pukcode, pincode, NULL};
-		char *at_cmd2[] = {"modem_status.sh", "simauth", NULL};
+		char *at_cmd[] = {"/usr/sbin/modem_status.sh", "simpuk", pukcode, pincode, NULL};
+		char *at_cmd2[] = {"/usr/sbin/modem_status.sh", "simauth", NULL};
 
 		if(nvram_get_int("usb_modem_act_sim") == 3){
 			snprintf(pukcode, 10, "%s", cmd[1]);
@@ -6095,8 +6214,8 @@ check_ddr_done:
 	}
 	else if(!strncmp(script, "lockpin", 7)){
 		char lock[4], pincode[8];
-		char *at_cmd[] = {"modem_status.sh", "lockpin", lock, pincode, NULL};
-		char *at_cmd2[] = {"modem_status.sh", "simauth", NULL};
+		char *at_cmd[] = {"/usr/sbin/modem_status.sh", "lockpin", lock, pincode, NULL};
+		char *at_cmd2[] = {"/usr/sbin/modem_status.sh", "simauth", NULL};
 
 		if(nvram_get_int("usb_modem_act_sim") == 1){
 			snprintf(pincode, 8, "%s", cmd[1]);
@@ -6115,8 +6234,8 @@ check_ddr_done:
 	}
 	else if(!strncmp(script, "pwdpin", 6)){
 		char pincode[8], pincode_new[8];
-		char *at_cmd[] = {"modem_status.sh", "pwdpin", pincode, pincode_new, NULL};
-		char *at_cmd2[] = {"modem_status.sh", "simauth", NULL};
+		char *at_cmd[] = {"/usr/sbin/modem_status.sh", "pwdpin", pincode, pincode_new, NULL};
+		char *at_cmd2[] = {"/usr/sbin/modem_status.sh", "simauth", NULL};
 
 		if(nvram_get_int("usb_modem_act_sim") == 1){
 			snprintf(pincode, 8, "%s", cmd[1]);
@@ -6127,7 +6246,7 @@ check_ddr_done:
 		}
 	}
 	else if(!strncmp(script, "modemscan", 9)){
-		char *at_cmd[] = {"modem_status.sh", "scan", NULL};
+		char *at_cmd[] = {"/usr/sbin/modem_status.sh", "scan", NULL};
 		int usb_unit;
 #ifdef RTCONFIG_DUALWAN
 		char word[256], *next;
@@ -6155,7 +6274,7 @@ check_ddr_done:
 	}
 	else if(!strncmp(script, "modemsta", 8)){
 		char isp[32];
-		char *at_cmd[] = {"modem_status.sh", "station", isp, NULL};
+		char *at_cmd[] = {"/usr/sbin/modem_status.sh", "station", isp, NULL};
 
 		snprintf(isp, 32, "%s", nvram_safe_get("modem_roaming_isp"));
 
@@ -6164,7 +6283,7 @@ check_ddr_done:
 	}
 	else if(!strncmp(script, "sendSMS", 7)){
 		char phone[32], message[PATH_MAX];
-		char *at_cmd[] = {"modem_status.sh", "send_sms", phone, message, NULL};
+		char *at_cmd[] = {"/usr/sbin/modem_status.sh", "send_sms", phone, message, NULL};
 
 		snprintf(phone, 32, "%s", nvram_safe_get("modem_sms_phone"));
 		if(!strcmp(cmd[1], "alert"))
@@ -6180,16 +6299,206 @@ check_ddr_done:
 		start_lteled();
 #endif
 	}
+#ifdef RTCONFIG_USB_SMS_MODEM
+	else if(!strncmp(script, "savesms", 7)){
+		// cmd[1]: Destination number, cmd[2]: the SMS file
+		char ttynode[32], smsc[32];
+		char buf[PATH_MAX];
+		int sms_index;
+		int ret;
+
+		printf("~~~~~~~~~~ Saving the SMS: %s, %s. !!! ~~~~~~~~~~\n", cmd[1], cmd[2]);
+		snprintf(ttynode, 32, "%s", nvram_safe_get("usb_modem_act_int"));
+		snprintf(smsc, 32, "%s", nvram_safe_get("usb_modem_act_smsc"));
+
+		if((sms_index = saveSMSPDUtoSIM(ttynode, smsc, cmd[1], cmd[2], buf, PATH_MAX)) < 0)
+			printf("%s: SMS-SUBMIT: Failed to saveSMS.\n", script);
+		else if((ret = getSMSPDUbyIndex(ttynode, sms_index, NULL, 0)) < 0)
+			printf("%s: SMS-SUBMIT: Failed to getSMS.\n", script);
+		else{
+			printf("%s: index=%d.\n", script, sms_index);
+			printf("%s: type=%d.\n", script, ret);
+			printf("%s: SMS=%s.\n", script, buf);
+		}
+	}
+	else if(!strncmp(script, "sendsmsbyindex", 14)){
+		// cmd[1]: SMS index.
+		char ttynode[32];
+		int sms_index;
+#ifdef SAVESMS
+		char sms_file[PATH_MAX], sms_file2[PATH_MAX];
+#endif
+		int ret;
+
+		printf("~~~~~~~~~~ Sending the %sth SMS. !!! ~~~~~~~~~~\n", cmd[1]);
+		snprintf(ttynode, 32, "%s", nvram_safe_get("usb_modem_act_int"));
+		sms_index = strtod(cmd[1], NULL);
+
+		if((ret = sendSMSPDUfromSIM(ttynode, sms_index)) < 0)
+			printf("%s: SMS-SUBMIT: Failed to send the index(%d) SMS.\n", cmd[0], sms_index);
+		else{
+			printf("%s: done.\n", script);
+
+#ifdef SAVESMS
+			if(getSMSFileName(2, sms_index, sms_file, PATH_MAX) > 0 && getSMSFileName(3, sms_index, sms_file2, PATH_MAX) > 0)
+				rename(sms_file, sms_file2);
+#endif
+		}
+	}
+	else if(!strncmp(script, "sendsmsnow", 10)){
+		// cmd[1]: Destination number, cmd[2]: the SMS file
+		char ttynode[32], smsc[32];
+		char buf[PATH_MAX];
+		int sms_index, sms_type;
+#ifdef SAVESMS
+		char sms_file[PATH_MAX], sms_file2[PATH_MAX];
+#endif
+		int ret;
+
+		printf("~~~~~~~~~~ Sending the SMS: %s, %s. !!! ~~~~~~~~~~\n", cmd[1], cmd[2]);
+		snprintf(ttynode, 32, "%s", nvram_safe_get("usb_modem_act_int"));
+		snprintf(smsc, 32, "%s", nvram_safe_get("usb_modem_act_smsc"));
+
+		if((sms_index = saveSMSPDUtoSIM(ttynode, smsc, cmd[1], cmd[2], buf, PATH_MAX)) < 0)
+			printf("%s: SMS-SUBMIT: Failed to saveSMS.\n", script);
+		else if((sms_type = getSMSPDUbyIndex(ttynode, sms_index, NULL, 0)) < 0)
+			printf("%s: SMS-SUBMIT: Failed to getSMS.\n", script);
+		else if((ret = sendSMSPDUfromSIM(ttynode, sms_index)) < 0){
+			printf("%s: SMS-SUBMIT: Failed to sendSMS.\n", script);
+		}
+		else{
+			printf("%s: SMS-SUBMIT(%d)=%s.\n", script, ret, buf);
+
+#ifdef SAVESMS
+			if(getSMSFileName(2, sms_index, sms_file, PATH_MAX) > 0 && getSMSFileName(3, sms_index, sms_file2, PATH_MAX) > 0)
+				rename(sms_file, sms_file2);
+#endif
+		}
+	}
+	else if(!strncmp(script, "delsms", 6)){
+		// cmd[1]: SMS index.
+		char ttynode[32];
+		int sms_index, sms_type;
+#ifdef SAVESMS
+		char sms_file[PATH_MAX];
+#endif
+		int ret;
+
+		printf("~~~~~~~~~~ Deleting the %sth SMS:. !!! ~~~~~~~~~~\n", cmd[1]);
+		snprintf(ttynode, 32, "%s", nvram_safe_get("usb_modem_act_int"));
+		sms_index = strtod(cmd[1], NULL);
+
+		if((sms_type = getSMSPDUbyIndex(ttynode, sms_index, NULL, 0)) < 0)
+			printf("%s: Failed to get the type of index(%d)'s SMS.\n", script, sms_index);
+		else if((ret = delSMSPDUbyIndex(ttynode, sms_index)) < 0)
+			printf("%s: Failed to delSMS.\n", script);
+#ifdef SAVESMS
+		else if((ret = getSMSFileName(sms_type, sms_index, sms_file, PATH_MAX)) < 0)
+			printf("%s: Failed to getSMSFile.\n", script);
+		else{
+			unlink(sms_file);
+			if(sms_type == 0){
+				if(getSMSFileName(1, sms_index, sms_file, PATH_MAX) > 0)
+					unlink(sms_file);
+			}
+			else if(sms_type == 1){
+				if(getSMSFileName(0, sms_index, sms_file, PATH_MAX) > 0)
+					unlink(sms_file);
+			}
+		}
+#endif
+	}
+	else if(!strncmp(script, "modsmsdraft", 11)){
+		// cmd[1]: SMS index, cmd[2]: Destination number, cmd[3]: the SMS file
+		char ttynode[32], smsc[32];
+		char buf[PATH_MAX];
+		int sms_index, sms_type;
+#ifdef SAVESMS
+		char sms_file[PATH_MAX];
+#endif
+		int ret;
+
+		printf("~~~~~~~~~~ Modifying the SMS: %s, %s, %s. !!! ~~~~~~~~~~\n", cmd[1], cmd[2], cmd[3]);
+		sms_index = strtod(cmd[1], NULL);
+		snprintf(ttynode, 32, "%s", nvram_safe_get("usb_modem_act_int"));
+		snprintf(smsc, 32, "%s", nvram_safe_get("usb_modem_act_smsc"));
+
+		if((sms_type = getSMSPDUbyIndex(ttynode, sms_index, NULL, 0)) < 0)
+			printf("%s: Failed to get the type of index(%d)'s SMS.\n", script, sms_index);
+		else if((ret = delSMSPDUbyIndex(ttynode, sms_index)) < 0)
+			printf("%s: Failed to delSMS.\n", script);
+#ifdef SAVESMS
+		else if((ret = getSMSFileName(sms_type, sms_index, sms_file, PATH_MAX)) < 0)
+			printf("%s: Failed to getSMSFile.\n", script);
+		else{
+			unlink(sms_file);
+			if(sms_type == 0){
+				if(getSMSFileName(1, sms_index, sms_file, PATH_MAX) > 0)
+					unlink(sms_file);
+			}
+			else if(sms_type == 1){
+				if(getSMSFileName(0, sms_index, sms_file, PATH_MAX) > 0)
+					unlink(sms_file);
+			}
+		}
+#endif
+
+		if((sms_index = saveSMSPDUtoSIM(ttynode, smsc, cmd[2], cmd[3], buf, PATH_MAX)) < 0)
+			printf("%s: SMS-SUBMIT: Failed to saveSMS.\n", script);
+		else if((ret = getSMSPDUbyIndex(ttynode, sms_index, NULL, 0)) < 0)
+			printf("%s: SMS-SUBMIT: Failed to getSMS.\n", script);
+		else{
+			printf("%s: index=%d.\n", script, sms_index);
+			printf("%s: type=%d.\n", script, ret);
+			printf("%s: SMS=%s.\n", script, buf);
+		}
+	}
+	else if(!strncmp(script, "savephonenum", 12)){
+		// cmd[1]: Phone number, cmd[2]: Phone name
+		char ttynode[32];
+		int phone_index;
+
+		printf("~~~~~~~~~~ Saving the Phone: %s, %s. !!! ~~~~~~~~~~\n", cmd[1], cmd[2]);
+		snprintf(ttynode, 32, "%s", nvram_safe_get("usb_modem_act_int"));
+
+		if((phone_index = savePhonenum(ttynode, cmd[1], cmd[2])) < 0)
+			printf("%s: Failed to savePhonenum.\n", script);
+	}
+	else if(!strncmp(script, "delphonenum", 11)){
+		// cmd[1]: Phone index
+		char ttynode[32];
+		int phone_index;
+
+		printf("~~~~~~~~~~ Deleting the Phone: %s. !!! ~~~~~~~~~~\n", cmd[1]);
+		snprintf(ttynode, 32, "%s", nvram_safe_get("usb_modem_act_int"));
+		phone_index = strtod(cmd[1], NULL);
+
+		if((phone_index = delPhonenum(ttynode, phone_index)) < 0)
+			printf("%s: Failed to delPhonenum.\n", script);
+	}
+	else if(!strncmp(script, "modphonenum", 11)){
+		// cmd[1]: Phone index, cmd[2]: Phone number, cmd[3]: Phone name
+		char ttynode[32];
+		int phone_index;
+
+		printf("~~~~~~~~~~ Modifying the Phone: %s, %s, %s. !!! ~~~~~~~~~~\n", cmd[1], cmd[2], cmd[3]);
+		snprintf(ttynode, 32, "%s", nvram_safe_get("usb_modem_act_int"));
+		phone_index = strtod(cmd[1], NULL);
+
+		if((phone_index = modPhonenum(ttynode, phone_index, cmd[2], cmd[3])) < 0)
+			printf("%s: Failed to modPhonenum.\n", script);
+	}
+#endif // RTCONFIG_USB_SMS_MODEM
 #if defined(RTCONFIG_JFFS2) || defined(RTCONFIG_BRCM_NAND_JFFS2) || defined(RTCONFIG_UBIFS)
 	else if(!strncmp(script, "datacount", 9)){
-		char *at_cmd[] = {"modem_status.sh", "bytes", NULL};
+		char *at_cmd[] = {"/usr/sbin/modem_status.sh", "bytes", NULL};
 
 		_eval(at_cmd, ">/tmp/modem_action.ret", 0, NULL);
 	}
 	else if(!strncmp(script, "resetcount", 10)){
 		time_t now;
 		char timebuf[32];
-		char *at_cmd[] = {"modem_status.sh", "bytes-", NULL};
+		char *at_cmd[] = {"/usr/sbin/modem_status.sh", "bytes-", NULL};
 
 		time(&now);
 		snprintf(timebuf, 32, "%d", (int)now);
@@ -6199,14 +6508,14 @@ check_ddr_done:
 	}
 	else if(!strncmp(script, "sim_del", 7)){
 		char sim_order[32];
-		char *at_cmd[] = {"modem_status.sh", "imsi_del", sim_order, NULL};
+		char *at_cmd[] = {"/usr/sbin/modem_status.sh", "imsi_del", sim_order, NULL};
 
 		snprintf(sim_order, 32, "%s", cmd[1]);
 
 		_eval(at_cmd, ">/tmp/modem_action.ret", 0, NULL);
 	}
 	else if(!strncmp(script, "set_dataset", 11)){
-		char *at_cmd[] = {"modem_status.sh", "set_dataset", NULL};
+		char *at_cmd[] = {"/usr/sbin/modem_status.sh", "set_dataset", NULL};
 
 		_eval(at_cmd, ">/tmp/modem_action.ret", 0, NULL);
 	}
@@ -6215,8 +6524,8 @@ check_ddr_done:
 	else if(!strncmp(script, "simdetect", 9)){
 		// Need to reboot after this.
 		char buf[4];
-		char *at_cmd1[] = {"modem_status.sh", "simdetect", NULL};
-		char *at_cmd2[] = {"modem_status.sh", "simdetect", buf, NULL};
+		char *at_cmd1[] = {"/usr/sbin/modem_status.sh", "simdetect", NULL};
+		char *at_cmd2[] = {"/usr/sbin/modem_status.sh", "simdetect", buf, NULL};
 
 		if(cmd[1]){
 			snprintf(buf, 4, "%s", cmd[1]);
@@ -6226,13 +6535,13 @@ check_ddr_done:
 			_eval(at_cmd1, ">/tmp/modem_action.ret", 0, NULL);
 	}
 	else if(!strncmp(script, "getband", 7)){
-		char *at_cmd[] = {"modem_status.sh", "band", NULL};
+		char *at_cmd[] = {"/usr/sbin/modem_status.sh", "band", NULL};
 
 		_eval(at_cmd, ">/tmp/modem_action.ret", 0, NULL);
 	}
 	else if(!strncmp(script, "setband", 7)){
 		char buf[8];
-		char *at_cmd[] = {"modem_status.sh", "setband", buf, NULL};
+		char *at_cmd[] = {"/usr/sbin/modem_status.sh", "setband", buf, NULL};
 
 		snprintf(buf, 8, "%s", nvram_safe_get("modem_lte_band"));
 		if(strlen(buf) <= 0)
@@ -6302,13 +6611,11 @@ check_ddr_done:
 	}
 	else if (strcmp(script, "dhcp6c") == 0) {
 		if (action & RC_SERVICE_STOP) {
-#ifdef RTCONFIG_6RELAYD
-			stop_6relayd();
-#endif
 			stop_dhcp6c();
 		}
-		if (action & RC_SERVICE_START)
+		if (action & RC_SERVICE_START) {
 			start_dhcp6c();
+		}
 	}
 	else if (strcmp(script, "wan6") == 0) {
 		if (action & RC_SERVICE_STOP) {
@@ -6606,8 +6913,8 @@ check_ddr_done:
 			stop_ftpd();
 			stop_samba();
 #endif
-
-#ifdef RTCONFIG_USB_PRINTER
+#if defined(RTCONFIG_USB) && defined(RTCONFIG_USB_PRINTER)
+			stop_lpd();
 			stop_u2ec();
 #endif
 			stop_networkmap();
@@ -6630,10 +6937,9 @@ check_ddr_done:
 			start_sshd();
 #endif
 			start_networkmap(0);
-#ifdef RTCONFIG_USB_PRINTER
-			start_u2ec();
+#if defined(RTCONFIG_USB) && defined(RTCONFIG_USB_PRINTER)
+			start_usblpsrv();
 #endif
-
 #if defined(RTCONFIG_SAMBASRV) && defined(RTCONFIG_FTP)
 			setup_passwd();
 			start_samba();
@@ -7075,6 +7381,7 @@ _dprintf("test 2. turn off the USB power during %d seconds.\n", reset_seconds[re
 					script);
 	}
 
+skip:
 	if(nvptr){
 _dprintf("goto again(%d)...\n", getpid());
 		goto again;
@@ -7246,7 +7553,7 @@ int run_app_script(const char *pkg_name, const char *pkg_action)
 	else
 		strcpy(app_name, pkg_name);
 
-	doSystem("app_init_run.sh %s %s", app_name, pkg_action);
+	doSystem("/usr/sbin/app_init_run.sh %s %s", app_name, pkg_action);
 
 	sleep(5);
 	start_upnp();
@@ -7458,7 +7765,7 @@ firmware_check_main(int argc, char *argv[])
 #endif
 #endif
 
-	if(check_imagefile(argv[1])) {
+	if(!check_imagefile(argv[1])) {
 		_dprintf("FW OK\n");
 		nvram_set("firmware_check", "1");
 	}

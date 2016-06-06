@@ -105,16 +105,22 @@ static int rctest_main(int argc, char *argv[])
 			if(on) start_watchdog();
 			else stop_watchdog();
 		}
-#if ! (defined(RTCONFIG_QCA) || defined(RTCONFIG_RALINK))
+#ifdef RTAC87U
 		else if (strcmp(argv[1], "watchdog02") == 0) {
 			if(on) start_watchdog02();
 			else stop_watchdog02();
 		}
-#endif  /* ! (RTCONFIG_QCA || RTCONFIG_RALINK) */
+#endif
 		else if (strcmp(argv[1], "sw_devled") == 0) {
 			if(on) start_sw_devled();
 			else stop_sw_devled();
 		}
+#if defined(RTAC1200G) || defined(RTAC1200GP)
+		else if (strcmp(argv[1], "wdg_monitor") == 0) {
+			if(on) start_wdg_monitor();
+			else stop_wdg_monitor();
+		}
+#endif
 #ifdef RTCONFIG_FANCTRL
 		else if (strcmp(argv[1], "phy_tempsense") == 0) {
 			if(on) start_phy_tempsense();
@@ -316,6 +322,9 @@ static const applets_t applets[] = {
 	{ "watchdog02",			watchdog02_main			},
 #endif  /* ! (RTCONFIG_QCA || RTCONFIG_RALINK) */
 	{ "sw_devled",			sw_devled_main			},
+#if defined(RTAC1200G) || defined(RTAC1200GP)
+	{ "wdg_monitor",		wdg_monitor_main		},
+#endif
 #ifdef RTCONFIG_FANCTRL
 	{ "phy_tempsense",		phy_tempsense_main		},
 #endif
@@ -695,6 +704,17 @@ int main(int argc, char **argv)
 			printf("ATE_ERROR\n");
 		return 0;
 	}
+#if defined(RTCONFIG_DSL)
+	else if(!strcmp(base, "asustest")) {
+		if( argc == 2 || argc == 3) {
+			asustest_command(argv[1], argv[2]);
+		}
+		else
+			printf("asustest:parameter error\n");
+		return 0;
+	}
+#endif
+
 #if defined(RTCONFIG_RALINK) || defined(RTCONFIG_QCA)
 	else if (!strcmp(base, "FWRITE")) {
 		if (argc == 3)

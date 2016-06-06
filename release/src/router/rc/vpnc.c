@@ -47,49 +47,12 @@
 
 int vpnc_unit = 5;
 
-static int
-handle_special_char_for_vpnclient(char *buf, size_t buf_size, char *src)
-{
-	const char special_chars[] = "'\\";
-	char *p, *q;
-	size_t len;
-
-	if (!buf || !src || buf_size <= 1)
-		return -1;
-
-	for (p = src, q = buf, len = buf_size; *p != '\0' && len > 1; ++p, --len) {
-		if (strchr(special_chars, *p))
-			*q++ = '\\';
-
-		*q++ = *p;
-	}
-
-	*q++ = '\0';
-
-	return 0;
-}
-
 int vpnc_pppstatus(void)
 {
-	FILE *fp;
-	char sline[128], buf[128], *p;
+	char statusfile[sizeof("/var/run/ppp-vpnXXXXXXXXXX.status")];
 
-	if ((fp=fopen("/tmp/vpncstatus.log", "r")) && fgets(sline, sizeof(sline), fp))
-	{
-		p = strstr(sline, ",");
-		strcpy(buf, p+1);
-	}
-	else
-	{
-		strcpy(buf, "unknown reason");
-	}
-
-	if(fp) fclose(fp);
-
-	if(strstr(buf, "No response from ISP.")) return WAN_STOPPED_REASON_PPP_NO_ACTIVITY;
-	else if(strstr(buf, "Failed to authenticate ourselves to peer")) return WAN_STOPPED_REASON_PPP_AUTH_FAIL;
-	else if(strstr(buf, "Terminating connection due to lack of activity")) return WAN_STOPPED_REASON_PPP_LACK_ACTIVITY;
-	else return WAN_STOPPED_REASON_NONE;
+	snprintf(statusfile, sizeof(statusfile), "/var/run/ppp-vpn%d.status", vpnc_unit);
+	return _pppstatus(statusfile);
 }
 
 int
@@ -143,10 +106,10 @@ start_vpnc(void)
 	/* do not authenticate peer and do not use eap */
 	fprintf(fp, "noauth\n");
 	fprintf(fp, "refuse-eap\n");
-	handle_special_char_for_vpnclient(buf, sizeof(buf), nvram_safe_get(strcat_r(prefix, "pppoe_username", tmp)));
-	fprintf(fp, "user '%s'\n", buf);
-	handle_special_char_for_vpnclient(buf, sizeof(buf), nvram_safe_get(strcat_r(prefix, "pppoe_passwd", tmp)));
-	fprintf(fp, "password '%s'\n", buf);
+	fprintf(fp, "user '%s'\n",
+		ppp_safe_escape(nvram_safe_get(strcat_r(prefix, "pppoe_username", tmp)), buf, sizeof(buf)));
+	fprintf(fp, "password '%s'\n",
+		ppp_safe_escape(nvram_safe_get(strcat_r(prefix, "pppoe_passwd", tmp)), buf, sizeof(buf)));
 
 	if (nvram_match(strcat_r(prefix, "proto", tmp), "pptp")) {
 		fprintf(fp, "plugin pptp.so\n");
@@ -369,8 +332,9 @@ void update_vpnc_state(char *prefix, int state, int reason)
 		// keep ip info if it is stopped from connected
 		nvram_set_int(strcat_r(prefix, "sbstate_t", tmp), reason);
 	}
-	else if(state == WAN_STATE_STOPPING){
-		unlink("/tmp/vpncstatus.log");
+	else if(state == WAN_STATE_STOPPING) {
+		snprintf(tmp, sizeof(tmp), "/var/run/ppp-vpn%d.status", vpnc_unit);
+		unlink(tmp);
 	}
 }
 

@@ -71,6 +71,11 @@
 
 #include <sys/stat.h>
 
+#ifdef RTAC68U
+#include <shared.h>
+#include <bcmnvram.h>
+#endif
+
 #include "config.h"
 
 #ifdef ENABLE_NLS
@@ -318,6 +323,7 @@ check_db(sqlite3 *db, int new_db, pid_t *scanner_pid)
 	int i, rows = 0;
 	int ret;
 	int retry_times;
+	char *ptr, *shift;
 
 	if (!new_db)
 	{
@@ -371,6 +377,13 @@ rescan:
 		sqlite3_close(db);
 
 		retry_times = 0;
+
+		memset(db_path_spec, 0, 256);
+		for (ptr = db_path, shift = db_path_spec; *ptr; ++ptr, ++shift) {
+			if (strchr("()", *ptr))
+				*shift++ = '\\';
+			*shift = *ptr;
+		}
 retry:
 		snprintf(cmd, sizeof(cmd), "rm -rf %s/files.db %s/art_cache", db_path_spec, db_path_spec);
 		if (system(cmd) != 0) {
@@ -1060,6 +1073,12 @@ retry:
 #define PATH_ICON_PNG_LRG	"/rom/dlna/icon_lrg.png"
 #define PATH_ICON_JPEG_SM	"/rom/dlna/icon_sm.jpg"
 #define PATH_ICON_JPEG_LRG	"/rom/dlna/icon_lrg.jpg"
+#ifdef RTAC68U
+#define PATH_ICON_ALT_PNG_SM	"/rom/dlna/icon_alt_sm.png"
+#define PATH_ICON_ALT_PNG_LRG	"/rom/dlna/icon_alt_lrg.png"
+#define PATH_ICON_ALT_JPEG_SM	"/rom/dlna/icon_alt_sm.jpg"
+#define PATH_ICON_ALT_JPEG_LRG	"/rom/dlna/icon_alt_lrg.jpg"
+#endif
 unsigned char buf_png_sm[65536];
 unsigned char buf_png_lrg[65536];
 unsigned char buf_jpeg_sm[65536];
@@ -1079,22 +1098,38 @@ init_icon(const char *iconfile)
 	size_t i, offset;
 	int ret = 0;
 
-	if( strcmp(iconfile, PATH_ICON_PNG_SM) == 0 )
+	if (strcmp(iconfile, PATH_ICON_PNG_SM) == 0
+#ifdef RTAC68U
+		|| strcmp(iconfile, PATH_ICON_ALT_PNG_SM) == 0
+#endif
+	)
 	{
 		buf = buf_png_sm;
 		size = &size_png_sm;
 	}
-	else if( strcmp(iconfile, PATH_ICON_PNG_LRG) == 0 )
+	else if (strcmp(iconfile, PATH_ICON_PNG_LRG) == 0
+#ifdef RTAC68U
+		|| strcmp(iconfile, PATH_ICON_ALT_PNG_LRG) == 0
+#endif
+	)
 	{
 		buf = buf_png_lrg;
 		size = &size_png_lrg;
 	}
-	else if( strcmp(iconfile, PATH_ICON_JPEG_SM) == 0 )
+	else if (strcmp(iconfile, PATH_ICON_JPEG_SM) == 0
+#ifdef RTAC68U
+		|| strcmp(iconfile, PATH_ICON_ALT_JPEG_SM) == 0
+#endif
+	)
 	{
 		buf = buf_jpeg_sm;
 		size = &size_jpeg_sm;
 	}
-	else if( strcmp(iconfile, PATH_ICON_JPEG_LRG) == 0 )
+	else if (strcmp(iconfile, PATH_ICON_JPEG_LRG) == 0
+#ifdef RTAC68U
+		|| strcmp(iconfile, PATH_ICON_ALT_JPEG_LRG) == 0
+#endif
+	)
 	{
 		buf = buf_jpeg_lrg;
 		size = &size_jpeg_lrg;
@@ -1147,7 +1182,7 @@ init_icon(const char *iconfile)
 		/* loop through the file */
 		offset = 0;
 		memset(buf, 0, *size);
-		while ( (i = fread(buf + offset, 1, BUFSIZ, in)) != 0 ) {
+		while ((i = fread(buf + offset, 1, BUFSIZ, in)) != 0) {
 			offset += i;
 		}
 	}
@@ -1158,7 +1193,7 @@ RETURN:
 }
 #endif
 
-#define MIN_MCAST_REFRESH	250
+#define NOTIFY_INTERVAL	3
 
 /* === main === */
 /* process HTTP or SSDP requests */
@@ -1175,7 +1210,6 @@ main(int argc, char **argv)
 	fd_set writeset;
 	struct timeval timeout, timeofday, lastnotifytime = {0, 0};
 	time_t lastupdatetime = 0;
-	time_t lastrenewmcast = 0;
 	int max_fd = -1;
 	int last_changecnt = 0;
 	pid_t scanner_pid = 0;
@@ -1196,10 +1230,21 @@ main(int argc, char **argv)
 		return 1;
 
 #if (!defined(RTN66U) && !defined(RTN56U))
-	init_icon(PATH_ICON_PNG_SM);
-	init_icon(PATH_ICON_PNG_LRG);
-	init_icon(PATH_ICON_JPEG_SM);
-	init_icon(PATH_ICON_JPEG_LRG);
+#ifdef RTAC68U
+	if (!strcmp(get_productid(), "RT-AC66U V2")) {
+		init_icon(PATH_ICON_ALT_PNG_SM);
+		init_icon(PATH_ICON_ALT_PNG_LRG);
+		init_icon(PATH_ICON_ALT_JPEG_SM);
+		init_icon(PATH_ICON_ALT_JPEG_LRG);
+	}
+	else
+#endif
+	{
+		init_icon(PATH_ICON_PNG_SM);
+		init_icon(PATH_ICON_PNG_LRG);
+		init_icon(PATH_ICON_JPEG_SM);
+		init_icon(PATH_ICON_JPEG_LRG);
+	}
 #endif
 
 	DPRINTF(E_WARN, L_GENERAL, "Starting " SERVER_NAME " version " MINIDLNA_VERSION ".\n");
@@ -1267,7 +1312,7 @@ main(int argc, char **argv)
 #if 0
 	lastnotifytime.tv_sec = time(NULL) + runtime_vars.notify_interval;
 #else
-	lastnotifytime.tv_sec = lastrenewmcast = uptime();
+	lastnotifytime.tv_sec = uptime();
 #endif
 
 	/* main loop */
@@ -1288,30 +1333,41 @@ main(int argc, char **argv)
 		timeofday.tv_usec = 0;
 #endif
 		{
-			if ((runtime_vars.notify_interval > MIN_MCAST_REFRESH) &&
-				(uptime() >= (lastrenewmcast + MIN_MCAST_REFRESH)))
-			{
-				reload_ifaces(0);
-				lastrenewmcast = uptime();
-			}
-
 			/* the comparison is not very precise but who cares ? */
+#if 0
 			if (timeofday.tv_sec >= (lastnotifytime.tv_sec + runtime_vars.notify_interval))
+#else
+			if (timeofday.tv_sec >= (lastnotifytime.tv_sec + NOTIFY_INTERVAL))
+#endif
 			{
 				DPRINTF(E_DEBUG, L_SSDP, "Sending SSDP notifies\n");
 				for (i = 0; i < n_lan_addr; i++)
 				{
+#if 0
 					SendSSDPNotifies(lan_addr[i].snotify, lan_addr[i].str,
 						runtime_vars.port, runtime_vars.notify_interval);
+#else
+					SendSSDPNotifies(lan_addr[i].snotify, lan_addr[i].str,
+						runtime_vars.port, NOTIFY_INTERVAL);
+#endif
 				}
 				memcpy(&lastnotifytime, &timeofday, sizeof(struct timeval));
+#if 0
 				timeout.tv_sec = runtime_vars.notify_interval;
+#else
+				timeout.tv_sec = NOTIFY_INTERVAL;
+#endif
 				timeout.tv_usec = 0;
 			}
 			else
 			{
+#if 0
 				timeout.tv_sec = lastnotifytime.tv_sec + runtime_vars.notify_interval
 				                 - timeofday.tv_sec;
+#else
+				timeout.tv_sec = lastnotifytime.tv_sec + NOTIFY_INTERVAL
+						 - timeofday.tv_sec;
+#endif
 				if (timeofday.tv_usec > lastnotifytime.tv_usec)
 				{
 					timeout.tv_usec = 1000000 + lastnotifytime.tv_usec

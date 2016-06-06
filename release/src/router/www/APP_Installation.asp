@@ -15,7 +15,6 @@
 <script type="text/javascript" src="/state.js"></script>
 <script type="text/javascript" src="/popup.js"></script>
 <script type="text/javascript" src="/help.js"></script>
-<script type="text/javascript" src="/disk_functions.js"></script>
 <script type="text/javascript" src="/js/jquery.js"></script>
 <style>
 #Aidisk_png{
@@ -73,14 +72,11 @@
 }
 </style>
 <script>
-
+if(usb_support) addNewScript("/disk_functions.js");
 
 var apps_array = <% apps_info("asus"); %>;
-
 <% apps_state_info(); %>
-
 var apps_download_percent_done = 0;
-
 <% apps_action(); %> //trigger apps_action.
 
 var stoppullstate = 0;
@@ -956,10 +952,10 @@ function go_modem_page(usb_unit_flag){
 								<a id="faq" href="http://www.asus.com/support/FAQ/1009773/" target="_blank" style="text-decoration:underline;font-size:14px;font-weight:bolder;color:#FFF">Download Master FAQ</a>
 							</li>
 							<li style="margin-top:10px;">
-								<a id="faq2" href="http://www.asus.com/support/faq/114002/" target="_blank" style="text-decoration:underline;font-size:14px;font-weight:bolder;color:#FFF">Download Master Tool FAQ</a>
+								<a id="faq2" href="http://www.asus.com/support/FAQ/1016385/" target="_blank" style="text-decoration:underline;font-size:14px;font-weight:bolder;color:#FFF">Download Master Tool FAQ</a>
 							</li>
 							<li style="margin-top:10px;">
-								<a id="DMUtilityLink" href="http://dlcdnet.asus.com/pub/ASUS/wireless/ASUSWRT/DM2_2037.zip" style="text-decoration:underline;font-size:14px;font-weight:bolder;color:#FFF"><#DM_Download_Tool#></a>
+								<a id="DMUtilityLink" href="http://dlcdnet.asus.com/pub/ASUS/wireless/RT-AC5300/UT_Download_Master_2228_Win.zip" style="text-decoration:underline;font-size:14px;font-weight:bolder;color:#FFF"><#DM_Download_Tool#></a>
 							</li>
 						</ul>
 					</td>
