@@ -1215,7 +1215,19 @@ char *get_productid(void)
 
 char *get_productid_fake(void)
 {
+#if defined (EA6900) || defined (R7000) || defined (WS880)
+#ifdef EA6900
+	char *productid = "EA6900";
+#endif
+#ifdef R7000
+	char *productid = "R7000";
+#endif
+#ifdef WS880
+	char *productid = "WS880";
+#endif
+#else
 	char *productid = "RT-AC68U";
+#endif
 	return productid;
 }
 

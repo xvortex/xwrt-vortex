@@ -977,7 +977,7 @@ bcm_robo_attach(si_t *sih, void *h, char *vars, miird_f miird, miiwr_f miiwr)
 //#ifndef	_CFE_
 	const char *et1port, *et1phyaddr;
 	int mdcport = 0, phyaddr = 0;
-#ifndef RTAC68U
+#if !defined (RTAC68U) && !defined (EA6900) && !defined (R7000) && !defined (WS880)
 	uint8 val8;
 	uint16 reg_val;
 #endif
@@ -1253,7 +1253,7 @@ bcm_robo_attach(si_t *sih, void *h, char *vars, miird_f miird, miiwr_f miiwr)
 #endif
 #endif
 
-#ifndef RTAC68U
+#if !defined (RTAC68U) && !defined (EA6900) && !defined (R7000) && !defined (WS880)
 	/* reset p5 reg when needs to link up it in ac88u/ac87u */
 	if (ROBO_IS_BCM5301X(robo->devid) && mdcport == 0 && phyaddr == 30) {
 		val8 = 0xfb;

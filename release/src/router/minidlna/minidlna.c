@@ -71,7 +71,7 @@
 
 #include <sys/stat.h>
 
-#ifdef RTAC68U
+#if defined(RTAC68U) || defined(EA6900) || defined(R7000) || defined(WS880)
 #include <shared.h>
 #include <bcmnvram.h>
 #endif
@@ -1073,7 +1073,7 @@ retry:
 #define PATH_ICON_PNG_LRG	"/rom/dlna/icon_lrg.png"
 #define PATH_ICON_JPEG_SM	"/rom/dlna/icon_sm.jpg"
 #define PATH_ICON_JPEG_LRG	"/rom/dlna/icon_lrg.jpg"
-#ifdef RTAC68U
+#if defined(RTAC68U) || defined(EA6900) || defined(R7000) || defined(WS880)
 #define PATH_ICON_ALT_PNG_SM	"/rom/dlna/icon_alt_sm.png"
 #define PATH_ICON_ALT_PNG_LRG	"/rom/dlna/icon_alt_lrg.png"
 #define PATH_ICON_ALT_JPEG_SM	"/rom/dlna/icon_alt_sm.jpg"
@@ -1099,7 +1099,7 @@ init_icon(const char *iconfile)
 	int ret = 0;
 
 	if (strcmp(iconfile, PATH_ICON_PNG_SM) == 0
-#ifdef RTAC68U
+#if defined(RTAC68U) || defined(EA6900) || defined(R7000) || defined(WS880)
 		|| strcmp(iconfile, PATH_ICON_ALT_PNG_SM) == 0
 #endif
 	)
@@ -1108,7 +1108,7 @@ init_icon(const char *iconfile)
 		size = &size_png_sm;
 	}
 	else if (strcmp(iconfile, PATH_ICON_PNG_LRG) == 0
-#ifdef RTAC68U
+#if defined(RTAC68U) || defined(EA6900) || defined(R7000) || defined(WS880)
 		|| strcmp(iconfile, PATH_ICON_ALT_PNG_LRG) == 0
 #endif
 	)
@@ -1117,7 +1117,7 @@ init_icon(const char *iconfile)
 		size = &size_png_lrg;
 	}
 	else if (strcmp(iconfile, PATH_ICON_JPEG_SM) == 0
-#ifdef RTAC68U
+#if defined(RTAC68U) || defined(EA6900) || defined(R7000) || defined(WS880)
 		|| strcmp(iconfile, PATH_ICON_ALT_JPEG_SM) == 0
 #endif
 	)
@@ -1126,7 +1126,7 @@ init_icon(const char *iconfile)
 		size = &size_jpeg_sm;
 	}
 	else if (strcmp(iconfile, PATH_ICON_JPEG_LRG) == 0
-#ifdef RTAC68U
+#if defined(RTAC68U) || defined(EA6900) || defined(R7000) || defined(WS880)
 		|| strcmp(iconfile, PATH_ICON_ALT_JPEG_LRG) == 0
 #endif
 	)
@@ -1230,7 +1230,7 @@ main(int argc, char **argv)
 		return 1;
 
 #if (!defined(RTN66U) && !defined(RTN56U))
-#ifdef RTAC68U
+#if defined(RTAC68U) || defined(EA6900) || defined(R7000) || defined(WS880)
 	if (!strcmp(get_productid(), "RT-AC66U V2")) {
 		init_icon(PATH_ICON_ALT_PNG_SM);
 		init_icon(PATH_ICON_ALT_PNG_LRG);

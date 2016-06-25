@@ -6439,7 +6439,7 @@ unsigned int convert_vlan_entry(int tag_enable, int portset, char *tag_reg_val)
 	}
 	/* P0  P1 P2 P3 P4 */
 	/* WAN L1 L2 L3 L4 */
-	else if (model == MODEL_RTAC68U || model == MODEL_RTN18U ||
+	else if (model == MODEL_RTAC68U || model == MODEL_EA6900 || model == MODEL_R7000 || model == MODEL_WS880 || model == MODEL_RTN18U ||
 		model == MODEL_RTN66U || model == MODEL_RTAC66U || 
 		model == MODEL_DSLAC68U) {
 		port_shift_bit[0] = 1;
@@ -6638,7 +6638,7 @@ void set_port_based_vlan_config(char *interface)
 				/* P0  P1 P2 P3 P4 P5 */
 				/* WAN L1 L2 L3 L4 CPU */
 				if (model == MODEL_RTN16 || 
-					model == MODEL_RTAC68U || model == MODEL_RTN18U || 
+					model == MODEL_RTAC68U || model == MODEL_EA6900 || model == MODEL_R7000 || model == MODEL_WS880 || model == MODEL_RTN18U || 
 					model == MODEL_RTAC87U || 
 					model == MODEL_RTAC56S || model == MODEL_RTAC56U || 
 					model == MODEL_RTN66U || model == MODEL_RTAC66U || 
@@ -6651,7 +6651,7 @@ void set_port_based_vlan_config(char *interface)
 					int cpu_port = 0;*/
 
 					/* Decide cpu port by model */
-					if (model == MODEL_RTAC68U || model == MODEL_RTN18U || 
+					if (model == MODEL_RTAC68U || model == MODEL_EA6900 || model == MODEL_R7000 || model == MODEL_WS880 || model == MODEL_RTN18U || 
 						model == MODEL_RTAC56S || model == MODEL_RTAC56U || 
 						model == MODEL_DSLAC68U)
 						cpu_port = 5;
