@@ -576,7 +576,7 @@ function validForm(){
 
 	if(userRSSI_support){
 		if(document.form.wl_user_rssi.value != 0){
-			if(!validator.range(document.form.wl_user_rssi, -90, -70)){
+			if(!validator.range(document.form.wl_user_rssi, -90, -50)){
 				document.form.wl_user_rssi.focus();
 				return false;			
 			}
@@ -1532,7 +1532,7 @@ function handle_beamforming(value){
 					
 					<!--MU-MIMO for RT-AC88U, RT-AC3100, RT-AC5300 and RT-AC87U 5 GHz only-->
 					<tr id="wl_MU_MIMO_field" style="display:none">
-						<th><a class="hintstyle" href="javascript:void(0);" onClick="">Multi-User MIMO<sup id="mu_mimo_sup"> *BETA</sup</a></th>
+						<th><a class="hintstyle" href="javascript:void(0);" onClick="">Multi-User MIMO<sup id="mu_mimo_sup"> *BETA</sup></a></th>
 						<td>
 							<div style="display:table-cell;vertical-align:middle">
 								<select name="wl_mumimo" class="input_option" onchange="handle_mimo(this.value)" disabled>

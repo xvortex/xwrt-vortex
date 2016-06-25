@@ -1599,7 +1599,10 @@ void send_page(int wan_unit, int sfd, char *file_dest, char *url){
 	else
 #endif
 
-	strcpy(dut_addr, DUT_DOMAIN_NAME);
+	if ((isFirstUse) || (nvram_get_int("http_dut_redir") == 1))
+		strcpy(dut_addr, DUT_DOMAIN_NAME);
+	else
+		strcpy(dut_addr, nvram_safe_get("lan_ipaddr"));
 
 #ifdef RTCONFIG_HTTPS
 	if (nvram_get_int("http_enable") == 1) {
@@ -2023,9 +2026,9 @@ void record_conn_status(int wan_unit){
 		}
 	}
 	else if(conn_changed_state[wan_unit] == D2C){
-		if(disconn_case_old[wan_unit] == 10)
+		if(disconn_case_old[wan_unit] == -1)
 			return;
-		disconn_case_old[wan_unit] = 10;
+		disconn_case_old[wan_unit] = -1;
 
 		logmessage(log_title, "WAN was restored.");
 	}
