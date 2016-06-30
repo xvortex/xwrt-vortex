@@ -2202,27 +2202,6 @@ int init_nvram(void)
 #if 0
 	conf_swmode_support(model);
 #endif
-#ifdef RTCONFIG_OPENVPN
-	nvram_set("vpn_server1_state", "0");
-	nvram_set("vpn_server2_state", "0");
-	nvram_set("vpn_client1_state", "0");
-	nvram_set("vpn_client2_state", "0");
-	nvram_set("vpn_client3_state", "0");
-	nvram_set("vpn_client4_state", "0");
-	nvram_set("vpn_client5_state", "0");
-	nvram_set("vpn_server1_errno", "0");
-	nvram_set("vpn_server2_errno", "0");
-	nvram_set("vpn_client1_errno", "0");
-	nvram_set("vpn_client2_errno", "0");
-	nvram_set("vpn_client3_errno", "0");
-	nvram_set("vpn_client4_errno", "0");
-	nvram_set("vpn_client5_errno", "0");
-	nvram_set("vpn_upload_state", "");
-	if(!nvram_is_empty("vpn_server_clientlist")) {
-		nvram_set("vpn_serverx_clientlist", nvram_safe_get("vpn_server_clientlist"));
-		nvram_unset("vpn_server_clientlist");
-	}
-#endif
 
 #ifdef RTCONFIG_DSL_TCLINUX
 	nvram_set("dsllog_opmode", "");
@@ -6034,10 +6013,50 @@ int init_nvram(void)
 	add_rc_support("usbsms");
 #endif
 
-/*** Update nvram ***/
+	return 0;
+}
+
+int init_nvram2(void)
+{
+	char *macp = NULL;
+	unsigned char mac_binary[6];
+	char friendly_name[32];
+	int i;
+	char varname[20];
+
+	macp = get_lan_hwaddr();
+	ether_atoe(macp, mac_binary);
+#ifdef RTAC1200GP
+	sprintf(friendly_name, "%s-%02X%02X", "RT-AC1200G", mac_binary[4], mac_binary[5]);
+#else
+	sprintf(friendly_name, "%s-%02X%02X", get_productid(), mac_binary[4], mac_binary[5]);
+#endif
+
+#ifdef RTCONFIG_OPENVPN
+/* Initialize OpenVPN state flags */
+
+	for (i = 1; i <= MAX_OVPN_CLIENT; i++) {
+		sprintf(varname, "vpn_client%d_state", i);
+		nvram_set(varname, "0");
+
+		sprintf(varname, "vpn_client%d_errno", i);
+		nvram_set(varname, "0");
+	}
+
+	nvram_set("vpn_server1_state", "0");
+	nvram_set("vpn_server2_state", "0");
+	nvram_set("vpn_server1_errno", "0");
+	nvram_set("vpn_server2_errno", "0");
+	nvram_set("vpn_upload_state", "");
+
+	if(!nvram_is_empty("vpn_server_clientlist")) {
+		nvram_set("vpn_serverx_clientlist", nvram_safe_get("vpn_server_clientlist"));
+		nvram_unset("vpn_server_clientlist");
+	}
+#endif
 
 /* migrate dhcpc_options to wanxxx_clientid */
-	char *oldclientid = nvram_safe_get("wan0_dhcpc_options");
+        char *oldclientid = nvram_safe_get("wan0_dhcpc_options");
 	if (*oldclientid) {
 		nvram_set("wan0_clientid", oldclientid);
 		nvram_unset("wan0_dhcpc_options");
@@ -6052,35 +6071,20 @@ int init_nvram(void)
 /* Migrate to Asus's new tri-state sshd_enable to our dual nvram setup */
 	if (nvram_match("sshd_enable", "1")) {
 		if (nvram_match("sshd_wan", "0"))
-			nvram_set("sshd_enable", "2");	// LAN-only
+			nvram_set("sshd_enable", "2");  // LAN-only
 		// else stay WAN+LAN
 		nvram_unset("sshd_wan");
 	}
 
-	return 0;
-}
-
-int init_nvram2(void)
-{
-	char *macp = NULL;
-	unsigned char mac_binary[6];
-	char friendly_name[32];
-
-	macp = get_lan_hwaddr();
-	ether_atoe(macp, mac_binary);
-#ifdef RTAC1200GP
-	sprintf(friendly_name, "%s-%02X%02X", "RT-AC1200G", mac_binary[4], mac_binary[5]);
-#else
-	sprintf(friendly_name, "%s-%02X%02X", get_productid(), mac_binary[4], mac_binary[5]);
-#endif
 	if (restore_defaults_g)
 	{
 		nvram_set("computer_name", friendly_name);
 		nvram_set("dms_friendly_name", friendly_name);
 		nvram_set("daapd_friendly_name", friendly_name);
 
-		nvram_commit();
 	}
+
+	nvram_commit();
 
 	return 0;
 }
