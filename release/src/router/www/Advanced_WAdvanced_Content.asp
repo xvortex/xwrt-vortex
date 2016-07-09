@@ -576,7 +576,7 @@ function validForm(){
 
 	if(userRSSI_support){
 		if(document.form.wl_user_rssi.value != 0){
-			if(!validator.range(document.form.wl_user_rssi, -90, -50)){
+			if(!validator.range(document.form.wl_user_rssi, -90, -70)){
 				document.form.wl_user_rssi.focus();
 				return false;			
 			}
