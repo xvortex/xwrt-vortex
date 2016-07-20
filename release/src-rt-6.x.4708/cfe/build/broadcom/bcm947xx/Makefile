@@ -76,6 +76,11 @@ CFG_SDRAM_PARAM_FROM_EMBEDDED_NVRAM := 1
 COMPRESSED_CFE := 1
 RESCUE_MODE := 1        # disable for tmp
 RGMII_P5 := 0
+DSLAC68U := 0
+RTAC68U := 0
+RT4GAC68U := 0
+PATYPE := 0
+BCM470XC0 := 0
 MTDSIZE ?= 64
 DUAL_TRX := 0
 
@@ -145,6 +150,16 @@ endif
 ifeq ($(strip $(R7000)),1)
 MTDSIZE := 64
 CFLAGS += -DR7000
+endif
+
+ifeq ($(strip $(RT4GAC68U)),1)
+CFLAGS += -DRT4GAC68U
+endif
+
+ifeq ($(BUILD_NAME),$(filter $(BUILD_NAME),RT-AC88U RT-AC88B RT-AC5400))
+CFLAGS += -DRTAC68U
+CFLAGS += -DRTAC88U -DRTL8365MB
+CFLAGS += -L /opt/hndtools-arm-linux-2.6.36-uclibc-4.5.3/bin/../lib/gcc/arm-brcm-linux-uclibcgnueabi/4.5.3 -lgcc
 endif
 
 ifeq ($(strip $(WS880)),1)

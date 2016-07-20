@@ -93,11 +93,22 @@ extern void GPIO_INIT(void);
 #define	USB_LED_GPIO	(1 << 14)	// GPIO 14
 
 #define	USB_PWR_GPIO	(1 << 7)	// GPIO 7
-
 #define RST_BTN_GPIO	(1 << 2)	// GPIO 2
 #define WPS_BTN_GPIO	(1 << 3)	// GPIO 3
 #define PWR_BTN_GPIO	(1 << 15)	// GPIO 15
 #endif
+
+#ifdef RT4GAC68U
+#define PWR_LED_GPIO	(1 << 3)	// GPIO 3
+#define RST_BTN_GPIO	(1 << 11)	// GPIO 11
+#undef WPS_BTN_GPIO
+#define WPS_BTN_GPIO	(1 << 7)	// GPIO 7
+#endif
+
+#ifdef RTL8365MB
+#define SMI_SCK_GPIO	(1 << 6)	// GPIO 6
+#define SMI_SDA_GPIO	(1 << 7)	// GPIO 7
+#endif	/*~RTL8365MB*/
 
 #endif /* RESCUE_MODE */
 

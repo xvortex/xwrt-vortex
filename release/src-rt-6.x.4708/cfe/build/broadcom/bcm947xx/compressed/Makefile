@@ -98,6 +98,26 @@ else
 COMPRESS	:= cat
 endif
 
+ifeq ($(RTAC68U), 1)
+ifeq ($(BCM470XC0), 1)
+	CFE_BIN_FILE := cfe_rt-ac68u_5003_c0.bin
+else ifeq ($(BCM470XC0), 2)
+	CFE_BIN_FILE := cfe_rt-ac68u_v2_5003_c0.bin
+else ifeq ($(PATYPE), 0)
+	CFE_BIN_FILE := cfe_rt-ac68u.bin
+else ifeq ($(PATYPE), 5023)
+	CFE_BIN_FILE :=	cfe_rt-ac68u_v2_5023.bin
+else ifeq ($(PATYPE), 85402)
+	CFE_BIN_FILE := cfe_rt-ac68u_v2_85402.bin
+else ifeq ($(PATYPE), 5003)
+	CFE_BIN_FILE := cfe_rt-ac68u_v2_5003.bin
+endif
+endif
+ifeq ($(RT4GAC68U), 1)
+	CFE_BIN_FILE := cfe_4g-ac68u_5003_c0.bin
+endif
+
+
 all: cfez.bin
 
 # Don't build dependencies, this may die if $(CC) isn't gcc
@@ -119,6 +139,26 @@ endif
 ifeq ($(R7000), 1)
 	../../../../../ctools/nvserial -i cfez.bin -o cfe_r7000.bin -s 32 r7000_nvram.txt
 	cp cfe_r7000.bin ../../../..
+endif
+ifeq ($(RT4GAC68U), 1)
+	../../../../../ctools/nvserial -i cfez.bin -o cfe_4g-ac68u_5003_c0.bin -s 00 4g-ac68u_5003_c0_nvram.txt
+	cp cfe_4g-ac68u_5003_c0.bin ../../../..
+endif
+ifeq ($(DSLAC68U), 1)
+	@if [ "$(CFEZ_MAXSIZE)" != "" ]; then \
+		if [ "`wc -c < cfe_dsl-ac68u.bin`" -gt "$(CFEZ_MAXSIZE)" ]; then \
+			echo "*** ERROR *** : cfe_dsl-ac68u.bin bootrom image size: `wc -c < cfe_dsl-ac68u.bin` exceeds limit: $(CFEZ_MAXSIZE)"; \
+		fi ; \
+	fi
+endif
+ifeq ($(RTAC68U), 1)
+	@if [ "$(CFEZ_MAXSIZE)" != "" ]; then \
+		if [ "`wc -c < $(CFE_BIN_FILE)`" -gt "$(CFEZ_MAXSIZE)" ]; then \
+			echo "*** ERROR *** : cfe_rt-ac68u.bin bootrom image size: `wc -c < cfe_rt-ac68u.bin` exceeds limit: $(CFEZ_MAXSIZE)"; \
+		fi ; \
+	fi
+else
+ifeq ($(RTN18U), 1)
 	@if [ "$(CFEZ_MAXSIZE)" != "" ]; then \
 		if [ "`wc -c < cfe_r7000.bin`" -gt "$(CFEZ_MAXSIZE)" ]; then \
 			echo "*** ERROR *** : cfe_r7000.bin bootrom image size: `wc -c < cfe_r7000.bin` exceeds limit: $(CFEZ_MAXSIZE)"; \
@@ -131,6 +171,13 @@ ifeq ($(WS880), 1)
 	@if [ "$(CFEZ_MAXSIZE)" != "" ]; then \
 		if [ "`wc -c < cfe_ws880.bin`" -gt "$(CFEZ_MAXSIZE)" ]; then \
 			echo "*** ERROR *** : cfe_ws880.bin bootrom image size: `wc -c < cfe_ws880.bin` exceeds limit: $(CFEZ_MAXSIZE)"; \
+		fi ; \
+	fi
+endif
+ifeq ($(RT4GAC68U), 1)
+	@if [ "$(CFEZ_MAXSIZE)" != "" ]; then \
+		if [ "`wc -c < $(CFE_BIN_FILE)`" -gt "$(CFEZ_MAXSIZE)" ]; then \
+			echo "*** ERROR *** : cfe_4g-ac68u.bin bootrom image size: `wc -c < cfe_4g-ac68u.bin` exceeds limit: $(CFEZ_MAXSIZE)"; \
 		fi ; \
 	fi
 endif
