@@ -291,6 +291,11 @@ enum {
 	MODEL_PLN12,
 	MODEL_PLAC56,
 	MODEL_PLAC66U,
+#if defined (RTAC3200) || defined(RTAC87U)
+        MODEL_RTAC88N,
+        MODEL_BRTAC828M2,
+        MODEL_RTAC88S,
+#endif
 	MODEL_RTN36U3,
 	MODEL_RTN56U,
 	MODEL_RTN65U,
@@ -337,9 +342,6 @@ enum {
 	MODEL_RTN10PV2,
 	MODEL_RTAC1200G,
 	MODEL_RTAC1200GP,
-	MODEL_RTAC88N,
-	MODEL_BRTAC828M2,
-	MODEL_RTAC88S,
 #if !defined (EA6900)
 	MODEL_EA6900,
 #endif
@@ -348,6 +350,13 @@ enum {
 #endif
 #if !defined (WS880)
 	MODEL_WS880,
+#endif
+#if !defined (RTAC3200) && !defined(RTAC87U)
+	MODEL_RTAC88N,
+	MODEL_BRTAC828M2,
+	MODEL_RTAC88S
+#else
+	MODEL_LAST
 #endif
 };
 
