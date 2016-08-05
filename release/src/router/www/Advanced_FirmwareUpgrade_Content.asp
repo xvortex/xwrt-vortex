@@ -107,7 +107,7 @@ function initial(){
 		document.getElementById("update").style.display = "none";
 		document.getElementById("linkpage_div").style.display = "";
 		document.getElementById("linkpage").style.display = "";
-		helplink = "https://asuswrt.lostrealm.ca/download";
+		helplink = "http://xvtx.ru/xwrt/download.htm";
 		document.getElementById("linkpage").href = helplink;
 	} 
 	else{
@@ -629,7 +629,6 @@ function change_firmware_path(flag){
 				</ol>
 		  </div>
 		  <br>
-		  <div class="formfontdesc">Visit <a style="text-decoration: underline;" href="http://xvtx.ru/xwrt/download.htm" target="_blank">XWRT Site</a> for the latest version.<br></div>
 
 		<table width="100%" border="1" align="center" cellpadding="4" cellspacing="0" bordercolor="#6b8fa3" class="FormTable">
 			<thead>
