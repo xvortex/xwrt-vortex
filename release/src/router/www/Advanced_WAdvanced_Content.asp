@@ -457,37 +457,6 @@ function adjust_tx_power(){
 			document.getElementById('slider').children[1].style.left = power_value_new + "%";
 			document.form.wl_txpower.value = power_value_new;
 		}
-		
-		if(document.form.wl_txpower.value < 25){
-			document.getElementById('slider').children[0].style.width = "0%";
-			document.getElementById('slider').children[1].style.left =  "0%";
-			document.form.wl_txpower.value = 0;
-			document.getElementById("tx_power_desc").innerHTML = power_table_desc[0];
-		}
-		else if(document.form.wl_txpower.value < 50){
-			document.getElementById('slider').children[0].style.width = "25%";
-			document.getElementById('slider').children[1].style.left =  "25%";
-			document.form.wl_txpower.value = 25;				
-			document.getElementById("tx_power_desc").innerHTML = power_table_desc[1];
-		}
-		else if(document.form.wl_txpower.value < 88){
-			document.getElementById('slider').children[0].style.width = "50%";
-			document.getElementById('slider').children[1].style.left =  "50%";
-			document.form.wl_txpower.value = 50;				
-			document.getElementById("tx_power_desc").innerHTML = power_table_desc[2];
-		}
-		else if(document.form.wl_txpower.value < 100){
-			document.getElementById('slider').children[0].style.width = "75%";
-			document.getElementById('slider').children[1].style.left =  "75%";
-			document.form.wl_txpower.value = 88;
-			document.getElementById("tx_power_desc").innerHTML = power_table_desc[3];
-		}
-		else{
-			document.getElementById('slider').children[0].style.width = "100%";
-			document.getElementById('slider').children[1].style.left =  "100%";
-			document.form.wl_txpower.value = 100;
-			document.getElementById("tx_power_desc").innerHTML = power_table_desc[4];
-		}		
 	}
 }
 
@@ -636,19 +605,17 @@ function check_ampdu_rts(){
 		document.getElementById('ampdu_rts_tr').style.display = "none";
 	}
 }
-power_table_desc = ["Power Saving", "Fair", "Balance", "Good", "Performance"];
-//power_table_desc = ["省電", "弱", "平衡", "強", "效能"];
+
 function register_event(){
-	
 	$(function() {
 		$( "#slider" ).slider({
 			orientation: "horizontal",
 			range: "min",
 			min:1,
-			max: 5,
-			value:5,
+			max: 100,
+			value:100,
 			slide:function(event, ui){
-				document.getElementById('tx_power_desc').innerHTML = power_table_desc[ui.value-1];
+				document.getElementById('wl_txpower').value = ui.value;
 			},
 			stop:function(event, ui){
 				set_power(ui.value);	  
@@ -727,8 +694,19 @@ function register_event(){
 }
 
 function set_power(power_value){	
-	var power_table = [0, 25, 50, 88, 100];	
-	document.form.wl_txpower.value = power_table[power_value-1];
+	if(power_value < 1){
+		power_value = 1;
+		alert("The minimun value of power is 1");
+	}
+	
+	if(power_value > 100){
+		power_value = 100;
+		alert("The maximun value of power is 1");
+	}
+	
+	document.getElementById('slider').children[0].style.width = power_value + "%";
+	document.getElementById('slider').children[1].style.left = power_value + "%";
+	document.form.wl_txpower.value = power_value;
 }
 
 function init_array(arr){
@@ -1566,14 +1544,13 @@ function handle_beamforming(value){
 						<td>
 							<div>
 								<table>
-									<tr>
-										<td style="border:0px;padding-left:0px;">
-											<div id="slider" style="width:80px;"></div>
-										</td>									
+									<tr >
 										<td style="border:0px;width:60px;">
-											<div id="tx_power_desc" style="width:150px;font-size:14px;"></div>
+											<input id="wl_txpower" name="wl_txpower" type="text" maxlength="3" class="input_3_table" value="<% nvram_get("wl_txpower"); %>" style="margin-left:-10px;" onkeyup="set_power(this.value);" autocorrect="off" autocapitalize="off"> %
 										</td>					
-
+										<td style="border:0px;">
+											<div id="slider" style="width:200px;"></div>
+										</td>
 									</tr>
 								</table>
 							</div>

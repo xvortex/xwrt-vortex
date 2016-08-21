@@ -871,7 +871,7 @@ define RouterOptions
 			sed -i "/RTCONFIG_FLICKRCLIENT/d" $(1); \
 			echo "RTCONFIG_FLICKRCLIENT=y" >>$(1); \
 		fi; \
-		if [ "$(CLOUDSYNC)" = "y" ] && [ "$(NOASUS)" != "y" ]; then \
+		if [ "$(CLOUDSYNC)" = "y" ]; then \
 			sed -i "/RTCONFIG_CLOUDSYNC/d" $(1); \
 			echo "RTCONFIG_CLOUDSYNC=y" >>$(1); \
 		fi; \
@@ -1268,10 +1268,6 @@ define RouterOptions
 		echo "RTCONFIG_BWDPI=y" >>$(1); \
 		sed -i "/RTCONFIG_PUSH_EMAIL/d" $(1); \
 		echo "RTCONFIG_PUSH_EMAIL=y" >>$(1); \
-	fi; \
-	if [ "$(NOASUS)" = "y" ]; then \
-		sed -i "/RTCONFIG_NOASUS/d" $(1); \
-		echo "RTCONFIG_NOASUS=y" >>$(1); \
 	fi; \
 	if [ "$(NOTIFICATION_CENTER)" = "y" ]; then \
 		sed -i "/RTCONFIG_NOTIFICATION_CENTER/d" $(1); \

@@ -939,10 +939,6 @@ config RTCONFIG_BWDPI
 	bool "TrendMicro DPI engine and iQoS and Partenl Control"
 	default n
 
-config RTCONFIG_NOASUS
-	bool "Disable proprietary Asus features"
-	default n
-
 config RTCONFIG_ADBLOCK
 	bool "Streaming and Pop-Up window Ad Blocking "
 	default n

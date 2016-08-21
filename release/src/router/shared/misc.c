@@ -1247,19 +1247,7 @@ char *get_productid(void)
 
 char *get_productid_fake(void)
 {
-#if defined (EA6900) || defined (R7000) || defined (WS880)
-#ifdef EA6900
-	char *productid = "EA6900";
-#endif
-#ifdef R7000
-	char *productid = "R7000";
-#endif
-#ifdef WS880
-	char *productid = "WS880";
-#endif
-#else
 	char *productid = "RT-AC68U";
-#endif
 	return productid;
 }
 
@@ -1979,9 +1967,10 @@ int get_yandex_dns(int family, int mode, char **server, int max_count)
 */
 int check_bwdpi_nvram_setting()
 {
-#ifdef RTCONFIG_NOASUS
-	return 0;
-#else
+	if(nvram_match("NOASUS", "1")) {
+		return 0;
+	}
+	
 	int enabled = 1;
 	int debug = nvram_get_int("bwdpi_debug");
 
@@ -2008,7 +1997,6 @@ int check_bwdpi_nvram_setting()
 	if(debug) dbg("[check_bwdpi_nvram_setting] enabled= %d\n", enabled);
 
 	return enabled;
-#endif
 }
 #endif
 

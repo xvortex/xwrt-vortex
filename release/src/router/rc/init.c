@@ -5715,14 +5715,21 @@ int init_nvram(void)
 	add_rc_support("webdav");
 #endif
 
+	if (!nvram_get("NOASUS"))
+		nvram_set("NOASUS", "1");
+
+	add_rc_support("loclist");
+
 #ifdef RTCONFIG_CLOUDSYNC
 	add_rc_support("rrsut");	//syn server
-	add_rc_support("cloudsync");
+	if(nvram_match("NOASUS", "0"))
+		add_rc_support("cloudsync");
 
 	char ss_support_value[1024]="\0";
 
 #ifdef RTCONFIG_CLOUDSYNC
-	strcat(ss_support_value, "asuswebstorage ");
+	if(nvram_match("NOASUS", "0"))
+		strcat(ss_support_value, "asuswebstorage ");
 #endif
 
 #ifdef RTCONFIG_SWEBDAVCLIENT
@@ -5785,8 +5792,8 @@ int init_nvram(void)
 #endif
 
 #ifdef RTCONFIG_BWDPI
-#ifndef RTCONFIG_NOASUS
-	add_rc_support("bwdpi");
+	if(nvram_match("NOASUS", "0"))
+		add_rc_support("bwdpi");
 
 	// tmp to add default nvram
 	if(nvram_match("wrs_mals_enable", ""))
@@ -5795,29 +5802,6 @@ int init_nvram(void)
 		nvram_set("bwdpi_coll_intl", "1800");
 	if(nvram_match("bwdpi_wh_enable", ""))
 		nvram_set("bwdpi_wh_enable", "0");
-#else
-	nvram_set("qos_type", "0");
-	nvram_set("wrs_enable", "0");
-	nvram_set("wrs_rulelist", "");
-	nvram_set("wrs_cc_enable", "0");
-	nvram_set("wrs_vp_enable", "0");
-	nvram_set("wrs_app_enable", "0");
-	nvram_set("wrs_app_rulelist", "");
-	nvram_set("wrs_mals_enable", "0");
-	nvram_set("wrs_adblock_stream", "0");
-	nvram_set("wrs_adblock_popup", "0");
-	nvram_set("wrs_mail_bit", "0");		// alert mail option
-	nvram_set("bwdpi_db_enable", "0");	// traffic statistics switch
-	nvram_set("bwdpi_db_type", "0");	// 0: flash, 1: USB / HDD, 2: cloud
-	nvram_set("bwdpi_db_path", "");		// database path
-	nvram_set("bwdpi_db_debug", "0");	// 0: 1 hour(default) ;1: 30 sec
-	nvram_set("bwdpi_rsa_check", "0");	// signature update check
-	nvram_set("bwdpi_alive", "10");		// check dpi engine alive timeout
-	nvram_set("bwdpi_test", "2");		// backup plan : bwdpi_test=2
-	nvram_set("bwdpi_sig_ver", "");		// dpi engine signature version
-	nvram_set("TM_EULA", "0");		// EULA of Trend Micro
-	nvram_set("apps_analysis", "0");	// Apps Analysis in Adaptive QoS Live
-#endif
 #endif
 
 #ifdef RTCONFIG_TRAFFIC_LIMITER
