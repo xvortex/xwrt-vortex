@@ -1457,7 +1457,7 @@ struct nvram_tuple router_defaults[] = {
 	{ "qos_orates",	"80-100,10-100,5-100,3-100,2-95,0-0,0-0,0-0,0-0,0-0" },
 	{ "qos_irates",	"100,100,100,100,100,0,0,0,0,0" },
 	{ "qos_enable",			"0"				}, // 0: off, 1: on
-	{ "qos_type",			"1"				}, // 0: Traditional, 1: Adaptive
+	{ "qos_type",			"0"				}, // 0: Traditional, 1: Adaptive
 #ifdef RTCONFIG_BCMARM
 	{ "qos_sched",			"0"				},
 	{ "qos_overhead",		"0"				}, // ATM overhead

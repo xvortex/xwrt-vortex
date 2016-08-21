@@ -615,7 +615,7 @@ function register_event(){
 			max: 100,
 			value:100,
 			slide:function(event, ui){
-				document.getElementById('wl_txpower').value = ui.value;
+				document.getElementById('wl_txpower').value = ui.value; 
 			},
 			stop:function(event, ui){
 				set_power(ui.value);	  
@@ -701,7 +701,7 @@ function set_power(power_value){
 	
 	if(power_value > 100){
 		power_value = 100;
-		alert("The maximun value of power is 1");
+		alert("The maximun value of power is 100");
 	}
 	
 	document.getElementById('slider').children[0].style.width = power_value + "%";
@@ -1170,7 +1170,7 @@ function handle_beamforming(value){
 <input type="hidden" name="acs_dfs" value="<% nvram_get("acs_dfs"); %>">
 <input type="hidden" name="w_Setting" value="1">
 <input type="hidden" name="wl_sched" value="<% nvram_get("wl_sched"); %>">
-<input type="hidden" name="wl_txpower" value="<% nvram_get("wl_txpower"); %>">
+
 <table class="content" align="center" cellpadding="0" cellspacing="0">
 	<tr>
 		<td width="17">&nbsp;</td>
