@@ -706,6 +706,8 @@ obj-$(RTCONFIG_TCPDUMP) += tcpdump-4.4.0
 # Merlin addons
 obj-n += wol
 obj-y += ipset
+obj-$(RTCONFIG_NANO) += ncurses
+obj-$(RTCONFIG_NANO) += nano
 
 obj-$(RTCONFIG_BLINK_LED) += bled
 obj-$(RTCONFIG_BONDING) += ifenslave
@@ -1740,7 +1742,7 @@ dnsmasq-install:
 nettle/stamp-h1:
 	@cd nettle && \
 	CPPFLAGS="-I$(TOP)/gmp" \
-	CFLAGS="-Os -Wall $(EXTRACFLAGS) -fPIC -ffunction-sections -fdata-sections" \
+	CFLAGS="-O2 -Wall $(EXTRACFLAGS) -fPIC -ffunction-sections -fdata-sections" \
 	LDFLAGS="-L$(TOP)/gmp/.libs -ffunction-sections -fdata-sections -Wl,--gc-sections -fPIC" \
 	$(CONFIGURE) prefix=$(TOP)/nettle --enable-mini-gmp --disable-documentation --disable-shared
 	@touch nettle/stamp-h1
@@ -2985,7 +2987,7 @@ minidlna/configure:
 minidlna-configure:
 	cd minidlna && \
 	LIBS="-ldl -lm -lpthread -lz -lexif -ljpeg -lsqlite3 -lid3tag -lFLAC -lvorbis -logg -lavformat -lavcodec -lavutil" \
-	CFLAGS="-Os -Wall $(EXTRACFLAGS) -D_GNU_SOURC -D_FILE_OFFSET_BITS=64 -ffunction-sections -fdata-sections \
+	CFLAGS="-Os -Wall $(EXTRACFLAGS) -D_GNU_SOURCE -D_FILE_OFFSET_BITS=64 -ffunction-sections -fdata-sections \
 		$(if $(RTN65U,y),-DRTN56U=1) $(if $(or $(RTN66U), $(RTAC66U)),-DRTN66U=1)" \
 		$(if $(RTAC68U,y),-I$(SRCBASE)/include) \
 		$(if $(EA6900,y),-I$(SRCBASE)/include) \
@@ -4171,6 +4173,63 @@ ipset-install:
 	install ipset/*.so $(INSTALLDIR)/ipset/usr/lib/
 	$(STRIP) $(INSTALLDIR)/ipset/usr/lib/*.so
 	$(STRIP) $(INSTALLDIR)/ipset/usr/sbin/ipset
+
+ncurses/Makefile:
+	cd ncurses && CFLAGS="$(EXTRACFLAGS) -Os -I$(STAGEDIR)/usr/include -ffunction-sections -fdata-sections -fPIC" \
+	$(CONFIGURE) --prefix=/usr --without-cxx --without-cxx-binding \
+	LDFLAGS="$(LDFLAGS) -ffunction-sections -fdata-sections -Wl,--gc-sections -L$(STAGEDIR)/usr/lib" \
+	--enable-echo --enable-const --enable-overwrite --disable-rpath --without-ada \
+	$(if $(RTCONFIG_BCMARM),--enable-widec,) \
+	--without-debug --without-manpages --without-profile --without-progs --without-tests \
+	--disable-home-terminfo --with-normal --with-shared --with-build-cppflags=-D_GNU_SOURCE \
+	--disable-termcap --disable-database --with-fallbacks="xterm,vt100,vt200,linux,ansi"
+
+#	--with-default-terminfo-dir=/usr/share/terminfo --with-terminfo-dirs=/usr/share/terminfo
+
+ncurses: ncurses/Makefile
+	@$(SEP)
+	cd ncurses && $(MAKE) -C ncurses
+
+ncurses-clean:
+	-@$(MAKE) -C ncurses distclean
+	@rm -f ncurses/Makefile
+
+ncurses-install:
+ifeq ($(RTCONFIG_BCMARM),y)
+	install -D ncurses/lib/libncursesw.so.6.0 $(INSTALLDIR)/ncurses/usr/lib/libncursesw.so.6.0
+else
+	install -D ncurses/lib/libncurses.so.6.0 $(INSTALLDIR)/ncurses/usr/lib/libncurses.so.6.0
+endif
+
+	$(STRIP) $(INSTALLDIR)/ncurses/usr/lib/*.so.*
+
+ifeq ($(RTCONFIG_BCMARM),y)
+	cd $(INSTALLDIR)/ncurses/usr/lib && ln -sf libncursesw.so.6.0 libncursesw.so.6
+else
+	cd $(INSTALLDIR)/ncurses/usr/lib && ln -sf libncurses.so.6.0 libncurses.so.6
+endif
+
+
+nano/Makefile:
+	cd nano && $(CONFIGURE) --prefix=$(INSTALLDIR)/nano/usr \
+		CFLAGS="$(EXTRACFLAGS) -Os -I$(TOP)/ncurses/include -ffunction-sections -fdata-sections" \
+		LDFLAGS="$(LDFLAGS) -L$(TOP)/ncurses/lib -ffunction-sections -fdata-sections -Wl,--gc-sections" \
+		$(if $(RTCONFIG_BCMARM),ac_cv_lib_ncursesw_get_wch=yes,ac_cv_lib_ncursesw_get_wch=no) \
+		$(if $(RTCONFIG_BCMARM),--enable-utf8,--enable-tiny) \
+		--disable-speller --disable-extra --disable-tabcomp --enable-wrapping --disable-glibtest \
+		--disable-libmagic --disable-nls
+
+nano-clean:
+	-@$(MAKE) -C nano distclean
+	@rm -f nano/Makefile
+
+nano-install:
+	@$(MAKE) -C nano install-exec INSTALLDIR=$(INSTALLDIR)/nano/usr/bin/nano
+	$(STRIP) $(INSTALLDIR)/nano/usr/bin/nano
+
+nano: ncurses nano/Makefile
+	@$(SEP)
+	$(MAKE) -C $@
 
 tftp:
 	cd tftp && CC=$(CC) && $(MAKE)

@@ -104,7 +104,15 @@ function display_clients(clientsarray, obj) {
 			code += '<td><span style="margin-top:-15px; color: white;" class="link" onclick="oui_query_full_vendor(\'' + client[0] +'\');overlib_str_tmp=\''+ overlib_str +'\';return overlib(\''+ overlib_str +'\');" onmouseout="nd();" style="cursor:pointer; text-decoration:underline;">'+ client[0] +'</span></td>'; 
 
 			code += '<td>' + client[1] + '</td>';	// IP
-			code += '<td>' + client[2] + '</td>';	// Name
+
+			if(client[2].length > 16) {		// Name
+				hostname = client[2];
+				client[2] = client[2].substring(0, 13)+"...";
+				code +='<td title="' + hostname + '">'+ client[2] +'</td>';
+			}else{
+				code +='<td>'+ client[2] +'</td>';
+			}
+
 			code += '<td>' + client[3] + ' dBm</td>';	// RSSI
 			code += '<td>' + client[4] + ' / ' + client[5] +' Mbps</td>';	// Rate
 			code += '<td>' + client[6] + '</td>';	// Time
@@ -126,9 +134,15 @@ function display_header(dataarray, title, obj) {
 	code = '<table width="100%" style="border: none;">';
 	code += '<thead><tr><span class="wifiheader" style="font-size: 125%;">' + title +'</span></tr></thead>';
 	code += '<tr><td colspan="3"><span class="wifiheader">SSID: </span>' + dataarray[0] + '</td><td colspan="2"><span class="wifiheader">Mode: </span>' + dataarray[6] + '</td></tr>';
-	code += '<tr><td><span class="wifiheader">RSSI: </span>' + dataarray[1] + ' dBm</td> <td><span class="wifiheader">SNR: </span>' + dataarray[2] +' dB</td> <td>';
-	code += '<span class="wifiheader">Noise: </span>' + dataarray[3] + ' dBm</td><td><span class="wifiheader">Channel: </span>'+ dataarray[4] + '</td>';
-	code += '<td><span class="wifiheader">BSSID: </span>' + dataarray[5] +'</td></tr></table>';
+
+	if (dataarray[1] != 0)
+		code += '<tr><td><span class="wifiheader">RSSI: </span>' + dataarray[1] + ' dBm</td>';
+	if (dataarray[2] != 0)
+		code += ' <td><span class="wifiheader">SNR: </span>' + dataarray[2] +' dB</td> <td>';
+	if (dataarray[3] != 0)
+		code += '<td><span class="wifiheader">Noise: </span>' + dataarray[3] + ' dBm</td>';
+
+	code += '<td><span class="wifiheader">Channel: </span>'+ dataarray[4] + '</td> <td><span class="wifiheader">BSSID: </span>' + dataarray[5] +'</td></tr></table>';
 
 	obj.innerHTML = code;
 }

@@ -32,7 +32,7 @@ function initial(){
 	show_menu();
 
 	if (openvpnd_support) {
-		setTimeout("refreshState()",3000);
+		setTimeout("refreshState()",1000);
 	} else {
 		showhide("server1", 0);
 		showhide("server2", 0);
@@ -148,7 +148,6 @@ function refreshState(){
 		showhide("vpnc", 0);
 	}
 
-	showhide("waitmsg", 0);
 }
 
 
@@ -268,6 +267,8 @@ function parseStatus(text, block){
 		{
 			if (i == 0) {
 				code +='<th style="text-align:left;">' + clientTableHeaders[i] + '<br><span style="color: cyan; background: transparent;">' + clientTableHeaders[clientTableHeaders.length-2] + '</span></th>';
+			} else if (clientTableHeaders[i].search("Bytes") != -1 ) {
+				code +='<th style="text-align:left;">' + clientTableHeaders[i].replace("Bytes","MBytes") + '</th>';
 			} else {
 				code +='<th style="text-align:left;">' + clientTableHeaders[i] + '</th>';
 			}
@@ -284,7 +285,7 @@ function parseStatus(text, block){
 				if (j == 0) {
 					code += '<td style="white-space:nowrap; text-align:left;">' + clientTableEntries[i][j] + '<br><span style="color: cyan; background: transparent;">' + clientTableEntries[i][clientTableEntries[i].length-2] +'</span></td>';
 				} else if ((j == 3) || (j == 4)) {
-					code += '<td style="vertical-align:top; text-align:left;">' + Number(clientTableEntries[i][j]).toLocaleString() + '</td>';
+					code += '<td style="vertical-align:top; text-align:left;">' + Number(clientTableEntries[i][j]/1024/1024).toFixed(2).toLocaleString() + '</td>';
 				} else {
 					code += '<td style="vertical-align:top; text-align:left;">' + clientTableEntries[i][j] + '</td>';
 				}
@@ -476,7 +477,6 @@ function show_vpnc_rulelist(){
                 <div>&nbsp;</div>
                 <div class="formfonttitle">VPN - Status</div>
                 <div style="margin-left:5px;margin-top:10px;margin-bottom:10px"><img src="/images/New_ui/export/line_export.png"></div>
-		<div class="formfontdesc" style="height:15px;"><span id="waitmsg" style="color:#FC0;">Updating, please wait...</span></div>
 				<table width="100%" border="1" align="center" cellpadding="4" cellspacing="0" bordercolor="#6b8fa3" id="pptpserver" class="FormTable"></br>
 					<thead>
 						<tr>
