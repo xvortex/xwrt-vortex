@@ -177,6 +177,7 @@ int Nbns_query(unsigned char *src_ip, unsigned char *dest_ip, P_CLIENT_DETAIL_IN
     if (-1 == status)
     {
         NMP_DEBUG_F("NBNS: bind error.\n");
+	close(sock_nbns);
         return -1;
     }                                                                                                         
 
@@ -299,13 +300,12 @@ int lpd515(unsigned char *dest_ip)
         /* Receive data */
         recvlen1 = recv(sockfd1, recvbuf1, MAXDATASIZE, 0);
         memcpy(&lpd, recvbuf1, 1);
+	close(sockfd1);
         if (lpd.cmd_code == LPR_RESPONSE)
         {
-           	close(sockfd1);
                	return 0;
         }
 
-	close(sockfd1);
        	return -1;
 }
 
@@ -385,14 +385,14 @@ int open_socket_ipv4( unsigned char *src_ip )
         if (setsockopt(fd, IPPROTO_IP, IP_MULTICAST_IF, &any, sizeof(struct in_addr)) < 0)
         {
                 //printf("IP_MULTICAST_IF failed: %s\n", strerror(errno));
-                return -1;
+		goto fail;
         }
 	/* Set timeout. Cherry Cho added in 2009/2/20. */
 	struct timeval timeout={1, 0};
 	if (setsockopt(fd, SOL_SOCKET, SO_RCVTIMEO, &timeout, sizeof(struct timeval)) < 0)
         {
                 NMP_DEBUG_F("SO_RCVTIMEO failed: %s\n", strerror(errno));
-                return -1;
+		goto fail;
         }
                                                                                                                  
         memset(&local, 0, sizeof(local));
@@ -404,7 +404,7 @@ int open_socket_ipv4( unsigned char *src_ip )
         if (setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, (char *)&flag, sizeof(flag)) < 0)
         {
                 NMP_DEBUG_F("SO_REUSEADDR failed: %s\n", strerror(errno));
-                return -1;
+		goto fail;
         }
         if(bind(fd, (struct sockaddr*) &local, sizeof(local)) < 0)
         {
@@ -542,6 +542,7 @@ int send_mdns_packet_ipv4 (unsigned char *src_ip, unsigned char *dest_ip)
                 }
                 else //Found iTune Server
                 {
+			close(sockfd);
                         return 1;
                 }
         }
@@ -737,9 +738,11 @@ int create_msearch_ctrlpt(int Mx)
         sprintf(tmp, "MX:%d\r\n\r\n", Mx);
         strcat(data, tmp);
                                                                                                                                              
-        if(sendto(ssdp_fd, data, strlen(data), 0, (struct sockaddr *)&addr, sizeof(addr)) <0)
+        if(sendto(ssdp_fd, data, strlen(data), 0, (struct sockaddr *)&addr, sizeof(addr)) <0) {
+		free(data);
                 return 0;
-                                                                                                                                             
+	}
+	free(data);
         return 1;
                                                                                                                                              
 }
@@ -997,7 +1000,7 @@ void store_description(char *msg)
                                 mxend++;
                         }
                         tmp[j-1] = '\0';
-                        strlcpy(description.service[s_num].name, tmp, sizeof(description.service));
+                        strlcpy(description.service[s_num].name, tmp, sizeof(description.service[s_num].name));
                         NMP_DEBUG_F("service %d name = %s\n", s_num, tmp);
                         break;
                 case 7:
@@ -1125,12 +1128,14 @@ SMBretry:
                         if(error != 0)
                         {
                                 perror("SAMBA: get socket opt err");
+				close(sockfd);
                                 return -1 ;
                         }
                 }
                 else
                 {
                         perror("SAMBA: select err");
+			close(sockfd);
                         return -1 ;
                 }
         }
@@ -1164,6 +1169,7 @@ SMBretry:
                                 if (send(sockfd, buf, offsetlen, 0) == -1)
                                 {
                                         perror("connect") ;
+					close(sockfd);
                                         return -1 ;
                                 }
                                 gettimeofday(&tv1, NULL);       // set nbss statrt time
@@ -1182,6 +1188,7 @@ SMBretry:
                                                 if ((numbytes=recv(sockfd, nbss_buf, sizeof(nbss_buf), 0)) == -1)
                                                 {
                                                  perror("recv");
+                                                 close(sockfd);
                                                  return -1 ;
                                                 }
                                                 if(numbytes > 0)
@@ -1250,6 +1257,7 @@ SMBretry:
                                 if (send(sockfd, buf, 137, 0) == -1)
                                 {
                                         perror("connect") ;
+					close(sockfd);
                                         return -1 ;
                                 }
                                 gettimeofday(&tv1, NULL);       // set nbss statrt time
@@ -1272,6 +1280,7 @@ SMBretry:
                                                 if ((numbytes=recv(sockfd, buf, sizeof(buf), 0)) == -1)
                                                 {
                                                  perror("recv");
+                                                 close(sockfd);
                                                  return -1 ;
                                                 }
                                                 if(numbytes > 0)
@@ -1422,6 +1431,7 @@ SMBretry:
                                 if (send(sockfd, buf, offsetlen, 0) == -1)
                                 {
                                         perror("connect") ;
+					close(sockfd);
                                         return -1 ;
                                 }
                                 gettimeofday(&tv1, NULL);       // set SMB SESSON ANDX REQ statrt time
@@ -1442,6 +1452,7 @@ SMBretry:
                                                 if ((numbytes=recv(sockfd, buf, sizeof(buf), 0)) == -1)
                                                 {
                                                  	perror("recv");
+							close(sockfd);
                                                  	return -1 ;
                                                 }
                                                 if(numbytes > 0)
@@ -1588,6 +1599,7 @@ Asus_Device_Discovery(unsigned char *src_ip, unsigned char *dest_ip, P_CLIENT_DE
         if (setsockopt(sock_dd, SOL_SOCKET, SO_REUSEADDR, (char *)&flag, sizeof(flag)) < 0)
         {
                 NMP_DEBUG_F("DD: SO_REUSEADDR failed: %s\n", strerror(errno));
+		close(sock_dd);
                 return -1;
         }
 
@@ -1595,6 +1607,7 @@ Asus_Device_Discovery(unsigned char *src_ip, unsigned char *dest_ip, P_CLIENT_DE
     	if (-1 == status)
     	{
         	NMP_DEBUG_F("DD: bind error.\n");
+		close(sock_dd);
         	return -1;
     	}
 
