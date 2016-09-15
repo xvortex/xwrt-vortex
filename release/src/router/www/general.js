@@ -392,7 +392,7 @@ function change_ddns_setting(v){
 				showhide("need_custom_scripts", 0);
 		}
 		if(v == "WWW.NAMECHEAP.COM")
-			document.getElementById("ddns_username_th").innerHTML = Untranslated.namecheap_username_title;
+			document.getElementById("ddns_username_th").innerHTML = "Domain Name";
 		else
 			document.getElementById("ddns_username_th").innerHTML = "<#LANHostConfig_x_DDNSUserName_itemname#>";
 }
@@ -428,6 +428,7 @@ function change_common_radio(o, s, v, r){
 				showhide("wildcard_field",1);				
 			}
 			change_ddns_setting(document.form.ddns_server_x.value);			
+			inputCtrl(document.form.ddns_refresh_x, 1);
 		}else{
 			if(document.form.ddns_server_x.value == "WWW.ASUS.COM"){
 				document.form.DDNSName.parentNode.parentNode.parentNode.style.display = "none";
@@ -446,6 +447,7 @@ function change_common_radio(o, s, v, r){
 			document.form.ddns_regular_check.value = 0;
 			showhide("check_ddns_field", 0);
 			inputCtrl(document.form.ddns_regular_period, 0);
+			inputCtrl(document.form.ddns_refresh_x, 0);
 		}	
 	}
 	else if(v == "wan_dnsenable_x"){

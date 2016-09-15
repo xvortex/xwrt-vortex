@@ -2,13 +2,16 @@ Asuswrt-Merlin Changelog
 ========================
 
 380.62 (xx-xxx-2016)
-   - NEW: Added nano 2.6.3 (user-friendly text editor)
+   - NEW: Added nano 2.7.0 (user-friendly text editor)
           Documentation: https://www.nano-editor.org/dist/v2.6/nano.html
           Note that for space reasons, some of its features are disabled
           for the RT-N66U and RT-AC66U.
    - NEW: Option to toggle the display of passwords on the PPTPD and
           OpenVPN server pages.
    - NEW: Allow providing a vendor class on the WAN page (DHCP option 60)
+   - NEW: Add option to disable sending a RELEASE request when odhcp6c
+          exits, allowing you to retain your received prefix with some
+          ISPs.
    - CHANGED: Updated nettle to 3.2 (used for dnssec) and increased
               optimization level.
    - CHANGED: Updated minidlna to 1.1.6
@@ -40,6 +43,22 @@ Asuswrt-Merlin Changelog
             protection (only MIPS models were affected)
    - FIXED: DHCP lease renewals would fail with ISPs with a broken
             DHCP server that sent replies from a different IP address.
+   - FIXED: 5G LED would fail to turn back on when exiting stealth mode.
+   - FIXED: Only hostname was used as remote server in an exported
+            OpenVPN client config when using Namecheap DDNS.
+   - FIXED: Security vulnerability (XSS/CSR) in httpd (backported
+            fix from 380_4005).
+   - FIXED: IPTraffic database was no longer properly named after
+            the router's MAC address on the AC88/AC3100/AC5300.
+            If you recently enabled it, you will need to either
+            re-create a new database, or rename the existing
+            database from tomato_cstats_000000000000.gz to
+            tomato_cstats_XXXXXXXXXXXX.gz, where "XXXXXXXXXXXX" is
+            your MAC as found with "nvram get et2macaddr", in
+            lowercase (AC88/AC3100/AC5300 only).
+
+            Regular traffic monitoring (stored in
+            tomato_rstats_XXXXXXXXXXXX.gz) is fine.
 
 
 380.61 (4-Aug-2016)
