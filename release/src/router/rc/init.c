@@ -5718,7 +5718,7 @@ int init_nvram(void)
 	if (!nvram_get("NOASUS"))
 		nvram_set("NOASUS", "1");
 
-	add_rc_support("loclist");
+//	add_rc_support("loclist");
 
 #ifdef RTCONFIG_CLOUDSYNC
 	add_rc_support("rrsut");	//syn server
