@@ -4411,6 +4411,11 @@ unsigned int getpeerip(webs_t wp){
 	socklen_t peerlen = sizeof(struct sockaddr);
 	struct sockaddr_in *sa;
 
+#ifdef RTCONFIG_HTTPS
+	if(do_ssl)
+		fd = ssl_stream_fd;
+	else
+#endif
 	fd = fileno((FILE *)wp);
 	ret = getpeername(fd, (struct sockaddr *)&peer, &peerlen);
 	sa = (struct sockaddr_in *)&peer;
@@ -4420,7 +4425,7 @@ unsigned int getpeerip(webs_t wp){
 		return (unsigned int)sa->sin_addr.s_addr;
 	}
 	else{
-		csprintf("error: %d %d \n", ret, errno);
+		printf("error: %d %d \n", ret, errno);
 		return 0;
 	}
 }
@@ -15154,6 +15159,7 @@ struct ej_handler ej_handlers[] = {
 	{ "get_vserver_array", ej_get_vserver_array},
 	{ "get_upnp_array", ej_get_upnp_array},
 	{ "get_route_array", ej_get_route_array},
+	{ "get_tcclass_array", ej_tcclass_dump_array},
 #ifdef RTCONFIG_BCMWL6
 	{ "get_wl_status", ej_wl_status_2g_array},
 #endif
