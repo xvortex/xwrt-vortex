@@ -45,7 +45,7 @@ if (qos_mode == 2) {
 		bwdpi_app_rulelist_row = bwdpi_app_rulelist.split("<");
 	}
 } else {
-	var category_title = ["Highest", "High", "Medium", "Low", "Lowest"];
+	var category_title = ["", "Highest", "High", "Medium", "Low", "Lowest"];
 }
 
 

@@ -6853,6 +6853,8 @@ int init_main(int argc, char *argv[])
 			if ((state == SIGTERM /* REBOOT */) ||
 				(state == SIGQUIT /* HALT */)) {
 #ifdef RTCONFIG_USB
+				sync();
+				sleep(2);
 				remove_storage_main(1);
 				if (!g_reboot) {
 #if !(defined(RTN56UB1) || defined(RTN56UB2))
@@ -6866,7 +6868,6 @@ int init_main(int argc, char *argv[])
 				}
 #endif
 				shutdn(state == SIGTERM /* REBOOT */);
-				sync(); sync(); sync();
 				exit(0);
 			}
 			if (state == SIGINT /* STOP */) {
