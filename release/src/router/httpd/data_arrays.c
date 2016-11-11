@@ -669,8 +669,11 @@ ej_lan_ipv6_network_array(int eid, webs_t wp, int argc, char_t **argv)
 int ej_tcclass_dump_array(int eid, webs_t wp, int argc, char_t **argv) {
 	FILE *fp;
 	int ret = 0;
+#if 0
+	int len = 0;
+#endif
 	char tmp[64];
-	char *wan_ifname;
+	char wan_ifname[12];
 
 	if (nvram_get_int("qos_enable") == 0) {
 		ret += websWrite(wp, "var tcdata_lan_array = [[]];\nvar tcdata_wan_array = [[]];\n");
@@ -683,16 +686,32 @@ int ej_tcclass_dump_array(int eid, webs_t wp, int argc, char_t **argv) {
 		ret += websWrite(wp, "var tcdata_lan_array = [\n");
 
 		fp = fopen("/tmp/tcclass.txt","r");
-		if (!fp) {
-			ret += websWrite(wp, "[]];\n");
-		} else {
+		if (fp) {
 			ret += tcclass_dump(fp, wp);
 			fclose(fp);
+		} else {
+			ret += websWrite(wp, "[]];\n");
 		}
 		unlink("/tmp/tcclass.txt");
-		wan_ifname = nvram_safe_get("wan0_ifname");	// Hardcoded for now
+
+#if 0	// tc classes don't seem to use this interface as would be expected
+		fp = fopen("/sys/module/bw_forward/parameters/dev_wan", "r");
+		if (fp) {
+			if (fgets(tmp, sizeof(tmp), fp) != NULL) {
+				len = strlen(tmp);
+				if (len && tmp[len-1] == '\n')
+					tmp[len-1] = '\0';
+			}
+			fclose(fp);
+		}
+		if (len)
+			strncpy(wan_ifname, tmp, sizeof(wan_ifname));
+		else
+#endif
+			strcpy(wan_ifname, "eth0");     // Default fallback
+
 	} else {
-		wan_ifname = get_wan_ifname(wan_primary_ifunit());
+		strncpy(wan_ifname, get_wan_ifname(wan_primary_ifunit()), sizeof (wan_ifname));
 	}
 
 	if (nvram_get_int("qos_type") != 2) {	// Must not be BW Limiter
@@ -702,11 +721,11 @@ int ej_tcclass_dump_array(int eid, webs_t wp, int argc, char_t **argv) {
 	        ret += websWrite(wp, "var tcdata_wan_array = [\n");
 
 	        fp = fopen("/tmp/tcclass.txt","r");
-	        if (!fp) {
-	                ret += websWrite(wp, "[]];\n");
-	        } else {
+	        if (fp) {
 	                ret += tcclass_dump(fp, wp);
 			fclose(fp);
+		} else {
+			ret += websWrite(wp, "[]];\n");
 	        }
 		unlink("/tmp/tcclass.txt");
 	}
@@ -721,7 +740,7 @@ int tcclass_dump(FILE *fp, webs_t wp) {
 	unsigned long long traffic;
 	int ret = 0;
 
-	while (fgets(buf, 256, fp)) {
+	while (fgets(buf, sizeof(buf) , fp)) {
 		switch (stage) {
 			case 0:	// class
 				if (sscanf(buf, "class htb 1:%d %*s", &tcclass) == 1) {
