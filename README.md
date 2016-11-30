@@ -11,3 +11,7 @@ XWRT-Vortex supported devices are:
 - Linksys EA6900
 - Netgear R7000
 - Huawei WS880
+
+Firmware builds can be downloaded from the official download site:
+
+http://xvtx.ru/xwrt/download.htm

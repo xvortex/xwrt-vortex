@@ -1840,6 +1840,10 @@ struct nvram_tuple router_defaults[] = {
 	{ "https_crt_cn", "" },
 	{ "webs_last_info", ""},
 	{ "firmware_path", "0"},
+#ifdef RTCONFIG_MERLINUPDATE
+	{ "firmware_server", "http://xvtx.ru/xwrt" },
+	{ "firmware_check_enable", "1" },
+#endif
 #endif
 
 	{ "temp_lang", "" },
