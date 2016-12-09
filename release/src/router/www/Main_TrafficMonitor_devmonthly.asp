@@ -33,7 +33,7 @@ var filteripe = [];
 var scale = 2;
 
 var pie_obj_ul, pie_obj_dl;
-var labels_array, values_ul_array, values_dl_array;
+var labels_dl_array, labels_ul_array, values_dl_array, values_ul_array;
 
 var color = ["#B3645B","#B98F53","#C6B36A","#849E75","#2B6692","#7C637A","#4C8FC0", "#6C604F",
              "#683222","#64B35B","#833236","#662B92","#163346","#644726","#384767", "#386040"];
@@ -73,7 +73,7 @@ function redraw() {
 	var h;
 	var grid;
 	var rows;
-	var i, b, d;
+	var i, b;
 	var fskip;
 	var filtered = 0;
 
@@ -85,7 +85,8 @@ function redraw() {
 
 	values_ul_array = [];
 	values_dl_array = [];
-	labels_array = [];
+	labels_dl_array = [];
+	labels_ul_array = [];
 	var valuesObj = new Object();
 
 	rows = 0;
@@ -160,7 +161,7 @@ function redraw() {
 				}
 			}
 
-			var h = b[1];
+			h = b[1];
 			var clientObj;
 			var clientName;
 
@@ -176,48 +177,92 @@ function redraw() {
 			}
 
 			var ymd = getYMD(b[0]);
-			d = [ymText(ymd[0], ymd[1]), h, rescale(b[2]), rescale(b[3]), rescale(b[2]+b[3])];
 
-			if (!valuesObj.hasOwnProperty(clientName)){
-				valuesObj[clientName] = [0,0];
+			if (b[1] != fixIP(ntoa(aton(nvram.lan_ipaddr) & aton(nvram.lan_netmask)))) {
+				if (!valuesObj.hasOwnProperty(clientName)){
+					valuesObj[clientName] = [0,0];
+				}
+				valuesObj[clientName][0] += b[2];
+				valuesObj[clientName][1] += b[3];
 			}
-			valuesObj[clientName][0] += b[2];
-			valuesObj[clientName][1] += b[3];
 
 			grid += addrow(((rows & 1) ? 'odd' : 'even'), ymText(ymd[0], ymd[1]), style_open + h + style_close, rescale(b[2]), rescale(b[3]), rescale(b[2]+b[3]), b[1]);
 			++rows;
 		}
 	}
 
-	if(filtered > 0)
+	if (filtered > 0)
 		grid +='<tr><td style="color:#FFCC00;" colspan="5">'+ filtered +' entries filtered out.</td></tr>';
 
-	if(rows == 0)
+	if (rows == 0)
 		grid +='<tr><td style="color:#FFCC00;" colspan="5"><#IPConnection_VSList_Norule#></td></tr>';
 
 	E('bwm-monthly-grid').innerHTML = grid + '</table>';
 
-	for (var property in valuesObj) {
-		if (valuesObj.hasOwnProperty(property)) {
-			labels_array.push(property);
-			values_dl_array.push(valuesObj[property][0] / Math.pow(1024, scale));
-			values_ul_array.push(valuesObj[property][1] / Math.pow(1024, scale));
+	var max = 15;
+
+	/* Convert object into a (sortable) array */
+	var tmpArray = [];
+
+        for (var property in valuesObj) {
+                if (valuesObj.hasOwnProperty(property)) {
+			tmpArray.push([property, valuesObj[property][0], valuesObj[property][1], valuesObj[property][2]]);
 		}
 	}
 
-	var max = 16;
-	if (labels_array.length > max) {
-		for (var i = max; i < values_dl_array.length; i++) {
-			values_dl_array[max-1] += values_dl_array[i];
-			values_ul_array[max-1] += values_ul_array[i];
+	/* Sort by download */
+	tmpArray.sort( function (a,b) {
+		if (a[1] > b[1]) return -1;
+		if (a[1] < b[1]) return 1;
+		return 0;
+	});
+
+	for (var i = 0; i < tmpArray.length; i++) {
+		if (i < max) {
+			labels_dl_array.push(tmpArray[i][0]);
+			values_dl_array.push(tmpArray[i][1] / Math.pow(1024, scale));
+		} else if (i == max) {
+			values_dl_array[max] = tmpArray[i][1];
+			labels_dl_array[max] = "Others";
+		} else {
+			values_dl_array[max] += tmpArray[i][1];
 		}
-		values_dl_array = values_dl_array.slice(0,max);
-		values_ul_array = values_ul_array.slice(0,max);
-		labels_array = labels_array.slice(0,max);
-		labels_array[max-1] = "Others";
-		document.getElementById("trunc_dl").style.display="";
-		document.getElementById("trunc_ul").style.display="";
 	}
+
+	if (tmpArray.length > max) {
+		document.getElementById("trunc_dl").style.display="";
+		values_dl_array[max] = values_dl_array[max] / Math.pow(1024, scale);
+	} else {
+		document.getElementById("trunc_dl").style.display="none";
+	}
+
+
+	/* Sort by upload */
+	tmpArray.sort( function (a,b) {
+		if (a[2] > b[2]) return -1;
+		if (a[2] < b[2]) return 1;
+		return 0;
+	});
+
+	for (var i = 0; i < tmpArray.length; i++) {
+		if (i < max) {
+			labels_ul_array.push(tmpArray[i][0]);
+			values_ul_array.push(tmpArray[i][2] / Math.pow(1024, scale));
+		} else if (i == max) {
+			values_ul_array[max] = tmpArray[i][2];
+			labels_ul_array[max] = "Others";
+		} else {
+			values_ul_array[max] += tmpArray[i][2];
+		}
+	}
+
+	if (tmpArray.length > max) {
+		document.getElementById("trunc_ul").style.display="";
+		values_ul_array[max] = values_ul_array[max] / Math.pow(1024, scale);
+	} else {
+		document.getElementById("trunc_ul").style.display="none";
+	}
+
 	draw_chart();
 }
 
@@ -483,13 +528,16 @@ function draw_chart(){
 	var ctx_dl = document.getElementById("pie_chart_dl").getContext("2d");
 	var ctx_ul = document.getElementById("pie_chart_ul").getContext("2d");
 
-	if (labels_array.length == 0) {
+	if (labels_dl_array.length == 0) {
 		values_dl_array = [3.14159];
+		labels_dl_array = ["No Clients"];
+	}
+	if (labels_ul_array.length == 0) {
 		values_ul_array = [3.14159];
-		labels_array = ["No Clients"];
+		labels_ul_array = ["No Clients"];
 	}
 
-	var pieData_dl = {labels: labels_array,
+	var pieData_dl = {labels: labels_dl_array,
 		datasets: [
 			{data: values_dl_array,
 			backgroundColor: color,
@@ -498,7 +546,7 @@ function draw_chart(){
 			borderWidth: "1"
 		}]
 	};
-	var pieData_ul = {labels: labels_array,
+	var pieData_ul = {labels: labels_ul_array,
 		datasets: [
 			{data: values_ul_array,
 			backgroundColor: color,
