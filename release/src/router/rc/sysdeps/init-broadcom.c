@@ -2021,7 +2021,11 @@ void init_wl(void)
 #if defined(RTAC3200) || defined(RTAC68U) || defined(RTAC5300) || defined(RTAC5300R) || defined(RTAC88U) || defined(RTAC3100)
 	wl_disband5grp();
 #endif
+#if defined (EA6900) || defined (R7000) || defined (WS880)
+	set_wltxpower_vtx();
+#else
 	set_wltxpower();
+#endif
 #if defined(RTCONFIG_BCM7) || defined(RTCONFIG_BCM_7114)
 	load_wl();
 #else
@@ -2169,7 +2173,11 @@ void init_wl_compact(void)
 #if defined(RTAC3200) || defined(RTAC68U) || defined(RTAC5300) || defined(RTAC5300R)
 		wl_disband5grp();
 #endif
+#if defined (EA6900) || defined (R7000) || defined (WS880)
+		set_wltxpower_vtx();
+#else
 		set_wltxpower();
+#endif
 #if defined(RTCONFIG_BCM7) || defined(RTCONFIG_BCM_7114)
 		load_wl();
 #else
@@ -2591,8 +2599,6 @@ void chanspec_fix_5g(int unit)
 	}
 }
 
-static int set_wltxpower_vtx_once = 0;
-
 static const unsigned char txpower_list_vtx[] = { // 0-100% = 1-27 dBm = 1-500 mW
 	4, 29, 42, 50, 55, 59, 62, 65, 68, 70, 72, 73, 75, 76, 78, 79, 80, 81, 82, 83, 84, 85,
 	86, 87, 88, 88, 89, 90, 91, 91, 92, 92, 93, 94, 94, 95, 95, 96, 96, 97, 97, 98, 98, 98,
@@ -2604,114 +2610,50 @@ static const unsigned char txpower_list_vtx[] = { // 0-100% = 1-27 dBm = 1-500 m
 
 int set_wltxpower_vtx()
 {
-	char ifnames[256];
-	char name[64], ifname[64], *next = NULL;
-	int unit = -1, subunit = -1;
-	int i;
-	char tmp[100], prefix[]="wlXXXXXXX_";
-	char tmp2[100], prefix2[]="pci/x/1/";
-	char tmp3[100];
-	unsigned char p;
-	int txpower = 100;
+	char prefix1[]="pci/1/1/";
+	char prefix2[]="pci/2/1/";
+	char tmp1[100], tmp2[100];
+	unsigned char p1, p2;
+	int txpower1, txpower2;
 	int commit_needed = 0;
 	int model;
 
 	// generate nvram nvram according to system setting
 	model = get_model();
 
-	if (!nvram_contains_word("rc_support", "pwrctrl")) {
-		dbG("[rc] no Power Control on this model\n");
-		return -1;
+	switch(model) {
+		case MODEL_EA6900:
+		case MODEL_WS880:
+			snprintf(prefix1, sizeof(prefix1), "%d:", 0);
+			snprintf(prefix2, sizeof(prefix2), "%d:", 1);
+			break;
 	}
 
-	if ((model != MODEL_EA6900)
-		&& (model != MODEL_R7000)
-		&& (model != MODEL_WS880)
-		)
+	txpower1 = nvram_get_int("wl0_txpower");
+	txpower2 = nvram_get_int("wl1_txpower");
+
+	dbG("unit: %d, txpower: %d\n", 0, txpower1);
+	dbG("unit: %d, txpower: %d\n", 1, txpower2);
+
+	p1 = txpower_list_vtx[txpower1];
+	sprintf(tmp2, "%d", p1);
+	if (!nvram_match(strcat_r(prefix1, "maxp2ga0", tmp1), tmp2))
 	{
-		dbG("\n\tDon't do this!\n\n");
-		return -1;
+		nvram_set(strcat_r(prefix1,"maxp2ga0", tmp1), tmp2);
+		nvram_set(strcat_r(prefix1,"maxp2ga1", tmp1), tmp2);
+		nvram_set(strcat_r(prefix1,"maxp2ga2", tmp1), tmp2);
+		commit_needed++;
 	}
 
-	snprintf(ifnames, sizeof(ifnames), "%s %s",
-		 nvram_safe_get("lan_ifnames"), nvram_safe_get("wan_ifnames"));
-	remove_dups(ifnames, sizeof(ifnames));
-
-	i = 0;
-	foreach(name, ifnames, next) {
-		if (nvifname_to_osifname(name, ifname, sizeof(ifname)) != 0)
-			continue;
-
-		if (wl_probe(ifname) || wl_ioctl(ifname, WLC_GET_INSTANCE, &unit, sizeof(unit)))
-			continue;
-
-		/* Convert eth name to wl name */
-		if (osifname_to_nvifname(name, ifname, sizeof(ifname)) != 0)
-			continue;
-
-		/* Slave intefaces have a '.' in the name */
-		if (strchr(ifname, '.'))
-			continue;
-
-		if (get_ifname_unit(ifname, &unit, &subunit) < 0)
-			continue;
-
-		snprintf(prefix, sizeof(prefix), "wl%d_", unit);
-		switch(model) {
-			case MODEL_R7000:
-				snprintf(prefix2, sizeof(prefix2), "pci/%d/1/", unit + 1);
-				break;
-
-			case MODEL_EA6900:
-			case MODEL_WS880:
-				snprintf(prefix2, sizeof(prefix2), "%d:", unit);
-				break;
-		}
-
-		txpower = nvram_get_int(wl_nvname("txpower", unit, 0));
-		dbG("unit: %d, txpower: %d\n", unit, txpower);
-
-		switch(model) {
-			case MODEL_EA6900:
-			case MODEL_R7000:
-			case MODEL_WS880:
-				if (set_wltxpower_vtx_once) {
-					if (nvram_match(strcat_r(prefix, "nband", tmp), "2"))		// 2.4G
-					{
-						p = txpower_list_vtx[txpower];
-						sprintf(tmp3, "%d", p);
-						if (!nvram_match(strcat_r(prefix2, "maxp2ga0", tmp2), tmp3))
-						{
-							nvram_set(strcat_r(prefix2,"maxp2ga0", tmp2), tmp3);
-							nvram_set(strcat_r(prefix2,"maxp2ga1", tmp2), tmp3);
-							nvram_set(strcat_r(prefix2,"maxp2ga2", tmp2), tmp3);
-							commit_needed++;
-						}
-					}
-					else if (nvram_match(strcat_r(prefix, "nband", tmp), "1"))	// 5G
-					{
-						p = txpower_list_vtx[txpower];
-						sprintf(tmp3, "%d,%d,%d,%d", p, p, p, p);
-						if (!nvram_match(strcat_r(prefix2, "maxp5ga0", tmp2), tmp3))
-						{
-							nvram_set(strcat_r(prefix2, "maxp5ga0", tmp2), tmp3);
-							nvram_set(strcat_r(prefix2, "maxp5ga1", tmp2), tmp3);
-							nvram_set(strcat_r(prefix2, "maxp5ga2", tmp2), tmp3);
-							commit_needed++;
-						}
-					}
-				}
-				break;
-
-			default:
-				break;
-		}
-
-		i++;
+	p2 = txpower_list_vtx[txpower2];
+	sprintf(tmp2, "%d,%d,%d,%d", p2, p2, p2, p2);
+	if (!nvram_match(strcat_r(prefix2, "maxp5ga0", tmp1), tmp2))
+	{
+		nvram_set(strcat_r(prefix2, "maxp5ga0", tmp1), tmp2);
+		nvram_set(strcat_r(prefix2, "maxp5ga1", tmp1), tmp2);
+		nvram_set(strcat_r(prefix2, "maxp5ga2", tmp1), tmp2);
+		commit_needed++;
 	}
-
-	if (!set_wltxpower_vtx_once)
-		set_wltxpower_vtx_once = 1;
 
 	if (commit_needed)
 		nvram_commit();
