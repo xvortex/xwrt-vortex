@@ -140,6 +140,8 @@ var digestsarray = [
 		["whirlpool"]
 ];
 
+var wans_mode ='<% nvram_get("wans_mode"); %>';
+
 function initial(){
 	var currentcipher = "<% nvram_get("vpn_server_cipher"); %>";
 	var currentdigest = "<% nvram_get("vpn_server_digest"); %>";
@@ -148,18 +150,6 @@ function initial(){
 	addOnlineHelp(document.getElementById("faq"), ["ASUSWRT", "VPN"]);
 
 	formShowAndHide(vpn_server_enable, "openvpn");
-	//check DUT is belong to private IP.
-
-	if(realip_support){
-		if(!external_ip){
-			document.getElementById("privateIP_notes").innerHTML = "<#vpn_privateIP_hint#>"
-			document.getElementById("privateIP_notes").style.display = "";			
-		}
-	}
-	else if(validator.isPrivateIP(wanlink_ipaddr())){	
-		document.getElementById("privateIP_notes").innerHTML = "<#vpn_privateIP_hint#>"
-		document.getElementById("privateIP_notes").style.display = "";
-	}
 
 	/*Advanced Setting start */
 	allowed_openvpn_clientlist();
@@ -187,6 +177,52 @@ function initial(){
 	update_visibility();
 
 	/*Advanced Setting end */
+
+	//check DUT is belong to private IP.
+	setTimeout("show_warning_message();", 100);
+}
+
+var MAX_RETRY_NUM = 5;
+var external_ip_retry_cnt = MAX_RETRY_NUM;
+function show_warning_message(){
+	if(realip_support && wans_mode != "lb"){
+		if(realip_state != "2" && external_ip_retry_cnt > 0){
+			if( external_ip_retry_cnt == MAX_RETRY_NUM )
+				get_real_ip();
+			else
+				setTimeout("get_real_ip();", 3000);
+		}
+		else if(realip_state != "2"){
+			if(validator.isPrivateIP(wanlink_ipaddr())){
+				document.getElementById("privateIP_notes").innerHTML = "<#vpn_privateIP_hint#>"
+				document.getElementById("privateIP_notes").style.display = "";
+			}
+		}
+		else{
+			if(!external_ip){
+				document.getElementById("privateIP_notes").innerHTML = "<#vpn_privateIP_hint#>"
+				document.getElementById("privateIP_notes").style.display = "";
+			}
+		}
+	}
+	else if(validator.isPrivateIP(wanlink_ipaddr())){
+		document.getElementById("privateIP_notes").innerHTML = "<#vpn_privateIP_hint#>"
+		document.getElementById("privateIP_notes").style.display = "";
+	}
+}
+
+function get_real_ip(){
+	$.ajax({
+		url: 'get_real_ip.asp',
+		dataType: 'script',
+		error: function(xhr){
+			get_real_ip();
+		},
+		success: function(response){
+			external_ip_retry_cnt--;
+			show_warning_message();
+		}
+	});
 }
 
 function formShowAndHide(server_enable, server_type) {
@@ -247,6 +283,21 @@ function openvpnd_connected_status(){
 }
 
 function applyRule(){
+	var validForm = function() {
+		if(!validator.numberRange(document.form.vpn_server_port, 1, 65535)) {
+			return false;
+		}
+		if(!validator.numberRange(document.form.vpn_server_poll, 0, 1440)) {
+			return false;
+		}
+		if(!validator.numberRange(document.form.vpn_server_reneg, -1, 2147483647)) {
+			return false;
+		}
+		return true;
+	};
+	if(!validForm())
+		return false;
+
 	var confirmFlag = true;
 
 	/* Advanced setting start */
@@ -803,6 +854,7 @@ function update_visibility(){
 		ccd = 0;
 	else
 		ccd = getRadioValue(document.form.vpn_server_ccd);
+	ncp = document.form.vpn_server_ncp_enable.value;
 		
 	showhide("server_authhmac", (auth != "secret"));
 	showhide("server_snnm", ((auth == "tls") && (iface == "tun")));
@@ -820,6 +872,9 @@ function update_visibility(){
 	showhide("server_tls_crypto_text", ((auth == "tls") || (auth == "secret")));		//add by Viz
 	showhide("server_custom_crypto_text", (auth == "custom"));
 	showhide("server_igncrt", (userpass == 1));
+	showhide("server_cipher", (ncp != 2));
+	showhide("ncp_enable", (auth == "tls"));
+	showhide("ncp_ciphers", ((ncp > 0) && (auth == "tls")));
 }
 
 function set_Keys() {
@@ -1367,7 +1422,7 @@ function defaultSettings() {
 											<tr>
 												<th>Server Port</th>
 												<td>
-													<input type="text" maxlength="5" class="input_6_table" name="vpn_server_port" onKeyPress="return validator.isNumber(this,event);" onblur="validator.numberRange(this, 1, 65535)" value="<% nvram_get("vpn_server_port"); %>" autocorrect="off" autocapitalize="off">
+													<input type="text" maxlength="5" class="input_6_table" name="vpn_server_port" onKeyPress="return validator.isNumber(this,event);" value="<% nvram_get("vpn_server_port"); %>" autocorrect="off" autocapitalize="off">
 													<span style="color:#FC0">(<#Setting_factorydefault_value#> : 1194)</span>
 												</td>
 											</tr>
@@ -1456,7 +1511,7 @@ function defaultSettings() {
 											<tr>
 												<th><#vpn_openvpn_PollInterval#></th>
 												<td>
-													<input type="text" maxlength="4" class="input_6_table" name="vpn_server_poll" onKeyPress="return validator.isNumber(this,event);" onblur="validator.numberRange(this, 0, 1440)" value="<% nvram_get("vpn_server_poll"); %>" autocorrect="off" autocapitalize="off"> <#Minute#>
+													<input type="text" maxlength="4" class="input_6_table" name="vpn_server_poll" onKeyPress="return validator.isNumber(this,event);" value="<% nvram_get("vpn_server_poll"); %>" autocorrect="off" autocapitalize="off"> <#Minute#>
 													<span style="color:#FC0">(<#zero_disable#>)</span>
 												</td>
 											</tr>
@@ -1488,8 +1543,24 @@ function defaultSettings() {
 													<input type="radio" name="vpn_server_pdns" class="input" value="0" <% nvram_match_x("", "vpn_server_pdns", "0", "checked"); %>><#checkbox_No#>
 												</td>
 											</tr>
-											<tr>
-												<th><#vpn_openvpn_Encrypt#></th>
+											<tr id="ncp_enable">
+												<th><a class="hintstyle" href="javascript:void(0);" onClick="openHint(50,16);">Cipher Negotiation</a></th>
+												<td>
+													<select name="vpn_server_ncp_enable" onclick="update_visibility();" class="input_option">
+														<option value="0" <% nvram_match("vpn_server_ncp_enable","0","selected"); %> >Disabled</option>
+														<option value="1" <% nvram_match("vpn_server_ncp_enable","1","selected"); %> >Enable (with fallback)</option>
+														<option value="2" <% nvram_match("vpn_server_ncp_enable","2","selected"); %> >Enable</option>
+													</select>
+												</td>
+											</tr>
+											<tr id="ncp_ciphers">
+												<th>Negotiable ciphers</th>
+												<td>
+													<input type="text" maxlength="255" class="input_32_table" name="vpn_server_ncp_ciphers" value="<% nvram_get("vpn_server_ncp_ciphers"); %>" >
+												</td>
+											</tr>
+											<tr id="server_cipher">
+												<th>Legacy/fallback cipher</th>
 												<td>
 													<select name="vpn_server_cipher" class="input_option"></select>
 												</td>
@@ -1500,15 +1571,16 @@ function defaultSettings() {
 													<select name="vpn_server_comp" class="input_option">
 														<option value="-1" <% nvram_match("vpn_server_comp","-1","selected"); %> ><#WLANConfig11b_WirelessCtrl_buttonname#></option>
 														<option value="no" <% nvram_match("vpn_server_comp","no","selected"); %> ><#wl_securitylevel_0#></option>
-														<option value="yes" <% nvram_match("vpn_server_comp","yes","selected"); %> ><#WLANConfig11b_WirelessCtrl_button1name#></option>
-														<option value="adaptive" <% nvram_match("vpn_server_comp","adaptive","selected"); %> ><#Adaptive#></option>
+														<option value="yes" <% nvram_match("vpn_server_comp","yes","selected"); %> >LZO</option>
+														<option value="adaptive" <% nvram_match("vpn_server_comp","adaptive","selected"); %> > LZO Adaptive</option>
+														<option value="lz4" <% nvram_match("vpn_server_comp","lz4","selected"); %> >LZ4</option>
 													</select>
 												</td>
 											</tr>
 											<tr id="server_reneg">
 												<th><#vpn_openvpn_TLSTime#></th>
 												<td>
-													<input type="text" maxlength="5" class="input_6_table" name="vpn_server_reneg" onblur="validator.range(this, -1, 2147483647)" value="<% nvram_get("vpn_server_reneg"); %>" autocorrect="off" autocapitalize="off"> <#Second#>
+													<input type="text" maxlength="5" class="input_6_table" name="vpn_server_reneg" value="<% nvram_get("vpn_server_reneg"); %>" autocorrect="off" autocapitalize="off"> <#Second#>
 													<span style="color:#FC0">(<#Setting_factorydefault_value#> : -1)</span>
 												</td>
 											</tr>

@@ -114,22 +114,30 @@ function initial(){
 		else
 			document.getElementById("sig_ver_word").innerHTML = sig_ver;
 	}
+	
+	if(webs_state_upgrade != ""){   //Show firmware is downloading or fw upgrade loading bar if doing webs_upgrade.sh 
+		startDownloading();
+	}
 
 	if(!live_update_support || !HTTPS_support || ("<% nvram_get("firmware_check_enable"); %>" != "1")){
 		document.getElementById("update").style.display = "none";
+		document.getElementById("beta_firmware_path_span").style.display = "none";
 		document.getElementById("linkpage_div").style.display = "";
 		document.getElementById("linkpage").style.display = "";
-		document.getElementById("beta_firmware_span").style.display = "none";
 		document.getElementById("fw_check_link").style.display = "none";
 		helplink = download_url;
 		document.getElementById("linkpage").href = helplink;
 	} 
 	else{
 		document.getElementById("update").style.display = "";
+		document.getElementById("beta_firmware_path_span").style.display = "";
 		document.getElementById("linkpage_div").style.display = "none";
 		change_firmware_path(document.getElementById("beta_firmware_path").checked==true);
-		if(confirm_show == 1){
-			do_show_confirm(webs_state_info, 0, current_firmware_path);	//Show formal path result
+		if(confirm_show.length > 0 && confirm_show == 1){
+			do_show_confirm(webs_state_info_beta, confirm_show, current_firmware_path);	//Show beta path result
+		}
+		else if(confirm_show.length > 0 && confirm_show == 0){
+			do_show_confirm(webs_state_info, confirm_show, current_firmware_path);	//Show formal path result
 		}
 	}
 
@@ -236,7 +244,7 @@ function do_show_confirm(FWVer, CheckPath, CurrentPath){
 					if(isNewFW(FWVer, CheckPath, CurrentPath)){	//check_path, current_path
 						document.getElementById('update_scan').style.display="none";
 						document.getElementById('update_states').style.display="none";													
-						if(note_display==1){	//for beta							
+						if(CheckPath==1){	//for beta							
 								
 								confirm_asus({
          					title: "Beta Firmware Available",
@@ -291,8 +299,8 @@ function do_show_confirm(FWVer, CheckPath, CurrentPath){
 							document.getElementById('update_states').style.display="";
 							document.getElementById('update_states').innerHTML="<#is_latest#>";
 						}
-					}	
-	
+					}
+
 }
 
 function detect_update(firmware_path){
@@ -703,7 +711,7 @@ function change_firmware_path(flag){
 				<th><#FW_item2#></th>
 				<td>
 					<input type="text" name="firmver_table" id="firmver_table" class="input_20_table" value="<% nvram_get("firmver"); %>.<% nvram_get("buildno"); %>_<% nvram_get("extendno"); %>" readonly="1" autocorrect="off" autocapitalize="off">&nbsp&nbsp&nbsp<!--/td-->
-					<span id="beta_firmware_span" style="color:#FFF;"><input type="checkbox" name="beta_firmware_path" id="beta_firmware_path" onclick="change_firmware_path(this.checked==true);"  <% nvram_match("firmware_path", "1", "checked"); %>>Get Beta Firmware</input></span>
+					<span id="beta_firmware_path_span" style="color:#FFF;"><input type="checkbox" name="beta_firmware_path" id="beta_firmware_path" onclick="change_firmware_path(this.checked==true);"  <% nvram_match("firmware_path", "1", "checked"); %>>Get Beta Firmware</input></span>
 					<input type="button" id="update" name="update" style="margin-left:330px;margin-top:-25px;display:none;" class="button_gen" style="display:none;" onclick="detect_update(document.start_update.firmware_path.value);" value="<#liveupdate#>" />
 					<div id="linkpage_div" class="button_helplink" style="margin-left:330px;margin-top:-25px;display:none;"><a id="linkpage" target="_blank"><div style="padding-top:5px;"><#liveupdate#></div></a></div>
 					<div id="check_states">

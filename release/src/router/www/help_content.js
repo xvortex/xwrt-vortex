@@ -313,7 +313,7 @@ helpcontent[28] = new Array("",
 //Switch Control
 helpcontent[29] = new Array("",
 							"This item had various names: Port Trunking/ Bonding/ Teaming/ Link Aggregation/ 802.3ad.",	/*untranslated*/
-							"When NAT Acceleration enabled, switch can handle the network packets by itself and bypass CPU. It can increases NAT throughput but some applications may not work precisely, such as time scheduling."	/*untranslated*/
+							"When NAT Acceleration enabled, switch can handle the network packets by itself and bypass CPU. It can increases NAT throughput but some features may not work precisely, such as time scheduling, traditional QoS and bandwidth limiter on guest network, etc. If you set NAT acceleration as auto, it will be disable automatically once these features are enabled."	/*untranslated*/
 							);
 
 helpcontent[30] = new Array("",
@@ -334,4 +334,6 @@ helpcontent[50] = new Array("",
 				"Filter out what minimum level get logged in the system log",
 				"The JFFS partition is a portion of the router flash memory which contains data such as OpenVPN key/cers and user created scripts.  It's strongly recommended to create a backup of it before updating your firmware.",
 				"Disabled: Actively block the port used by the protocol<br><br>Enabled: Allow NAT traffic through the protocol's port<br><br>Enabled+NAT Helper: Allow NAT traffic, and use a Netfilter module to help handle NAT forwarding for that protocol's traffic",
-				"This feature tells the router to regularly check for the availability of a new firmware version and to notify you if there is one available.  You can manually initiate that check from the Firmware Upgrade page.  You must still manually download and update your router afterward.");
+				"This feature tells the router to regularly check for the availability of a new firmware version and to notify you if there is one available.  You can manually initiate that check from the Firmware Upgrade page.  You must still manually download and update your router afterward.",
+				"OpenVPN can automatically negotiate the cipher based on a list.  Requires OpenVPN 2.4.  For older remote client/servers, disable it, or use Enabled with Fallback mode, which will use the legacy cipher parameter when connecting to older remotes.");
+// Last: 50,16

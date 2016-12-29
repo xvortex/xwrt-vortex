@@ -1441,14 +1441,6 @@ function popClientListEditTable(mac, obj, name, ip, callBack) {
 	formObj.action = "/start_apply2.htm";
 	formObj.target = "hidden_frame";
 
-	var currentURL = "";
-	if(location.pathname == "/")
-		currentURL = "index.asp";
-	else
-		currentURL = location.pathname.substring(location.pathname.lastIndexOf('/') + 1);
-
-	formHTML += '<input type="hidden" name="current_page" value=' + currentURL + '>';
-	formHTML += '<input type="hidden" name="next_page" value=' + currentURL + '>';
 	formHTML += '<input type="hidden" name="modified" value="0">';
 	formHTML += '<input type="hidden" name="flag" value="background">';
 	formHTML += '<input type="hidden" name="action_mode" value="apply">';
@@ -2049,6 +2041,12 @@ var sorter = {
 			b_num = (b[sorter.indexFlag] == "") ? 0 : b[sorter.indexFlag];
 			return parseInt(a_num) - parseInt(b_num);
 		}
+		else if(sorter.indexFlag == 8) { // Time string in (h)hh:mm:ss format
+			var a_num = 0, b_num = 0;
+			a_num = a[sorter.indexFlag].replace(/:/g, "");
+			b_num = b[sorter.indexFlag].replace(/:/g, "");
+			return parseInt(a_num) - parseInt(b_num);
+		}
 		else {
 			return parseInt(a[sorter.indexFlag]) - parseInt(b[sorter.indexFlag]);
 		}
@@ -2065,6 +2063,12 @@ var sorter = {
 			var a_num = 0, b_num = 0;
 			a_num = (a[sorter.indexFlag] == "") ? 0 : a[sorter.indexFlag];
 			b_num = (b[sorter.indexFlag] == "") ? 0 : b[sorter.indexFlag];
+			return parseInt(b_num) - parseInt(a_num);
+		}
+		else if(sorter.indexFlag == 8) { // Time string in (h)hh:mm:ss format
+			var a_num = 0, b_num = 0;
+			a_num = a[sorter.indexFlag].replace(/:/g, "");
+			b_num = b[sorter.indexFlag].replace(/:/g, "");
 			return parseInt(b_num) - parseInt(a_num);
 		}
 		else {
@@ -2348,7 +2352,7 @@ function exportClientListLog() {
 
 function sorterClientList() {
 	//initial sort ip
-	var indexMapType = ["", "", "str", "num", "str", "num", "num", "num", "str"];
+	var indexMapType = ["", "", "str", "num", "str", "num", "num", "num", "num"];
 	switch (clienlistViewMode) {
 		case "All" :
 			sorter.doSorter(sorter.all_index, indexMapType[sorter.all_index], 'all_list');
@@ -2487,7 +2491,9 @@ function create_clientlist_listview() {
 			break;
 	}
 
-	code += "<div style='text-align:center;margin-top:15px;'><input  type='button' class='button_gen' onclick='exportClientListLog();' value='<#btn_Export#>'></div>";
+	if(!top.isIE8)
+		code += "<div style='text-align:center;margin-top:15px;'><input  type='button' class='button_gen' onclick='exportClientListLog();' value='<#btn_Export#>'></div>";
+	
 	code += "</td></tr></tbody>";
 	code += "</table>";
 
@@ -2978,14 +2984,6 @@ function removeClient(_mac, _controlObj, _controlPanel) {
 	formObj.action = "/deleteOfflineClient.cgi";
 	formObj.target = "hidden_frame";
 
-	var currentURL = "";
-	if(location.pathname == "/")
-		currentURL = "index.asp";
-	else
-		currentURL = location.pathname.substring(location.pathname.lastIndexOf('/') + 1);
-
-	formHTML += '<input type="hidden" name="current_page" value=' + currentURL + '>';
-	formHTML += '<input type="hidden" name="next_page" value=' + currentURL + '>';
 	formHTML += '<input type="hidden" name="modified" value="0">';
 	formHTML += '<input type="hidden" name="flag" value="">';
 	formHTML += '<input type="hidden" name="action_mode" value="">';

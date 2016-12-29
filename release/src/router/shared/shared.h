@@ -291,7 +291,7 @@ enum {
 	MODEL_PLN12,
 	MODEL_PLAC56,
 	MODEL_PLAC66U,
-#if defined (RTAC3200) || defined(RTAC87U)
+#if defined(RTAC3200)
         MODEL_RTAC88N,
         MODEL_BRTAC828M2,
         MODEL_RTAC88S,
@@ -351,7 +351,7 @@ enum {
 #if !defined (WS880)
 	MODEL_WS880,
 #endif
-#if !defined (RTAC3200) && !defined(RTAC87U)
+#if !defined(RTAC3200)
 	MODEL_RTAC88N,
 	MODEL_BRTAC828M2,
 	MODEL_RTAC88S
@@ -463,9 +463,8 @@ extern int f_wait_notexists(const char *name, int max);
 #define BTN_SWMODE_SW_REPEATER		6
 #define BTN_SWMODE_SW_AP		7
 #define BTN_WIFI_TOG			8
-#define BTN_TURBO			9
-#define BTN_LED				0xA
-#define BTN_LTE				11
+#define BTN_LED				9
+#define BTN_LTE				0xA
 
 enum led_id {
 	LED_POWER = 0,
@@ -484,7 +483,9 @@ enum led_id {
 	LED_LAN3,
 	LED_LAN4,
 #endif
-	LED_TURBO,
+#ifdef RTCONFIG_LOGO_LED
+	LED_LOGO,
+#endif
 	LED_WAN_RED,
 #ifdef RTCONFIG_QTN
 	BTN_QTN_RESET,	/* QTN platform uses led_control() to control this gpio. */
@@ -1221,39 +1222,32 @@ static inline int is_usb3_port(char *usb_node)
 
 #ifdef RTCONFIG_BCM5301X_TRAFFIC_MONITOR
 
-#define MIB_P0_PAGE 0x20       /* port 0 */
-#define MIB_RX_REG 0x88
-#define MIB_TX_REG 0x00
-
 #if defined(RTN18U) || defined(RTAC56U) || defined(RTAC56S) || defined(RTAC68U) || defined(EA6900) || defined(R7000) || defined(WS880) || defined(RTAC3200) || defined(DSL_AC68U)
-#define CPU_PORT "5"
 #define WAN0DEV "vlan2"
 #endif
 
 #if defined(RTAC5300) || defined(RTAC5300R)
-#define CPU_PORT "7"
 #define WAN0DEV "vlan2"
 #endif
 
 #if defined(RTAC88U) || defined(RTAC3100)/* || defined(RTAC5300)*/
 #ifdef RTCONFIG_EXT_RTL8365MB
-#define CPU_PORT "7"
 #define WAN0DEV "vlan2"
 #else
-#define CPU_PORT "5"
 #define WAN0DEV "vlan2"
 #endif
 #endif
 
 #ifdef RTAC87U
-#define CPU_PORT "7"   /* RT-AC87U */
-#define RGMII_PORT "5" /* RT-AC87U */
 #define WAN0DEV "vlan2"
 #endif
 #endif	/* RTCONFIG_BCM5301X_TRAFFIC_MONITOR */
 
 #ifdef RTAC68U
-#define MODEL_STR_RTAC66UV2    "RT-AC66U_B1"
+#define MODEL_STR_RTAC66UV2		"RT-AC66U_B1"
+#define MODEL_STR_RTAC66UV2_ODM1	"RT-AC1750_B1"
 #endif
+
+int wanport_status(int wan_unit);
 
 #endif	/* !__SHARED_H__ */
