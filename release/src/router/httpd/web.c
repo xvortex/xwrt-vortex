@@ -362,6 +362,13 @@ reltime(unsigned int seconds, char *cs)
 //2008.08 magic{
 void websRedirect(webs_t wp, char_t *url)
 {
+	char url_str[128];
+	if(check_xxs_blacklist(url, 1)){
+		memset(url_str, 0, sizeof(url_str));
+		strlcpy(url_str, "index.asp", sizeof(url_str));
+	}else
+		strlcpy(url_str, url, sizeof(url_str));
+
 	websWrite(wp, T("<html><head>\r\n"));
 
 	if(strchr(url, '>') || strchr(url, '<'))
@@ -373,12 +380,12 @@ void websRedirect(webs_t wp, char_t *url)
 #ifdef RTCONFIG_HTTPS
 		if(do_ssl){
 			//websWrite(wp, T("<meta http-equiv=\"refresh\" content=\"0; url=https://%s/%s\">\r\n"), gethost(), url);
-			websWrite(wp,"<script>parent.location.href='/%s';</script>\n",url);
+			websWrite(wp,"<script>parent.location.href='/%s';</script>\n",url_str);
 		}else
 #endif
 		{
 			//websWrite(wp, T("<meta http-equiv=\"refresh\" content=\"0; url=http://%s/%s\">\r\n"), gethost(), url);
-			websWrite(wp,"<script>parent.location.href='/%s';</script>\n",url);
+			websWrite(wp,"<script>parent.location.href='/%s';</script>\n",url_str);
 		}
 	}
 
@@ -390,6 +397,13 @@ void websRedirect(webs_t wp, char_t *url)
 
 void websRedirect_iframe(webs_t wp, char_t *url)
 {
+	char url_str[32];
+	if(check_xxs_blacklist(url, 1)){
+		memset(url_str, 0, sizeof(url_str));
+		strlcpy(url_str, "index.asp", sizeof(url_str));
+	}else
+		strlcpy(url_str, url, sizeof(url_str));
+
 	websWrite(wp, T("<html><head>\r\n"));
 
 	if(strchr(url, '>') || strchr(url, '<'))
@@ -400,11 +414,11 @@ void websRedirect_iframe(webs_t wp, char_t *url)
 	{
 #ifdef RTCONFIG_HTTPS
 		if(do_ssl){
-			websWrite(wp, T("<meta http-equiv=\"refresh\" content=\"0; url=https://%s/%s\">\r\n"), gethost(), url);
+			websWrite(wp, T("<meta http-equiv=\"refresh\" content=\"0; url=https://%s/%s\">\r\n"), gethost(), url_str);
 		}else
 #endif
 		{
-			websWrite(wp, T("<meta http-equiv=\"refresh\" content=\"0; url=http://%s/%s\">\r\n"), gethost(), url);
+			websWrite(wp, T("<meta http-equiv=\"refresh\" content=\"0; url=http://%s/%s\">\r\n"), gethost(), url_str);
 		}
 	}
 
@@ -420,7 +434,7 @@ void sys_script(char *name)
 
      char scmd[64];
 
-     sprintf(scmd, "/tmp/%s", name);
+     snprintf(scmd, sizeof(scmd), "/tmp/%s", name);
      //printf("run %s %d %s\n", name, strlen(name), scmd);	// tmp test
 
      //handle special scirpt first
@@ -1202,12 +1216,12 @@ ej_dump(int eid, webs_t wp, int argc, char_t **argv)
 	else if (strcmp(file, "wps_info.log")==0)
 	{
 #ifndef RTAC3200
-		if (nvram_match("wps_band", "0"))
+		if (nvram_match("wps_band_x", "0"))
 			return (ej_wps_info_2g(eid, wp, 0, NULL));
 		else
 			return (ej_wps_info(eid, wp, 0, NULL));
 #else
-		return wl_wps_info(eid, wp, argc, argv, nvram_get_int("wps_band"));
+		return wl_wps_info(eid, wp, argc, argv, nvram_get_int("wps_band_x"));
 #endif
 	}
 #if 0
@@ -1799,9 +1813,9 @@ static void do_html_post_and_get(char *url, FILE *stream, int len, char *boundar
 
 	if (query && strlen(query) > 0){
 		if (strlen(post_buf) > 0)
-			sprintf(post_buf_backup, "?%s&%s", post_buf, query);
+			snprintf(post_buf_backup, sizeof(post_buf_backup), "?%s&%s", post_buf, query);
 		else
-			sprintf(post_buf_backup, "?%s", query);
+			snprintf(post_buf_backup, sizeof(post_buf_backup), "?%s", query);
 		sprintf(post_buf, "%s", post_buf_backup+1);
 	}
 	else if (strlen(post_buf) > 0)
@@ -2396,12 +2410,10 @@ static int validate_apply(webs_t wp, json_object *root) {
 					notify_rc("restart_set_dataset");
 				}
 #endif
-				if(!strcmp(name, "wps_enable")) {
-					nvram_set("wps_enable_old", value);
-					_dprintf("set wps_enable_old=%s\n", value);
-				}
-
 				nvram_set(name, value);
+				if(!strcmp(name, "wps_enable"))
+					nvram_set("wps_enable_x", value);
+
 				if(strcmp(name, "wans_dualwan") && strcmp(name, "wans_mode")) //not wans_dualwan
 					nvram_modified = 1;
 				_dprintf("set %s=%s\n", name, value);
@@ -2709,7 +2721,8 @@ static int ej_set_variables(int eid, webs_t wp, int argc, char_t **argv) {
 		}
 	}
 	else if(!strcmp(apiName, "portforward")){
-		char *name, *rport, *lip, *lport, *proto;
+		char *name, *rport, *srcip, *lip, *lport, *proto;
+		int cnt;
 
 		if(!strcmp(apiAction, "enable")){
 			if(nvram_match("vts_enable_x", "0")){
@@ -2731,6 +2744,7 @@ static int ej_set_variables(int eid, webs_t wp, int argc, char_t **argv) {
 			webVar_3 = websGetVar(wp, "lip", "");
 			webVar_4 = websGetVar(wp, "lport", "");
 			webVar_5 = websGetVar(wp, "proto", "");
+			webVar_6 = websGetVar(wp, "src", "");
 
 			if(!strcmp(webVar_1, "") || !strcmp(webVar_2, "") || !strcmp(webVar_3, "") ||
 			   !strcmp(webVar_4, "") || !strcmp(webVar_5, "")){
@@ -2759,11 +2773,14 @@ static int ej_set_variables(int eid, webs_t wp, int argc, char_t **argv) {
 
 					iCurrentListNum++;
 
-					if((vstrsep(p, ">", &name, &rport, &lip, &lport, &proto)) != 5) continue;
+					if ((cnt = vstrsep(p, ">", &name, &rport, &lip, &lport, &proto, &srcip)) < 5)
+						continue;
+					else if (cnt < 6)
+						srcip = "";
 
 					if(!strcmp(webVar_1, name) && !strcmp(webVar_2, rport) &&
 					   !strcmp(webVar_3, lip) && !strcmp(webVar_4, lport) &&
-					   !strcmp(webVar_5, proto)
+					   !strcmp(webVar_5, proto) && !strcmp(webVar_6, srcip)
 					){
 						retStatus = 1;
 						break;
@@ -2786,6 +2803,8 @@ static int ej_set_variables(int eid, webs_t wp, int argc, char_t **argv) {
 					strcat(nvramTmp, webVar_4);
 					strcat(nvramTmp, ">");
 					strcat(nvramTmp, webVar_5);
+					strcat(nvramTmp, ">");
+					strcat(nvramTmp, webVar_6);
 					strcat(nvramTmp, nvram_safe_get("vts_rulelist"));
 
 					nvram_set("vts_rulelist", nvramTmp);
@@ -2800,6 +2819,7 @@ static int ej_set_variables(int eid, webs_t wp, int argc, char_t **argv) {
 			webVar_3 = websGetVar(wp, "lip", "");
 			webVar_4 = websGetVar(wp, "lport", "");
 			webVar_5 = websGetVar(wp, "proto", "");
+			webVar_6 = websGetVar(wp, "src", "");
 
 			if(!strcmp(webVar_1, "") && !strcmp(webVar_2, "") && !strcmp(webVar_3, "") &&
 			   !strcmp(webVar_4, "") && !strcmp(webVar_5, "")){
@@ -2810,11 +2830,14 @@ static int ej_set_variables(int eid, webs_t wp, int argc, char_t **argv) {
 				g = buf = strdup(nvram_safe_get("vts_rulelist"));
 				while (buf) {
 					if ((p = strsep(&g, "<")) == NULL) break;
-					if((vstrsep(p, ">", &name, &rport, &lip, &lport, &proto)) != 5) continue;
+					if ((cnt = vstrsep(p, ">", &name, &rport, &lip, &lport, &proto, &srcip)) < 5)
+						continue;
+					else if (cnt < 6)
+						srcip = "";
 
 					if(!strcmp(webVar_1, name) && !strcmp(webVar_2, rport) &&
 					   !strcmp(webVar_3, lip) && !strcmp(webVar_4, lport) &&
-					   !strcmp(webVar_5, proto)
+					   !strcmp(webVar_5, proto) && !strcmp(webVar_6, srcip)
 					){
 						retStatus = 0;
 						continue;
@@ -2830,6 +2853,8 @@ static int ej_set_variables(int eid, webs_t wp, int argc, char_t **argv) {
 						strcat(nvramTmp, lport);
 						strcat(nvramTmp, ">");
 						strcat(nvramTmp, proto);
+						strcat(nvramTmp, ">");
+						strcat(nvramTmp, srcip);
 					}
 				}
 				free(buf);
@@ -2846,7 +2871,10 @@ static int ej_set_variables(int eid, webs_t wp, int argc, char_t **argv) {
 			strcat(retList, "<list>\n");
 			while (buf) {
 				if ((p = strsep(&g, "<")) == NULL) break;
-				if((vstrsep(p, ">", &name, &rport, &lip, &lport, &proto)) != 5) continue;
+				if ((cnt = vstrsep(p, ">", &name, &rport, &lip, &lport, &proto, &srcip)) < 5)
+					continue;
+				else if (cnt < 6)
+					srcip = "";
 
 				strcat(retList, "<item>\n");
 				sprintf(strTmp, "<name>%s</name>\n", name);
@@ -2858,6 +2886,8 @@ static int ej_set_variables(int eid, webs_t wp, int argc, char_t **argv) {
 				sprintf(strTmp, "<lport>%s</lport>\n", lport);
 				strcat(retList, strTmp);
 				sprintf(strTmp, "<proto>%s</proto>\n", proto);
+				strcat(retList, strTmp);
+				sprintf(strTmp, "<src>%s</src>\n", srcip);
 				strcat(retList, strTmp);
 				strcat(retList, "</item>\n");
 			}
@@ -3175,7 +3205,11 @@ static int ej_update_variables(int eid, webs_t wp, int argc, char_t **argv) {
 			if (!strcmp(action_script, "restart_wireless") || !strcmp(action_script, "restart_net")) {
 				char *rc_support = nvram_safe_get("rc_support");
 				if (find_word(rc_support, "2.4G") && find_word(rc_support, "5G"))
+#if defined(RTCONFIG_SOC_IPQ40XX)
+					websWrite(wp, "<script>restart_needed_time(%d);</script>\n", atoi(action_wait) + 25);
+#else
 					websWrite(wp, "<script>restart_needed_time(%d);</script>\n", atoi(action_wait) + 20);
+#endif
 				else
 					websWrite(wp, "<script>restart_needed_time(%d);</script>\n", atoi(action_wait) + 5);
 			}
@@ -4400,7 +4434,7 @@ static int ej_get_parameter(int eid, webs_t wp, int argc, char_t **argv){
 
 	char *value = websGetVar(wp, argv[0], "");
 	if(value != NULL){
-		if(strstr(value, "javascript")){
+		if(check_xxs_blacklist(value, 0)){
 			return ret;
 		}
 	}
@@ -4430,10 +4464,14 @@ unsigned int getpeerip(webs_t wp){
 
 #ifdef RTCONFIG_HTTPS
 	if(do_ssl)
+	{
 		fd = ssl_stream_fd;
+	}
 	else
 #endif
-	fd = fileno((FILE *)wp);
+	{
+		fd = fileno((FILE *)wp);
+	}
 	ret = getpeername(fd, (struct sockaddr *)&peer, &peerlen);
 	sa = (struct sockaddr_in *)&peer;
 
@@ -4565,7 +4603,7 @@ static int get_cpu_temperature(int eid, webs_t wp, int argc, char_t **argv)
 	int temperature = -1;
 
 	if ((fp = fopen("/proc/dmu/temperature", "r")) != NULL) {
-		if (fscanf(fp, "%*s %*s %*s %d", &temperature) != 1)
+		if (fscanf(fp, "%*s %*s %*s %d%*s", &temperature) != 1)
 			temperature = -1;
 		fclose(fp);
 	}
@@ -5000,7 +5038,7 @@ static void find_hostname_by_mac(char *mac, char *hostname)
 
 		if (strncasecmp(macaddr, mac, 17) == 0) {
 			fclose(fp);
-			strcpy(hostname, host_name);
+			strlcpy(hostname, host_name, 64);
 			return;
 		}
 
@@ -7223,7 +7261,7 @@ send_action(char *ftp_url,int port)
 		close(my_fd);
 		return NULL;
 	}
-	sprintf(str,"refresh@%s",ftp_url);
+	snprintf(str,sizeof(str),"refresh@%s",ftp_url);
 	_dprintf("socket:%s\n",str);
 	if (send(my_fd, str, strlen(str), 0) == -1) {
 		perror("send");
@@ -7331,6 +7369,13 @@ apply_cgi(webs_t wp, char_t *urlPrefix, char_t *webDir, int arg,
 	{
 		char *system_cmd;
 		system_cmd = get_cgi_json("SystemCmd",root);
+
+		if(check_xxs_blacklist(system_cmd, 0)){
+			json_object_put(root);
+			websRedirect_iframe(wp, current_url);
+			return 0;
+		}
+
 		len = strlen(system_cmd);
 
 		for(i=0;i<len;i++){
@@ -7448,8 +7493,7 @@ apply_cgi(webs_t wp, char_t *urlPrefix, char_t *webDir, int arg,
 	}
 	else if (!strcmp(action_mode, "logout")) // but, every one can reset it by this call
 	{
-		http_logout(0, "cgi_logout", 0);
-		websRedirect(wp, "Nologin.asp");
+		websRedirect(wp, "Logout.asp");
 		json_object_put(root);
 		return (0);
 	}
@@ -7471,7 +7515,7 @@ apply_cgi(webs_t wp, char_t *urlPrefix, char_t *webDir, int arg,
 	{
 		action_para = get_cgi_json("wps_band",root);
 		if(action_para)
-			nvram_set("wps_band", action_para);
+			nvram_set("wps_band_x", action_para);
 #if defined(RTCONFIG_WPSMULTIBAND)
 		if ((action_para = get_cgi_json("wps_multiband",root)))
 			nvram_set("wps_multiband", action_para);
@@ -7483,12 +7527,12 @@ apply_cgi(webs_t wp, char_t *urlPrefix, char_t *webDir, int arg,
 	{
 		action_para = get_cgi_json("wps_band",root);
 		if(action_para)
-			nvram_set("wps_band", action_para);
+			nvram_set("wps_band_x", action_para);
 		else goto wps_finish;
 
 		action_para = get_cgi_json("wps_enable",root);
 		if(action_para)
-			nvram_set("wps_enable", action_para);
+			nvram_set("wps_enable_x", action_para);
 		else goto wps_finish;
 
 		action_para = get_cgi_json("wps_sta_pin",root);
@@ -7513,7 +7557,7 @@ wps_finish:
 	{
 		action_para = get_cgi_json("wps_band",root);
 		if(action_para)
-			nvram_set("wps_band", action_para);
+			nvram_set("wps_band_x", action_para);
 #if defined(RTCONFIG_WPSMULTIBAND)
 		if ((action_para = get_cgi_json("wps_multiband",root)))
 			nvram_set("wps_multiband", action_para);
@@ -7579,7 +7623,7 @@ wps_finish:
 	{
 		action_para = get_cgi_json("module_prefix",root);
 		if(action_para) {
-			sprintf(command, "restore %s", action_para);
+			snprintf(command, sizeof(command),"restore %s", action_para);
 			notify_rc(command);
 		}
 		websRedirect(wp, current_url);
@@ -7744,7 +7788,7 @@ wps_finish:
 			return 0;
 		}
 
-		sprintf(command, "%s %s", action_mode, pincode);
+		snprintf(command, sizeof(command),"%s %s", action_mode, pincode);
 		notify_rc(command);
 	}
 	else if (!strcmp(action_mode, "start_pwdpin"))
@@ -7761,7 +7805,7 @@ wps_finish:
 			return 0;
 		}
 
-		sprintf(command, "%s %s %s", action_mode, pincode, newpin);
+		snprintf(command, sizeof(command), "%s %s %s", action_mode, pincode, newpin);
 		notify_rc(command);
 	}
 	else if (!strcmp(action_mode, "start_simpin"))
@@ -7792,7 +7836,7 @@ wps_finish:
 			save_nvram = 1;
 		}
 
-		sprintf(command, "%s %s", action_mode, pincode);
+		snprintf(command, sizeof(command), "%s %s", action_mode, pincode);
 		notify_rc(command);
 
 		if(save_nvram)
@@ -7816,7 +7860,7 @@ wps_finish:
 
 		nvram_set("g3err_pin", g3err_pin);
 
-		sprintf(command, "%s %s %s", action_mode, puk, newpin);
+		snprintf(command, sizeof(command), "%s %s %s", action_mode, puk, newpin);
 		notify_rc(command);
 	}
 	else if (!strcmp(action_mode, "restart_simauth"))
@@ -7836,7 +7880,7 @@ wps_finish:
 		char *simdetect;
 
 		simdetect = get_cgi_json("simdetect", root);
-		sprintf(command, "%s %s", action_mode, simdetect);
+		snprintf(command, sizeof(command), "%s %s", action_mode, simdetect);
 		notify_rc(command);
 		websApply(wp, "Restarting.asp");
 		nvram_set("freeze_duck", "15");
@@ -7859,7 +7903,7 @@ wps_finish:
 
 		sim_order = get_cgi_json("sim_order", root);
 
-		sprintf(command, "%s %s", action_mode, sim_order);
+		snprintf(command, sizeof(command), "%s %s", action_mode, sim_order);
 		notify_rc(command);
 	}
 #endif
@@ -8287,7 +8331,7 @@ do_upgrade_post(char *url, FILE *stream, int len, char *boundary)
 
 		if (filelen>0)
 		{
-			fwrite(&ch, 1, 1, fifo);
+			fputc(ch, fifo);
 			filelen--;
 		}
 	}
@@ -8544,7 +8588,7 @@ do_upload_post(char *url, FILE *stream, int len, char *boundary)
 		ch = fgetc(stream);
 
 		if (filelen > 0) {
-			fwrite(&ch, 1, 1, fifo);
+			fputc(ch, fifo);
 			--filelen;
 		}
 	}
@@ -10029,7 +10073,7 @@ login_cgi(webs_t wp, char_t *urlPrefix, char_t *webDir, int arg,
 			websWrite(wp,"<HTML><HEAD>\n" );
 			if(!strcmp(nvram_default_get("http_passwd"), nvram_safe_get("http_passwd")) && !nvram_match("ATEMODE", "1"))
 				websWrite(wp, T("<meta http-equiv=\"refresh\" content=\"0; url=Main_Password.asp\">\r\n"));
-			else if(next_page == NULL || strcmp(next_page, "") == 0 || strstr(next_page, "http") != NULL || strstr(next_page, "//") != NULL || (!check_if_file_exist(filename)))
+			else if(check_xxs_blacklist(next_page, 1))
 				websWrite(wp, T("<meta http-equiv=\"refresh\" content=\"0; url=index.asp\">\r\n"));
 			else{
 				if(strncmp(next_page, "cloud_sync.asp", 14)==0)
@@ -10048,30 +10092,38 @@ login_cgi(webs_t wp, char_t *urlPrefix, char_t *webDir, int arg,
 	}else{
 		websWrite(wp,"Connection: close\r\n" );
 		websWrite(wp,"\r\n" );
-		if(fromapp_flag != 0){
-			websWrite(wp, "{\n\"error_status\":\"%d\"\n}\n", ACCOUNTFAIL);
+		login_try++;
+		last_login_timestamp = login_timestamp_tmp;
+		if(login_try >= MAX_login){
+			lock_flag = 1;
+			temp_ip_addr.s_addr = login_ip_tmp;
+			temp_ip_str = inet_ntoa(temp_ip_addr);
+			logmessage("httpd login lock", "Detect abnormal logins at %d times. The newest one was from %s.", login_try, temp_ip_str);
+#ifdef RTCONFIG_NOTIFICATION_CENTER
+			json_object *root = NULL;
+			root = json_object_new_object();
+			if (root == NULL) {
+				_dprintf("[%s(%d)]new json object error", __FUNCTION__, __LINE__);
+				char nt_tmp[MAX_EVENT_INFO_LEN];
+				snprintf(nt_tmp, sizeof(nt_tmp), "{\"IP\":\"%s\"}", temp_ip_str);
+				SEND_NT_EVENT(ADMIN_LOGIN_FAIL_LAN_WEB_EVENT, nt_tmp);
+			} else {
+				json_object_object_add(root, "IP", json_object_new_string(temp_ip_str));
+				SEND_NT_EVENT(ADMIN_LOGIN_FAIL_LAN_WEB_EVENT, json_object_to_json_string(root));
+			}
+			json_object_put(root);
+#endif
+			login_error_status = LOGINLOCK;
 		}else{
-			login_try++;
-			last_login_timestamp = login_timestamp_tmp;
+			login_error_status = ACCOUNTFAIL;
+		}
+
+		if(fromapp_flag != 0){
+			websWrite(wp, "{\n\"error_status\":\"%d\"\n}\n", login_error_status);
+		}else{
 			strncpy(login_url, "index.asp", sizeof(login_url));
 			websWrite(wp,"<HTML><HEAD>\n" );
-			if(login_try >= MAX_login){
-				lock_flag = 1;
-#ifdef RTCONFIG_NOTIFICATION_CENTER
-				temp_ip_addr.s_addr = login_ip_tmp;
-				temp_ip_str = inet_ntoa(temp_ip_addr);
-				NOTIFY_EVENT_T *e = initial_nt_event();
-				e->event = LOGIN_FAIL_LAN_WEB_EVENT;
-				snprintf(e->msg, sizeof(e->msg), "%s", temp_ip_str);
-				send_trigger_event(e);
-				nt_event_free(e);
-#endif
-				login_error_status = LOGINLOCK;
-				websWrite(wp,"<script>parent.location.href='/Main_Login.asp';</script>\n");
-			}else{
-				login_error_status = ACCOUNTFAIL;
-				websWrite(wp,"<script>parent.location.href='/Main_Login.asp';</script>\n");
-			}
+			websWrite(wp,"<script>parent.location.href='/Main_Login.asp';</script>\n");
 			websWrite(wp,"</HEAD></HTML>\n" );
 		}
 		return 0;
@@ -10344,7 +10396,6 @@ struct mime_handler mime_handlers[] = {
 	{ NULL, NULL, NULL, NULL, NULL, NULL }
 };
 
-// some should be removed
 struct except_mime_handler except_mime_handlers[] = {
 	{ "QIS_default.cgi", MIME_EXCEPTION_NOAUTH_FIRST|MIME_EXCEPTION_NORESETTIME},
 	{ "images/New_ui/login_bg.png", MIME_EXCEPTION_MAINPAGE},
@@ -10439,6 +10490,15 @@ struct mime_referer mime_referers[] = {
 #ifdef RTCONFIG_QCA_PLC_UTILS
 	{ "plc.cgi", CHECK_REFERER},
 #endif
+	{ "status.asp", CHECK_REFERER},
+	{ "wds_aplist_2g.asp", CHECK_REFERER},
+	{ "wds_aplist_5g.asp", CHECK_REFERER},
+	{ "update_networkmapd.asp", CHECK_REFERER},
+	{ "get_real_ip.asp", CHECK_REFERER},
+	{ "WPS_info.xml", CHECK_REFERER},
+	{ "login.cgi", CHECK_REFERER},
+	{ "get_webdavInfo.asp", CHECK_REFERER},
+	{ "update_clients.asp", CHECK_REFERER},
 	{ NULL, 0 }
 };
 
@@ -15029,15 +15089,11 @@ ej_get_header_info(int eid, webs_t wp, int argc, char **argv)
 {
 	struct json_object *item = json_object_new_object();
 
-	char filename[128];
 	char host_name_temp[64];
 	char current_page_name_temp[128];
 
-	memset(filename, 0, sizeof(filename));
 	memset(host_name_temp, 0, sizeof(host_name_temp));
 	memset(current_page_name_temp, 0, sizeof(current_page_name_temp));
-
-	snprintf(filename, sizeof(filename), "/www/%s", current_page_name);
 
 	if(strncmp(DUT_DOMAIN_NAME, host_name, strlen(DUT_DOMAIN_NAME)) == 0) {
 		strcpy(host_name_temp, DUT_DOMAIN_NAME);
@@ -15046,7 +15102,7 @@ ej_get_header_info(int eid, webs_t wp, int argc, char **argv)
 		snprintf(host_name_temp, sizeof(host_name), "%s", host_name);
 	}
 
-	if((current_page_name != NULL && strcmp(current_page_name, "") == 0) || !check_if_file_exist(filename)) {
+	if(check_xxs_blacklist(current_page_name, 1)) {
 		strcpy(current_page_name_temp, "index.asp");
 	}
 	else {
@@ -15068,10 +15124,6 @@ ej_login_error_info(int eid, webs_t wp, int argc, char **argv)
 {
 	struct json_object *item = json_object_new_object();
 
-	char filename[128];
-	memset(filename, 0, sizeof(filename));
-	snprintf(filename, sizeof(filename), "/www/%s", login_url);
-
 	/* lock time */
 	json_object_object_add(item,"lock_time", json_object_new_int(login_dt));
 
@@ -15079,7 +15131,7 @@ ej_login_error_info(int eid, webs_t wp, int argc, char **argv)
 	json_object_object_add(item,"error_status", json_object_new_int(login_error_status));
 
 	/* url */
-	if(login_url == NULL || !check_if_file_exist(filename)){
+	if(check_xxs_blacklist(login_url, 1)){
 		json_object_object_add(item,"page", json_object_new_string("index.asp"));
 	}else{
 		json_object_object_add(item,"page", json_object_new_string(login_url));
@@ -15274,7 +15326,7 @@ struct ej_handler ej_handlers[] = {
 #ifdef RTCONFIG_STAINFO
 	{ "wl_stainfo_list_2g", ej_wl_stainfo_list_2g},
 	{ "wl_stainfo_list_5g", ej_wl_stainfo_list_5g},
-#ifndef RTCONFIG_QTN
+#if !defined(RTCONFIG_QTN) && !defined(RTCONFIG_RALINK) && !defined(RTCONFIG_QCA)
 	{ "wl_stainfo_list_5g_2", ej_wl_stainfo_list_5g_2},
 #endif
 #endif
@@ -15619,4 +15671,69 @@ void write_encoded_crt(char *name, char *value){
 
 	tmp[i] = '\0';
 	nvram_set(name, tmp);
+}
+
+int check_xxs_blacklist(char* para, int check_www)
+{
+	int i = 0;
+	int file_len;
+	char *query, *para_t;
+	char para_str[256];
+	char filename[128];
+	char url_str[128];
+	memset(filename, 0, sizeof(filename));
+	memset(para_str, 0, sizeof(para_str));
+
+
+	if(para == NULL || !strcmp(para, "")){
+		//_dprintf("check_xxs_blacklist: para is NULL\n");
+		return 1;
+	}
+
+	para_t = strdup(para);
+	while(*para) {
+		//if(*para=='<' || *para=='>' || *para=='%' || *para=='/' || *para=='(' || *para==')' || *para=='&') {
+		if(*para=='<' || *para=='>' || *para=='%' || *para=='(' || *para==')' || *para=='&') {
+			//_dprintf("check_xxs_blacklist: para is Invalid\n");
+			free(para_t);
+			return 1;
+		}
+		else {
+			para_str[i] = tolower(*para);
+			i++;
+			para++;
+		}
+	}
+
+	if(strstr(para_str, "script") || strstr(para_str, "//") ){
+		//_dprintf("check_xxs_blacklist: para include script\n");
+		free(para_t);
+		return 1;
+	}
+
+	if(check_www == 1){
+		memset(url_str, 0, sizeof(url_str));
+		if ((query = index(para_t, '?')) != NULL) {
+			file_len = strlen(para_t)-strlen(query);
+
+			if(file_len > sizeof(url_str))
+				file_len = sizeof(url_str);
+
+			strncpy(url_str, para_t, file_len);
+		}
+		else
+		{
+			strncpy(url_str, para_t, sizeof(url_str)-1);
+		}
+
+		snprintf(filename, sizeof(filename), "/www/%s", url_str);
+		if(!check_if_file_exist(filename)){
+			_dprintf("check_xxs_blacklist:%s is not in www\n", url_str);
+			free(para_t);
+			return 1;
+		}
+	}
+
+	free(para_t);
+	return 0;
 }

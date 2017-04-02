@@ -1,23 +1,124 @@
 Asuswrt-Merlin Changelog
 ========================
 
-380.65 alpha 2 (xx-xxx-xxxxx)
-   - CHANGED: Upgraded to OpenVPN 2.4.0 RC2.  This new version
-              includes support for GCM ciphers and LZ4
-              compression, as well as cipher negotiation.
-              All of these are fully implemented in the webui.
-              Please refer to the OpenVPN 2.4 documentation for
-              more info on how NCP works, also adjust your
-              configuration as needed.
-              Exported client config currently require OpenVPN
-              2.4 on your client, unless you disable NCP (enabled
-              by default).
-              Existing client configuration are fully compatible,
-              OpenVPN 2.4 can handle mixed 2.3 and 2.4 environments.
+380.66 beta (xx-xxx-2017)
+   - NEW: Merged with GPL 380_7378 (with many binary blobs
+          from 380_7266.
+          Notable changes:
+             * Port forwards can select a specific source IP
+          Known issues:
+             * Some wifi clients such as wireless printers
+               have connectivity issues.  Try disabling
+               Airtime Fairness as a potential workaround.
 
+  - NEW: Option to disable Wanduck's constant DNS probing
+         for WAN state (Tools -> Other Settings)
+  - CHANGED: Allow disabling use of DH, by entering
+             "none" in the DH field for OpenVPN server config.
+  - CHANGED: Ovpn importer now recognizes the "port" parameter.
+  - CHANGED: Ovpn importer now support a third argument for
+             the "remote" parameter, allowing to define the
+             protocol.
+  - CHANGED: Updated Tor to 0.2.9.10
+  - REMOVED: The Virtual Server page no longer allows users to
+             edit existing port forwards (our existing code is
+             incompatible with Asus's newer webui code and will 
+             need to be re-implemented.
+  - FIXED: WOL page fails to load if adding a client with a
+           quote in its name.
+  - FIXED: Couldn't add a DHCP reservation client if its name
+           contained a quote.
+  - FIXED: New outbound connections weren't logged if firewall
+           logging was enabled.
+  - FIXED: OpenVPN server didn't always work properly in udp mode
+           when in a dual stack IPv4/IPv6 environment (backport
+           from GPL 382_9736)
+
+
+380.65_4 (28-Mar-2017)
+   - FIXED: Various LAN/WAN issues with the RT-AC3200 due to
+            incorrect GMAC state checks (Asus bug) (patch
+            by john9527)
+   - FIXED: Some models would sometime randomly fail to start one
+            of their wifi radio, possibly due to a hardware design
+            issue.  Partly revert the 380.65 changes that removed
+            the automatic reboot if one radio was disabled at boot
+            time, but reduced the maximum number of reboots to 1.
+
+
+380.65_2 (10-Mar-2017)
+   - FIXED: CVE-2017-6549 (implemented temporary workaround,
+            until a proper fix from Asus)
+   - FIXED: CVE-2017-6548 (backport from GPL 7266)
+   - FIXED: WOL page fails to load if adding a client with a
+            quote in its name.
+   - FIXED: Couldn't add a DHCP reservation client if its name
+            contained a quote.
+
+
+380.65 (3-Feb-2017)
+   - NEW: Merged with parts of Asus GPL 380_4180, left out
+          most of it because of too many bugs in it.
+   - NEW: Upgraded to OpenVPN 2.4.0, and implemented support
+          for many of its new features:
+            * GCM ciphers
+            * LZ4 compression
+            * tls-crypt (uses the Static Key field)
+            * Cipher negotiation (NCP), with (optional)
+              fallback to legacy "cipher" parameter when
+              an OpenVPN 2.3 client connects to the
+              router's 2.4 server.
+          Please refer to the OpenVPN 2.4 documentation for
+          more info on these new features.
+
+          You will be warned if any server setting would
+          generate an exportable ovpn file that would be
+          incompatible with older clients.
+
+          Existing client config shouldn't need to be changed,
+          unless you modify the router's server configuration.
+
+   - NEW: Upgraded Busybox to 1.25.1 (patch by theMIROn)
+   - NEW: Added the following Busybox applets: ntpd, time, uniq,
+          xargs and getopt, for feature parity with John's fork.
+   - NEW: Option on Media Server page to enable minidlna's
+          built-in status web page.  Default URL is
+          http://router.asus.com:8200 .
+   - NEW: Support for Vodafone R226 USB LTE (patch by
+          Gernot Pansy)
+   - NEW: New "update-notification" user script, that gets run
+          when a scheduled firmware check detects a new version
+          is available.
+
+   - CHANGED: Removed support for all RC ciphers on OpenVPN.
+              DES is staying for now, but should still be avoided
+              whenever possible.
+   - CHANGED: Updated openssl to 1.0.2k
+   - CHANGED: Updated tor to 0.2.9.9 (0.2.9.x patch by blackfuel)
+   - CHANGED: Updated nano to 2.7.4.
    - CHANGED: hosts file will now give a higher priority to the
               user-configured hostname for the router ahead of
               hardcoded ones (like router.asus.com).
+   - CHANGED: Create a system log entry if a new firmware 
+              version is available.
+   - CHANGED: Display name and icon for clients configured on the
+              Tor page.
+   - CHANGED: Streamlined miniupnpd stop/start events during boot,
+              so there are fewer of them now.
+   - FIXED: Invalid DUID used when requesting an IPv6 prefix
+            for some of the newer router models, which would
+            prevent them from getting working IPv6 (Asus bug)
+   - FIXED: Network Service Firewall rules not applied
+            under certain configurations
+   - FIXED: Port triggering wasn't working if traffic had
+            been whitelisted by Network Service Firewall
+   - FIXED: Avahi wasn't rejecting connections from
+            secondary WAN interface
+   - FIXED: Sorting clients by connection time would incorrectly
+            treat 10 hours as shorter than 9 hours, as it was
+            handling it as a string (Asus bug)
+   - FIXED: Exported ovpn client file wouldn't use the
+            user-configured hostname when using DDNS custom mode.
    - FIXED: Exported OpenVPN client config didn't work when
             using static key authentication.
    - FIXED: Exported OpenVPN client config wasn't editable with
@@ -28,11 +129,21 @@ Asuswrt-Merlin Changelog
             (patch by john9527)
    - FIXED: OpenVPN client/server instances weren't properly
             restarted on a WAN restart (patch by john9527)
+   - FIXED: Some models (N66/AC66/AC5300) would reboot 3 times
+            if one of the radios was found disabled by the user
+            while booting (Asus bug).
+   - FIXED: Webui layout was broken under Chrome 56.
 
 
-380.65 alpha 1 (xx-xxx-xxxxx)
-   - NEW: Added xargs busybox applet.
-   - CHANGED: Upgraded busybox to 1.25.1 (patch by theMIROn)
+380.64_2 (8-Jan-2017)
+   - FIXED: IPv6 client list failing to properly show hostnames
+            (regression in 64_1)
+   - FIXED: A few potential buffer overruns in httpd
+
+
+380.64_1 (6-Jan-2017)
+   - FIXED: Security issues in httpd (backport from GPL 4180 +
+            additional fixes of my own)
 
 
 380.64 (16-Dec-2016)

@@ -45,6 +45,9 @@ MOCK_DECL(addr_policy_t *, router_parse_addr_policy_item_from_string,
          (const char *s, int assume_action, int *malformed_list));
 version_status_t tor_version_is_obsolete(const char *myversion,
                                          const char *versionlist);
+int tor_version_parse_platform(const char *platform,
+                               tor_version_t *version_out,
+                               int strict);
 int tor_version_as_new_as(const char *platform, const char *cutoff);
 int tor_version_parse(const char *s, tor_version_t *out);
 int tor_version_compare(tor_version_t *a, tor_version_t *b);
@@ -85,11 +88,41 @@ int rend_parse_introduction_points(rend_service_descriptor_t *parsed,
                                    size_t intro_points_encoded_size);
 int rend_parse_client_keys(strmap_t *parsed_clients, const char *str);
 
+void routerparse_init(void);
+void routerparse_free_all(void);
+
 #ifdef ROUTERPARSE_PRIVATE
+/*
+ * One entry in the list of dumped descriptors; filename dumped to, length,
+ * SHA-256 and timestamp.
+ */
+
+typedef struct {
+  char *filename;
+  size_t len;
+  uint8_t digest_sha256[DIGEST256_LEN];
+  time_t when;
+} dumped_desc_t;
+
+EXTERN(uint64_t, len_descs_dumped)
+EXTERN(smartlist_t *, descs_dumped)
 STATIC int routerstatus_parse_guardfraction(const char *guardfraction_str,
                                             networkstatus_t *vote,
                                             vote_routerstatus_t *vote_rs,
                                             routerstatus_t *rs);
+MOCK_DECL(STATIC dumped_desc_t *, dump_desc_populate_one_file,
+    (const char *dirname, const char *f));
+STATIC void dump_desc_populate_fifo_from_directory(const char *dirname);
+STATIC void dump_desc(const char *desc, const char *type);
+STATIC void dump_desc_fifo_cleanup(void);
+struct memarea_t;
+STATIC routerstatus_t *routerstatus_parse_entry_from_string(
+                                     struct memarea_t *area,
+                                     const char **s, smartlist_t *tokens,
+                                     networkstatus_t *vote,
+                                     vote_routerstatus_t *vote_rs,
+                                     int consensus_method,
+                                     consensus_flavor_t flav);
 #endif
 
 #define ED_DESC_SIGNATURE_PREFIX "Tor router descriptor signature v1"

@@ -30,9 +30,10 @@ Supported Devices
 -----------------
 Supported devices are:
  * RT-N66U
- * RT-AC66U (excludes the RT-AC66U_B1 model)
+ * RT-AC66U
+ * RT-AC66U_B1 (use the RT-AC68U firmware)
  * RT-AC56U
- * RT-AC68U & RT-AC68P (including HW revision C1 and E1)
+ * RT-AC68U, RT-AC68P, RT-AC68UF (including HW revision C1 and E1)
  * RT-AC87U
  * RT-AC3200
  * RT-AC88U

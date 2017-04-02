@@ -187,17 +187,7 @@ ciphersarray = [
 		["DESX-CBC"],
 		["IDEA-CBC"],
 		["IDEA-CFB"],
-		["IDEA-OFB"],
-		["RC2-40-CBC"],
-		["RC2-64-CBC"],
-		["RC2-CBC"],
-		["RC2-CFB"],
-		["RC2-OFB"],
-		["RC5-CBC"],
-		["RC5-CBC"],
-		["RC5-CFB"],
-		["RC5-CFB"],
-		["RC5-OF"]
+		["IDEA-OFB"]
 ];
 
 var digestsarray = [
@@ -514,11 +504,12 @@ function cal_panel_block(){
 
 
 function applyRule(){
-	showLoading();
-
 	if (client_state != 0) {
+		document.form.action_wait.value = 15;
 		document.form.action_script.value = "restart_vpnclient"+openvpn_unit;
 	}
+
+	showLoading(document.form.action_wait.value);
 
 	tmp_value = "";
 
@@ -840,7 +831,8 @@ function getConnStatus() {
 function defaultSettings() {
 	if (confirm("WARNING: This will reset this OpenVPN client to factory default settings!\n\nKeys and certificates associated to this instance will also be DELETED!\n\nProceed?")) {
 		document.form.action_script.value = "stop_vpnclient" + openvpn_unit + ";clearvpnclient" + openvpn_unit;
-		showLoading();
+		showLoading(15);
+		document.form.action_wait.value = 15;
 		document.form.submit();
 	} else {
 		return false;
@@ -936,7 +928,7 @@ function defaultSettings() {
 <input type="hidden" name="modified" value="0">
 <input type="hidden" name="action_mode" value="apply">
 <input type="hidden" name="action_script" value="">
-<input type="hidden" name="action_wait" value="10">
+<input type="hidden" name="action_wait" value="5">
 <input type="hidden" name="first_time" value="">
 <input type="hidden" name="SystemCmd" value="">
 <input type="hidden" name="preferred_lang" id="preferred_lang" value="<% nvram_get("preferred_lang"); %>">
@@ -1029,13 +1021,15 @@ function defaultSettings() {
 								$('#radio_service_enable').iphoneSwitch((client_state > 0),
 									 function() {
 										document.form.action_script.value = "start_vpnclient" + openvpn_unit;
-										parent.showLoading();
+										document.form.action_wait.value = 15;
+										parent.showLoading(15);
 										document.form.submit();
 										return true;
 									 },
 									 function() {
 										document.form.action_script.value = "stop_vpnclient" + openvpn_unit;
-										parent.showLoading();
+										document.form.action_wait.value = 15;
+										parent.showLoading(15);
 										document.form.submit();
 										return true;
 									 },
@@ -1155,13 +1149,14 @@ function defaultSettings() {
 					</tr>
 
 					<tr id="client_hmac">
-						<th><#vpn_openvpn_AuthHMAC#><br><i>(tls-auth)</i></th>
+						<th>TLS control channel security<br><i>(tls-auth / tls-crypt)</i></th>
 						<td>
 							<select name="vpn_client_hmac" class="input_option">
 								<option value="-1" <% nvram_match("vpn_client_hmac","-1","selected"); %> >Disabled</option>
-								<option value="2" <% nvram_match("vpn_client_hmac","2","selected"); %> >Bi-directional</option>
-								<option value="0" <% nvram_match("vpn_client_hmac","0","selected"); %> >Incoming (0)</option>
-								<option value="1" <% nvram_match("vpn_client_hmac","1","selected"); %> >Outgoing (1)</option>
+								<option value="2" <% nvram_match("vpn_client_hmac","2","selected"); %> >Bi-directional Auth</option>
+								<option value="0" <% nvram_match("vpn_client_hmac","0","selected"); %> >Incoming Auth (0)</option>
+								<option value="1" <% nvram_match("vpn_client_hmac","1","selected"); %> >Outgoing Auth (1)</option>
+								<option value="3" <% nvram_match("vpn_client_hmac","3","selected"); %> >Encrypt Channel</option>
 							</select>
 						</td>
 					</tr>
@@ -1219,9 +1214,9 @@ function defaultSettings() {
 					</thead>
 
 					<tr>
-						<th>Global Log verbosity<br><i>(0-11, default=3)</i></th>
+						<th>Log verbosity<br><i>(0-11, default=3)</i></th>
 						<td>
-							<input type="text" maxlength="2" class="input_6_table" name="vpn_loglevel" onKeyPress="return validator.isNumber(this,event);" onblur="validate_number_range(this, 0, 11)" value="<% nvram_get("vpn_loglevel"); %>">
+							<input type="text" maxlength="2" class="input_6_table" name="vpn_client_verb" onKeyPress="return validator.isNumber(this,event);" onblur="validate_number_range(this, 0, 11)" value="<% nvram_get("vpn_client_verb"); %>">
 						</td>
 					</tr>
 

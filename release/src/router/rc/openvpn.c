@@ -10,6 +10,7 @@
 
 #include <sys/types.h>
 #include <sys/wait.h>
+#include <sys/stat.h>
 #include <dirent.h>
 #include <string.h>
 #include <time.h>
@@ -290,8 +291,10 @@ void start_vpnclient(int clientNum)
 	fprintf(fp, "route-up vpnrouting.sh\n");
 	fprintf(fp, "route-pre-down vpnrouting.sh\n");
 
-	nvi = nvram_get_int("vpn_loglevel");
-	if (nvi >= 0)
+	sprintf(&buffer[0], "vpn_client%d_verb", clientNum);
+	if( !nvram_is_empty(&buffer[0]) && (nvi = nvram_get_int(&buffer[0])) >= 0 )
+		fprintf(fp, "verb %d\n", nvi);
+	else if ( (nvi = nvram_get_int("vpn_loglevel")) >= 0 )
 		fprintf(fp, "verb %d\n", nvi);
 	else
 		fprintf(fp, "verb 3\n");
@@ -316,7 +319,11 @@ void start_vpnclient(int clientNum)
 		sprintf(&buffer[0], "vpn_crt_client%d_static", clientNum);
 		if ( !ovpn_crt_is_empty(&buffer[0]) && nvi >= 0 )
 		{
-			fprintf(fp, "tls-auth static.key");
+			if (nvi == 3)
+				fprintf(fp, "tls-crypt static.key");
+			else
+				fprintf(fp, "tls-auth static.key");
+
 			if ( nvi < 2 )
 				fprintf(fp, " %d", nvi);
 			fprintf(fp, "\n");
@@ -484,7 +491,9 @@ void start_vpnclient(int clientNum)
 		fprintf(fp, "#!/bin/sh\n");
 		fprintf(fp, "iptables -I INPUT -i %s -j ACCEPT\n", &iface[0]);
 		fprintf(fp, "iptables -I FORWARD %d -i %s -j ACCEPT\n", (nvram_match("cstats_enable", "1") ? 4 : 2), &iface[0]);
-		fprintf(fp, "iptables -t mangle -I PREROUTING -i %s -j MARK --set-mark 0x01/0x7\n", &iface[0]);
+		if (nvram_match("ctf_disable", "0")) {
+			fprintf(fp, "iptables -t mangle -I PREROUTING -i %s -j MARK --set-mark 0x01/0x7\n", &iface[0]);
+		}
 		// Setup traffic accounting
 		if (nvram_match("cstats_enable", "1")) {
 			ipt_account(fp, &iface[0]);
@@ -859,12 +868,14 @@ void start_vpnserver(int serverNum)
 	sprintf(&buffer[0], "vpn_server%d_port", serverNum);
 	fprintf(fp, "port %d\n", nvram_get_int(&buffer[0]));
 
-	if((nvram_get_int("ddns_enable_x")) && (!nvram_match("ddns_server_x","CUSTOM")))
+	if(nvram_get_int("ddns_enable_x"))
 	{
 		if (nvram_match("ddns_server_x","WWW.NAMECHEAP.COM"))
 			fprintf(fp_client, "remote %s.%s %s\n", nvram_safe_get("ddns_hostname_x"), nvram_safe_get("ddns_username_x"), nvram_safe_get(&buffer[0]));
 		else
-			fprintf(fp_client, "remote %s %s\n", nvram_safe_get("ddns_hostname_x"), nvram_safe_get(&buffer[0]));
+			fprintf(fp_client, "remote %s %s\n",
+			    (strlen(nvram_safe_get("ddns_hostname_x")) ? nvram_safe_get("ddns_hostname_x") : nvram_safe_get("wan0_ipaddr")),
+			    nvram_safe_get(&buffer[0]));
 	}
 	else
 	{
@@ -913,20 +924,23 @@ void start_vpnserver(int serverNum)
 			fprintf(fp_client, "compress lz4\n");
 		} else if (!strcmp(buffer2, "yes")) {
 			fprintf(fp, "compress lzo\n");
-			fprintf(fp_client, "compress lzo\n");
+			fprintf(fp_client, "comp-lzo yes\n");
 		} else if (!strcmp(buffer2, "adaptive")) {
 			fprintf(fp, "comp-lzo adaptive\n");
 			fprintf(fp_client, "comp-lzo adaptive\n");
 		} else if (!strcmp(buffer2, "no")) {
 			fprintf(fp, "compress\n");	// Disable, but client can override if desired
-			fprintf(fp_client, "compress\n");
+			fprintf(fp_client, "comp-lzo no\n");
 		}
 	}
 
 	fprintf(fp, "keepalive 15 60\n");
 	fprintf(fp_client, "keepalive 15 60\n");
 
-	if ( (nvi = nvram_get_int("vpn_loglevel")) >= 0 )
+	sprintf(&buffer[0], "vpn_server%d_verb", serverNum);
+	if( !nvram_is_empty(&buffer[0]) && (nvi = nvram_get_int(&buffer[0])) >= 0 )
+		fprintf(fp, "verb %d\n", nvi);
+	else if ( (nvi = nvram_get_int("vpn_loglevel")) >= 0 )
 		fprintf(fp, "verb %d\n", nvi);
 	else
 		fprintf(fp, "verb 3\n");
@@ -1065,7 +1079,11 @@ void start_vpnserver(int serverNum)
 		//if ( !ovpn_crt_is_empty(&buffer[0]) && nvi >= 0 )
 		if ( nvi >= 0 )
 		{
-			fprintf(fp, "tls-auth static.key");
+			if (nvi == 3)
+				fprintf(fp, "tls-crypt static.key");
+			else
+				fprintf(fp, "tls-auth static.key");
+
 			if ( nvi < 2 )
 				fprintf(fp, " %d", nvi);
 			fprintf(fp, "\n");
@@ -1086,17 +1104,19 @@ void start_vpnserver(int serverNum)
 			//That way, existing configuration (pre-Asus OVPN)
 			//will remain unchanged.
 			if ( useronly ) {
-				fprintf(fp, "client-cert-not-required\n");
+				fprintf(fp, "verify-client-cert none\n");
 				fprintf(fp, "username-as-common-name\n");
 			}
 		}
 
-		fprintf(fp_client, "ns-cert-type server\n");
+		fprintf(fp_client, "remote-cert-tls server\n");
 		//sprintf(&buffer[0], "vpn_crt_server%d_ca", serverNum);
 		//if ( !ovpn_crt_is_empty(&buffer[0]) )
 			fprintf(fp, "ca ca.crt\n");
-		//sprintf(&buffer[0], "vpn_crt_server%d_dh", serverNum);
-		//if ( !ovpn_crt_is_empty(&buffer[0]) )
+		sprintf(&buffer[0], "vpn_crt_server%d_dh", serverNum);
+		if ( !strncmp(get_parsed_crt(&buffer[0], buffer2, sizeof(buffer2)), "none", 4))
+			fprintf(fp, "dh none\n");
+		else
 			fprintf(fp, "dh dh.pem\n");
 		//sprintf(&buffer[0], "vpn_crt_server%d_crt", serverNum);
 		//if ( !ovpn_crt_is_empty(&buffer[0]) )
@@ -1351,15 +1371,17 @@ void start_vpnserver(int serverNum)
 			fprintf(fp, "%s", get_parsed_crt(&buffer[0], buffer2, sizeof(buffer2)));
 			fclose(fp);
 			valid = 1;	// Tentative state
-
-			// Validate DH strength
-			sprintf(&buffer[0], "/usr/sbin/openssl dhparam -in /etc/openvpn/server%d/dh.pem -text | grep \"DH Parameters:\" > /tmp/output.txt", serverNum);
-			system(&buffer[0]);
-			if (f_read_string("/tmp/output.txt", &buffer[0], 64) > 0) {
-				if (sscanf(strstr(&buffer[0],"DH Parameters"),"DH Parameters: (%d bit)", &i)) {
-					if (i < 1024) {
-						logmessage("openvpn","WARNING: DH for server %d is too weak (%d bit, must be at least 1024 bit). Using a pre-generated 2048-bit PEM.", serverNum, i);
-						valid = 0;      // Not valid after all, must regenerate
+			if (strncmp(buffer2, "none", 4))	// If not set to "none" then validate it
+			{
+				// Validate DH strength
+				sprintf(&buffer[0], "/usr/sbin/openssl dhparam -in /etc/openvpn/server%d/dh.pem -text | grep \"DH Parameters:\" > /tmp/output.txt", serverNum);
+				system(&buffer[0]);
+				if (f_read_string("/tmp/output.txt", &buffer[0], 64) > 0) {
+					if (sscanf(strstr(&buffer[0],"DH Parameters"),"DH Parameters: (%d bit)", &i)) {
+						if (i < 1024) {
+							logmessage("openvpn","WARNING: DH for server %d is too weak (%d bit, must be at least 1024 bit). Using a pre-generated 2048-bit PEM.", serverNum, i);
+							valid = 0;      // Not valid after all, must regenerate
+						}
 					}
 				}
 			}
@@ -1400,17 +1422,24 @@ void start_vpnserver(int serverNum)
 			}
 		}
 
+		sprintf(&buffer[0], "vpn_server%d_hmac", serverNum);
+		nvi = nvram_get_int(&buffer[0]);
 		sprintf(&buffer[0], "vpn_crt_server%d_static", serverNum);
 		if(cryptMode == TLS)
-			fprintf(fp_client, "<tls-auth>\n");
+			if (nvi == 3)
+				fprintf(fp_client, "<tls-crypt>\n");
+			else
+				fprintf(fp_client, "<tls-auth>\n");
 		else if(cryptMode == SECRET)
 			fprintf(fp_client, "<secret>\n");
 		fprintf(fp_client, "%s", get_parsed_crt(&buffer[0], buffer2, sizeof(buffer2)));
 		if (buffer2[strlen(buffer2)-1] != '\n') fprintf(fp_client, "\n");  // Append newline if missing
 		if(cryptMode == TLS) {
-			fprintf(fp_client, "</tls-auth>\n");
-			sprintf(&buffer[0], "vpn_server%d_hmac", serverNum);
-			nvi = nvram_get_int(&buffer[0]);
+			if (nvi == 3)
+				fprintf(fp_client, "</tls-crypt>\n");
+			else
+				fprintf(fp_client, "</tls-auth>\n");
+
 			if(nvi == 1)
 				fprintf(fp_client, "key-direction 0\n");
 			else if(nvi == 0)
@@ -1463,7 +1492,8 @@ void start_vpnserver(int serverNum)
 		{
 			fprintf(fp, "iptables -I INPUT -i %s -j ACCEPT\n", &iface[0]);
 			fprintf(fp, "iptables -I FORWARD %d -i %s -j ACCEPT\n", (nvram_match("cstats_enable", "1") ? 4 : 2), &iface[0]);
-			fprintf(fp, "iptables -t mangle -I PREROUTING -i %s -j MARK --set-mark 0x01/0x7\n", &iface[0]);
+			if (nvram_match("ctf_disable", "0"))
+				fprintf(fp, "iptables -t mangle -I PREROUTING -i %s -j MARK --set-mark 0x01/0x7\n", &iface[0]);
 		}
 		if (nvram_match("cstats_enable", "1")) {
 			ipt_account(fp, &iface[0]);
@@ -1713,7 +1743,7 @@ void stop_vpn_eas()
 
 void stop_vpn_all()
 {
-	char buffer[16], *cur;
+	char buffer[16];
 	int i;
 
 	// stop servers
@@ -1966,7 +1996,6 @@ void update_vpnrouting(int unit){
 void reset_vpn_settings(int type, int unit){
         struct nvram_tuple *t;
         char prefix[]="vpn_serverX_", tmp[100];
-        char word[256], *next;
 	char *service;
 
 	if (type == 1)

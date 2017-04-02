@@ -18,9 +18,13 @@
  */
 #define POLICY_BUF_LEN 72
 
-#define EXIT_POLICY_IPV6_ENABLED   (1 << 0)
-#define EXIT_POLICY_REJECT_PRIVATE (1 << 1)
-#define EXIT_POLICY_ADD_DEFAULT    (1 << 2)
+#define EXIT_POLICY_IPV6_ENABLED             (1 << 0)
+#define EXIT_POLICY_REJECT_PRIVATE           (1 << 1)
+#define EXIT_POLICY_ADD_DEFAULT              (1 << 2)
+#define EXIT_POLICY_REJECT_LOCAL_INTERFACES  (1 << 3)
+#define EXIT_POLICY_OPTION_MAX             EXIT_POLICY_REJECT_LOCAL_INTERFACES
+/* All options set: used for unit testing */
+#define EXIT_POLICY_OPTION_ALL             ((EXIT_POLICY_OPTION_MAX << 1) - 1)
 
 typedef enum firewall_connection_t {
   FIREWALL_OR_CONNECTION      = 0,
@@ -72,7 +76,7 @@ void policy_expand_unspec(smartlist_t **policy);
 int policies_parse_from_options(const or_options_t *options);
 
 addr_policy_t *addr_policy_get_canonical_entry(addr_policy_t *ent);
-int cmp_addr_policies(smartlist_t *a, smartlist_t *b);
+int addr_policies_eq(const smartlist_t *a, const smartlist_t *b);
 MOCK_DECL(addr_policy_result_t, compare_tor_addr_to_addr_policy,
     (const tor_addr_t *addr, uint16_t port, const smartlist_t *policy));
 addr_policy_result_t compare_tor_addr_to_node_policy(const tor_addr_t *addr,
@@ -99,7 +103,8 @@ void addr_policy_append_reject_addr_list(smartlist_t **dest,
                                          const smartlist_t *addrs);
 void policies_set_node_exitpolicy_to_reject_all(node_t *exitrouter);
 int exit_policy_is_general_exit(smartlist_t *policy);
-int policy_is_reject_star(const smartlist_t *policy, sa_family_t family);
+int policy_is_reject_star(const smartlist_t *policy, sa_family_t family,
+                          int reject_by_default);
 char * policy_dump_to_string(const smartlist_t *policy_list,
                              int include_ipv4,
                              int include_ipv6);
