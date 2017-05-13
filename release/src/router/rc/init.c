@@ -5141,7 +5141,7 @@ int init_nvram(void)
 		nvram_set("gpio14", "wps_led");
 		nvram_set("gpio4", "wps_button");
 		nvram_set("reset_gpio", "6");
-		nvram_set("odmpid", "NETGEAR");
+		nvram_set("odmpid", "");
 		nvram_set("model", "R7000");
 
 		nvram_def("bl_version", "1.0.0.0");
