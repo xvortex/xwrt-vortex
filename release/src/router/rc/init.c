@@ -4691,8 +4691,8 @@ int init_nvram(void)
 		nvram_set_int("led_usb3_gpio", 18|GPIO_ACTIVE_LOW);
 		nvram_set_int("led_pwr_gpio", 1|GPIO_ACTIVE_LOW);
 		nvram_set_int("led_wps_gpio", 14);
-#ifdef RTCONFIG_TURBO
-		nvram_set_int("led_turbo_gpio", 15);
+#ifdef RTCONFIG_LOGO_LED
+		nvram_set_int("led_logo_gpio", 15);
 #endif
 #ifdef RTCONFIG_WLAN_LED
 		nvram_set_int("led_2g_gpio", 13|GPIO_ACTIVE_LOW);

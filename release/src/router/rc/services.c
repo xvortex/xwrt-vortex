@@ -10116,7 +10116,7 @@ void setup_leds()
 		if (nvram_match("wl0_radio", "1")) {
 			led_control_atomic(LED_2G, LED_ON);
 		}
-#ifdef RTCONFIG_TURBO
+#ifdef RTCONFIG_LOGO_LED
 		if ((nvram_match("wl0_radio", "1") || nvram_match("wl1_radio", "1")
 #if defined(RTAC3200)
 			|| nvram_match("wl2_radio", "1")
@@ -10126,9 +10126,9 @@ void setup_leds()
 			&& !nvram_get_int("led_disable")
 #endif
 		)
-			led_control(LED_TURBO, LED_ON);
+			led_control(LED_LOGO, LED_ON);
 		else
-			led_control(LED_TURBO, LED_OFF);
+			led_control(LED_LOGO, LED_OFF);
 #endif
 #ifdef RTCONFIG_QTN
 		setAllLedOn_qtn();

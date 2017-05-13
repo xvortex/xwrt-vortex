@@ -688,7 +688,7 @@ setAllLedOn(void)
 			led_control(LED_2G, LED_ON);
 			led_control(LED_5G, LED_ON);
 			led_control(LED_WPS, LED_ON);
-			led_control(LED_TURBO, LED_ON);
+			led_control(LED_LOGO, LED_ON);
 			eval("et", "robowr", "0", "0x18", "0x01ff");	// lan/wan ethernet/giga led
 			eval("et", "robowr", "0", "0x1a", "0x01e0");
 			break;
@@ -1056,7 +1056,7 @@ setAllLedOff(void)
 			led_control(LED_2G, LED_OFF);
 			led_control(LED_5G, LED_OFF);
 			led_control(LED_WPS, LED_OFF);
-			led_control(LED_TURBO, LED_OFF);
+			led_control(LED_LOGO, LED_OFF);
 			eval("et", "robowr", "0", "0x18", "0x01e0");	// lan/wan ethernet/giga led
 			eval("et", "robowr", "0", "0x1a", "0x01e0");
 			break;
@@ -1250,7 +1250,7 @@ setATEModeLedOn(void) {
 			led_control(LED_2G, LED_ON);
 			led_control(LED_5G, LED_ON);
 			led_control(LED_WPS, LED_ON);
-			led_control(LED_TURBO, LED_ON);
+			led_control(LED_LOGO, LED_ON);
 			eval("et", "robowr", "0", "0x18", "0x01ff");	// lan/wan ethernet/giga led
 			eval("et", "robowr", "0", "0x1a", "0x01e0");
 			break;
