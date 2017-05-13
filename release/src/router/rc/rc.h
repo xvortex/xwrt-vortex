@@ -429,7 +429,7 @@ extern int getRegrev_5G(void);
 extern int getSSID(int unit);
 extern void check_wl_country();
 extern void wl_dfs_support(int unit);
-#if defined(RTAC3200) || defined(RTAC68U) || defined(RTAC5300) || defined(RTAC5300R) || defined(RTAC88U) || defined(RTAC3100)
+#if defined(RTAC3200) || defined(RTAC68U) || defined (EA6900) || defined (R7000) || defined (WS880) || defined(RTAC5300) || defined(RTAC5300R) || defined(RTAC88U) || defined(RTAC3100)
 extern void wl_disband5grp();
 #endif
 #ifdef RTCONFIG_BCMARM

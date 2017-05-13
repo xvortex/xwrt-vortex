@@ -725,11 +725,11 @@ void generate_switch_para(void)
 
 		case MODEL_RPAC68U:						/* 0  1  2  3  4 */
 		case MODEL_RTAC68U:						/* 0  1  2  3  4 */
+		case MODEL_EA6900:                                              /* 0  1  2  3  4 */
+		case MODEL_R7000:                                               /* 0  1  2  3  4 */
+		case MODEL_WS880:                                               /* 0  1  2  3  4 */
 		case MODEL_RTN18U:						/* 0  1  2  3  4 */
 		case MODEL_RTAC53U:
-		case MODEL_EA6900:
-		case MODEL_R7000:
-		case MODEL_WS880:
 		{				/* WAN L1 L2 L3 L4 CPU */	/*vision: WAN L1 L2 L3 L4 */
 			const int ports[SWPORT_COUNT] = { 0, 1, 2, 3, 4, 5 };
 			int wancfg = (!nvram_match("switch_wantag", "none")&&!nvram_match("switch_wantag", "")&&!nvram_match("switch_wantag", "hinet")) ? SWCFG_DEFAULT : cfg;
@@ -1790,12 +1790,14 @@ reset_mssid_hwaddr(int unit)
 				break;
 			case MODEL_RTN66U:
 			case MODEL_RTAC66U:
-			case MODEL_R7000:
 				snprintf(macaddr_str, sizeof(macaddr_str), "pci/%d/1/macaddr", unit + 1);
 				break;
 			case MODEL_RTN18U:
 			case MODEL_RPAC68U:
 			case MODEL_RTAC68U:
+			case MODEL_EA6900:
+			case MODEL_R7000:
+			case MODEL_WS880:
 			case MODEL_RTAC3200:
 			case MODEL_DSLAC68U:
 			case MODEL_RTAC87U:
@@ -1805,8 +1807,6 @@ reset_mssid_hwaddr(int unit)
 			case MODEL_RTAC5300R:
 			case MODEL_RTAC88U:
 			case MODEL_RTAC3100:
-			case MODEL_EA6900:
-			case MODEL_WS880:
 #ifdef RTAC3200
 				if (unit < 2)
 					snprintf(macaddr_str, sizeof(macaddr_str), "%d:macaddr", 1 - unit);
@@ -2036,10 +2036,10 @@ void init_wl(void)
 		case MODEL_RTAC5300R:
 		case MODEL_RTAC66U:
 		case MODEL_RTAC68U:
-		case MODEL_RTAC88U:
 		case MODEL_EA6900:
 		case MODEL_R7000:
 		case MODEL_WS880:
+		case MODEL_RTAC88U:
 			set_bcm4360ac_vars();
 			break;
 	}
@@ -2047,7 +2047,7 @@ void init_wl(void)
 #ifdef RTCONFIG_TCODE
 	check_wl_country();
 #endif
-#if defined(RTAC3200) || defined(RTAC68U) || defined(RTAC5300) || defined(RTAC5300R) || defined(RTAC88U) || defined(RTAC3100)
+#if defined(RTAC3200) || defined(RTAC68U) || defined (EA6900) || defined (R7000) || defined (WS880) || defined(RTAC5300) || defined(RTAC5300R) || defined(RTAC88U) || defined(RTAC3100)
 	wl_disband5grp();
 #endif
 #if defined (EA6900) || defined (R7000) || defined (WS880)
@@ -2166,10 +2166,10 @@ void init_wl_compact(void)
 		case MODEL_RTAC5300R:
 		case MODEL_RTAC66U:
 		case MODEL_RTAC68U:
-		case MODEL_RTAC88U:
 		case MODEL_EA6900:
 		case MODEL_R7000:
 		case MODEL_WS880:
+		case MODEL_RTAC88U:
 			set_bcm4360ac_vars();
 			break;
 	}
@@ -2199,7 +2199,7 @@ void init_wl_compact(void)
 		(model == MODEL_RTN12HP_B1) ||
 		(model == MODEL_RTN18U) ||
 		(model == MODEL_RTN66U)) {
-#if defined(RTAC3200) || defined(RTAC68U) || defined(RTAC5300) || defined(RTAC5300R)
+#if defined(RTAC3200) || defined(RTAC68U) || defined (EA6900) || defined (R7000) || defined (WS880) || defined(RTAC5300) || defined(RTAC5300R)
 		wl_disband5grp();
 #endif
 #if defined (EA6900) || defined (R7000) || defined (WS880)
@@ -2375,6 +2375,9 @@ void init_syspara(void)
 		case MODEL_DSLAC68U:
 		case MODEL_RPAC68U:
 		case MODEL_RTAC68U:
+		case MODEL_EA6900:
+		case MODEL_R7000:
+		case MODEL_WS880:
 		case MODEL_RTAC56S:
 		case MODEL_RTAC56U:
 			if (!nvram_get("et0macaddr"))	//eth0, eth1
@@ -2383,7 +2386,7 @@ void init_syspara(void)
 				nvram_set("1:macaddr", "00:22:15:A5:03:04");
 			nvram_set("0:macaddr", nvram_safe_get("et0macaddr"));
 			break;
-
+		
 		case MODEL_RTAC5300:
 		case MODEL_RTAC5300R:
 		case MODEL_RTAC88U:
@@ -2422,27 +2425,6 @@ void init_syspara(void)
 			if (!nvram_get("sb/1/macaddr"))	// (5GHz)
 				nvram_set("sb/1/macaddr", "00:22:15:A5:03:04");
 			nvram_set("0:macaddr", nvram_safe_get("et0macaddr")); // (2.4GHz)
-
-		case MODEL_EA6900:
-		case MODEL_WS880:
-			if (!nvram_get("et0macaddr"))	//eth0, eth1
-				nvram_set("et0macaddr", "00:22:15:A5:03:00");
-			strcpy(s, nvram_safe_get("et0macaddr"));
-			// inc_mac(s, +2);
-			nvram_set("0:macaddr", s);
-			inc_mac(s, +4);
-			nvram_set("1:macaddr", s);
-			break;
-
-		case MODEL_R7000:
-			if (!nvram_get("et0macaddr"))	//eth0, eth1
-				nvram_set("et0macaddr", "00:22:15:A5:03:00");
-			strcpy(s, nvram_safe_get("et0macaddr"));
-			// inc_mac(s, +2);
-			nvram_set("pci/1/1/macaddr", s);
-			inc_mac(s, +4);
-			nvram_set("pci/2/1/macaddr", s);
-			break;
 
 		default:
 #ifdef RTCONFIG_RGMII_BRCM5301X
@@ -2643,24 +2625,12 @@ static const unsigned char txpower_list_vtx[] = { // 0-100% = 1-27 dBm = 1-500 m
 
 int set_wltxpower_vtx()
 {
-	char prefix1[]="pci/1/1/";
-	char prefix2[]="pci/2/1/";
+	char prefix1[]="0:";
+	char prefix2[]="1:";
 	char tmp1[100], tmp2[100];
 	unsigned char p1, p2;
 	int txpower1, txpower2;
 	int commit_needed = 0;
-	int model;
-
-	// generate nvram nvram according to system setting
-	model = get_model();
-
-	switch(model) {
-		case MODEL_EA6900:
-		case MODEL_WS880:
-			snprintf(prefix1, sizeof(prefix1), "%d:", 0);
-			snprintf(prefix2, sizeof(prefix2), "%d:", 1);
-			break;
-	}
 
 	txpower1 = nvram_get_int("wl0_txpower");
 	txpower2 = nvram_get_int("wl1_txpower");
@@ -4463,10 +4433,10 @@ _dprintf("*** Multicast IPTV: config Singtel TR069 on wan port ***\n");
 
 				/* P0  P1 P2 P3 P4 P5 */
 	case MODEL_RTAC68U:	/* WAN L1 L2 L3 L4 CPU */
+	case MODEL_EA6900:      /* WAN L1 L2 L3 L4 CPU */
+	case MODEL_R7000:       /* WAN L1 L2 L3 L4 CPU */
+	case MODEL_WS880:       /* WAN L1 L2 L3 L4 CPU */
 	case MODEL_RTN18U:	/* WAN L1 L2 L3 L4 CPU */
-	case MODEL_EA6900:
-	case MODEL_R7000:
-	case MODEL_WS880:
 		if (wan_vid) { /* config wan port */
 			eval("vconfig", "rem", "vlan2");
 			sprintf(port_id, "%d", wan_vid);

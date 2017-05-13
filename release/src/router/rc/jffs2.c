@@ -61,6 +61,9 @@ unsigned int get_root_type(void)
 		case MODEL_DSLAC68U:
 		case MODEL_RPAC68U: 
 		case MODEL_RTAC68U: 
+		case MODEL_EA6900:
+		case MODEL_R7000:
+		case MODEL_WS880:
 		case MODEL_RTAC88U: 
 		case MODEL_RTAC3100: 
 		case MODEL_RTAC5300: 
@@ -77,9 +80,6 @@ unsigned int get_root_type(void)
 		case MODEL_RTAC1200HP:
 		case MODEL_RTAC1200G:
 		case MODEL_RTAC1200GP:
-		case MODEL_EA6900:
-		case MODEL_R7000:
-		case MODEL_WS880:
 			return 0x73717368;	/* squashfs */
 
 	}

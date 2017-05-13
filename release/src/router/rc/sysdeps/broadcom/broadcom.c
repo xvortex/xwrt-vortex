@@ -286,6 +286,9 @@ GetPhyStatus(int verbose)
 	case MODEL_DSLAC68U:
 	case MODEL_RPAC68U:
 	case MODEL_RTAC68U:
+	case MODEL_EA6900:
+	case MODEL_R7000:
+	case MODEL_WS880:
 	case MODEL_RTAC3200:
 	case MODEL_RTN18U:
 	case MODEL_RTAC53U:
@@ -293,9 +296,6 @@ GetPhyStatus(int verbose)
 	case MODEL_RTAC66U:
 	case MODEL_RTAC1200G:
 	case MODEL_RTAC1200GP:
-	case MODEL_EA6900:
-	case MODEL_R7000:
-	case MODEL_WS880:
 		/* WAN L1 L2 L3 L4 */
 		ports[0]=0; ports[1]=1; ports[2]=2; ports[3]=3; ports[4]=4;
 		break;
@@ -550,6 +550,38 @@ setAllLedOn(void)
 #endif
 			break;
 		}
+		case MODEL_EA6900:
+		{
+			eval("et", "robowr", "0", "0x18", "0x01ff");	// lan/wan ethernet/giga led
+			eval("et", "robowr", "0", "0x1a", "0x01e0");
+			break;
+		}
+		case MODEL_R7000:
+		{
+			led_control(LED_USB, LED_ON);
+			led_control(LED_USB3, LED_ON);
+			led_control(LED_WAN, LED_ON);
+			led_control(LED_WAN_RED, LED_ON);
+			led_control(LED_POWER, LED_ON);
+			led_control(LED_2G, LED_ON);
+			led_control(LED_5G, LED_ON);
+			led_control(LED_WPS, LED_ON);
+#ifdef RTCONFIG_LOGO_LED
+			led_control(LED_LOGO, LED_ON);
+#endif
+			eval("et", "robowr", "0", "0x18", "0x01ff");	// lan/wan ethernet/giga led
+			eval("et", "robowr", "0", "0x1a", "0x01e0");
+			break;
+		}
+		case MODEL_WS880:
+		{
+			led_control(LED_USB3, LED_ON);
+			led_control(LED_LAN, LED_ON);
+			led_control(LED_WAN_RED, LED_ON);
+			led_control(LED_2G, LED_ON);
+			led_control(LED_5G, LED_ON);
+			break;
+		}
 		case MODEL_RTAC56S:
 		case MODEL_RTAC56U:
 		{
@@ -670,36 +702,6 @@ setAllLedOn(void)
 			eval("wl", "-i", "eth2", "ledbh", "11", "1");	// wl 5G
 			led_control(LED_WPS, LED_ON);
 			led_control(LED_USB, LED_ON);
-			break;
-		}
-		case MODEL_EA6900:
-		{
-			eval("et", "robowr", "0", "0x18", "0x01ff");	// lan/wan ethernet/giga led
-			eval("et", "robowr", "0", "0x1a", "0x01e0");
-			break;
-		}
-		case MODEL_R7000:
-		{
-			led_control(LED_USB, LED_ON);
-			led_control(LED_USB3, LED_ON);
-			led_control(LED_WAN, LED_ON);
-			led_control(LED_WAN_RED, LED_ON);
-			led_control(LED_POWER, LED_ON);
-			led_control(LED_2G, LED_ON);
-			led_control(LED_5G, LED_ON);
-			led_control(LED_WPS, LED_ON);
-			led_control(LED_LOGO, LED_ON);
-			eval("et", "robowr", "0", "0x18", "0x01ff");	// lan/wan ethernet/giga led
-			eval("et", "robowr", "0", "0x1a", "0x01e0");
-			break;
-		}
-		case MODEL_WS880:
-		{
-			led_control(LED_USB3, LED_ON);
-			led_control(LED_LAN, LED_ON);
-			led_control(LED_WAN_RED, LED_ON);
-			led_control(LED_2G, LED_ON);
-			led_control(LED_5G, LED_ON);
 			break;
 		}
 	}
@@ -936,6 +938,38 @@ setAllLedOff(void)
 #endif
 			break;
 		}
+		case MODEL_EA6900:
+		{
+			eval("et", "robowr", "0", "0x18", "0x01e0");	// lan/wan ethernet/giga led
+			eval("et", "robowr", "0", "0x1a", "0x01e0");
+			break;
+		}
+		case MODEL_R7000:
+		{
+			led_control(LED_USB, LED_OFF);
+			led_control(LED_USB3, LED_OFF);
+			led_control(LED_WAN, LED_OFF);
+			led_control(LED_WAN_RED, LED_OFF);
+			led_control(LED_POWER, LED_OFF);
+			led_control(LED_2G, LED_OFF);
+			led_control(LED_5G, LED_OFF);
+			led_control(LED_WPS, LED_OFF);
+#ifdef RTCONFIG_LOGO_LED
+			led_control(LED_LOGO, LED_OFF);
+#endif
+			eval("et", "robowr", "0", "0x18", "0x01e0");	// lan/wan ethernet/giga led
+			eval("et", "robowr", "0", "0x1a", "0x01e0");
+			break;
+		}
+		case MODEL_WS880:
+		{
+			led_control(LED_USB3, LED_OFF);
+			led_control(LED_LAN, LED_OFF);
+			led_control(LED_WAN_RED, LED_OFF);
+			led_control(LED_2G, LED_OFF);
+			led_control(LED_5G, LED_OFF);
+			break;
+		}
 		case MODEL_RTAC66U:
 		{
 			/* LAN, WAN Led Off */
@@ -1040,36 +1074,6 @@ setAllLedOff(void)
 			led_control(LED_USB, LED_OFF);
 			break;
 		}
-		case MODEL_EA6900:
-		{
-			eval("et", "robowr", "0", "0x18", "0x01e0");	// lan/wan ethernet/giga led
-			eval("et", "robowr", "0", "0x1a", "0x01e0");
-			break;
-		}
-		case MODEL_R7000:
-		{
-			led_control(LED_USB, LED_OFF);
-			led_control(LED_USB3, LED_OFF);
-			led_control(LED_WAN, LED_OFF);
-			led_control(LED_WAN_RED, LED_OFF);
-			led_control(LED_POWER, LED_OFF);
-			led_control(LED_2G, LED_OFF);
-			led_control(LED_5G, LED_OFF);
-			led_control(LED_WPS, LED_OFF);
-			led_control(LED_LOGO, LED_OFF);
-			eval("et", "robowr", "0", "0x18", "0x01e0");	// lan/wan ethernet/giga led
-			eval("et", "robowr", "0", "0x1a", "0x01e0");
-			break;
-		}
-		case MODEL_WS880:
-		{
-			led_control(LED_USB3, LED_OFF);
-			led_control(LED_LAN, LED_OFF);
-			led_control(LED_WAN_RED, LED_OFF);
-			led_control(LED_2G, LED_OFF);
-			led_control(LED_5G, LED_OFF);
-			break;
-		}
 	}
 
 	puts("1");
@@ -1131,6 +1135,38 @@ setATEModeLedOn(void) {
 #endif
 			eval("et", "robowr", "0", "0x18", "0x01ff");	// lan/wan ethernet/giga led
 			eval("et", "robowr", "0", "0x1a", "0x01e0");
+			break;
+		}
+		case MODEL_EA6900:
+		{
+			eval("et", "robowr", "0", "0x18", "0x01ff");	// lan/wan ethernet/giga led
+			eval("et", "robowr", "0", "0x1a", "0x01e0");
+			break;
+		}
+		case MODEL_R7000:
+		{
+			led_control(LED_USB, LED_ON);
+			led_control(LED_USB3, LED_ON);
+			led_control(LED_WAN, LED_ON);
+			led_control(LED_WAN_RED, LED_ON);
+			led_control(LED_POWER, LED_ON);
+			led_control(LED_2G, LED_ON);
+			led_control(LED_5G, LED_ON);
+			led_control(LED_WPS, LED_ON);
+#ifdef RTCONFIG_LOGO_LED
+			led_control(LED_LOGO, LED_ON);
+#endif
+			eval("et", "robowr", "0", "0x18", "0x01ff");	// lan/wan ethernet/giga led
+			eval("et", "robowr", "0", "0x1a", "0x01e0");
+			break;
+		}
+		case MODEL_WS880:
+		{
+			led_control(LED_USB3, LED_ON);
+			led_control(LED_LAN, LED_ON);
+			led_control(LED_WAN_RED, LED_ON);
+			led_control(LED_2G, LED_ON);
+			led_control(LED_5G, LED_ON);
 			break;
 		}
 		//case MODEL_RPAC68U:
@@ -1232,36 +1268,6 @@ setATEModeLedOn(void) {
 			eval("et", "robowr", "0", "0x1a", "0x01e0");
 			led_control(LED_WPS, LED_ON);
 			led_control(LED_USB, LED_ON);
-			break;
-		}
-		case MODEL_EA6900:
-		{
-			eval("et", "robowr", "0", "0x18", "0x01ff");	// lan/wan ethernet/giga led
-			eval("et", "robowr", "0", "0x1a", "0x01e0");
-			break;
-		}
-		case MODEL_R7000:
-		{
-			led_control(LED_USB, LED_ON);
-			led_control(LED_USB3, LED_ON);
-			led_control(LED_WAN, LED_ON);
-			led_control(LED_WAN_RED, LED_ON);
-			led_control(LED_POWER, LED_ON);
-			led_control(LED_2G, LED_ON);
-			led_control(LED_5G, LED_ON);
-			led_control(LED_WPS, LED_ON);
-			led_control(LED_LOGO, LED_ON);
-			eval("et", "robowr", "0", "0x18", "0x01ff");	// lan/wan ethernet/giga led
-			eval("et", "robowr", "0", "0x1a", "0x01e0");
-			break;
-		}
-		case MODEL_WS880:
-		{
-			led_control(LED_USB3, LED_ON);
-			led_control(LED_LAN, LED_ON);
-			led_control(LED_WAN_RED, LED_ON);
-			led_control(LED_2G, LED_ON);
-			led_control(LED_5G, LED_ON);
 			break;
 		}
 	}

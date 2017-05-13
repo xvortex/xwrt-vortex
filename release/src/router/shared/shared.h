@@ -604,6 +604,8 @@ static inline int have_usb3_led(int model)
 		case MODEL_RTAC56U:
 		case MODEL_RTAC56S:
 		case MODEL_RTAC68U:
+		case MODEL_R7000:
+		case MODEL_WS880:
 #ifndef RTCONFIG_ETRON_XHCI_USB3_LED
 		case MODEL_RTAC58U:
 		case MODEL_RTAC82U:
@@ -617,8 +619,6 @@ static inline int have_usb3_led(int model)
 		case MODEL_RTAC3100:
 		case MODEL_RTAC5300:
 		case MODEL_RTAC5300R:
-		case MODEL_R7000:
-		case MODEL_WS880:
 			return 1;
 	}
 	return 0;

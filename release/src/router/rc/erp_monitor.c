@@ -435,7 +435,10 @@ static void ERP_CHECK_MODE()
 		&& model != MODEL_RTAC87U
 		&& model != MODEL_DSLAC68U
 		&& model != MODEL_RTAC66U
-		&& model != MODEL_RTN66U)
+		&& model != MODEL_RTN66U
+		&& model != MODEL_EA6900
+		&& model != MODEL_R7000
+		&& model != MODEL_WS880)
 	{
 		ERP_DBG("The model isn't under support list!\n");
 		return;
