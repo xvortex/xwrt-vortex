@@ -2928,6 +2928,8 @@ struct nvram_tuple router_defaults[] = {
 	{ "atcover_sip_type", "0" },
 #endif
 
+	{ "lan_brsnoop", "0" },		// Bridge multicast snooping
+
 	{ NULL, NULL }
 }; // router_defaults
 

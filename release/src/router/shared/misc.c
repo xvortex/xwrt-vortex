@@ -1863,10 +1863,10 @@ char *get_parsed_crt(const char *name, char *buf, size_t buf_len)
 				strncpy(p, tmpBuf, strlen(tmpBuf));
 				p += strlen(tmpBuf);
 			}
-			*p = '\0';
 			fclose(fp);
 		}
 #endif
+		*p = '\0';
 	}
 	return buf;
 }
