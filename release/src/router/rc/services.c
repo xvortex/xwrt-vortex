@@ -3212,7 +3212,7 @@ void start_upnp(void)
 	char *nv, *nvp, *b;
 	int upnp_enable, upnp_mnp_enable, upnp_port;
 	int unit, i, httpx_port, cnt;
-#if defined(RTCONFIG_APP_PREINSTALLED) || defined(RTCONFIG_APP_NETINSTALLED) || defined(RTCONFIG_APP_NOLOCALDM)
+#if defined(RTCONFIG_APP_PREINSTALLED) || defined(RTCONFIG_APP_NETINSTALLED)
 	FILE *ifp = NULL;
 	char tmpstr[80];
 	int statDownloadMaster = 0;
@@ -3373,7 +3373,7 @@ void start_upnp(void)
 				}
 #endif
 
-#if defined(RTCONFIG_APP_PREINSTALLED) || defined(RTCONFIG_APP_NETINSTALLED) || defined(RTCONFIG_APP_NOLOCALDM)
+#if defined(RTCONFIG_APP_PREINSTALLED) || defined(RTCONFIG_APP_NETINSTALLED)
 				ifp = fopen("/opt/lib/ipkg/status", "r");
 				if (ifp) {
 					while (fgets(tmpstr, 80, ifp)) {
@@ -6378,24 +6378,31 @@ int start_quagga(void)
 		fprintf(fp, "hostname %s\n", zebra_hostname);
 		fprintf(fp, "password %s\n", zebra_passwd);
 		fprintf(fp, "enable password %s\n", zebra_enpasswd);
-		fprintf(fp, "log file /etc/zebra.log\n");
+		fprintf(fp, "log file /etc/zebra.log informational\n");
+		append_custom_config("zebra.conf",fp);
 		fclose(fp);
+		use_custom_config("zebra.conf","/etc/zebra.conf");
+		run_postconf("zebra","/etc/zebra.conf");
 		eval("zebra", "-d", "-f", "/etc/zebra.conf");
 	}
 	if ((fp2 = fopen("/etc/ripd.conf", "w"))){
 		fprintf(fp2, "hostname %s\n", rip_hostname);
 		fprintf(fp2, "password %s\n", rip_passwd);
-		fprintf(fp2, "debug rip events\n");
-		fprintf(fp2, "debug rip packet\n");
+//		fprintf(fp2, "debug rip events\n");
+//		fprintf(fp2, "debug rip packet\n");
 		fprintf(fp2, "router rip\n");
 		fprintf(fp2, " version 2\n");
 		fprintf(fp2, " network vlan2\n");
 		fprintf(fp2, " network vlan3\n");
 		fprintf(fp2, " passive-interface vlan2\n");
 		fprintf(fp2, " passive-interface vlan3\n");
-		fprintf(fp2, "log file /etc/ripd.log\n");
+		fprintf(fp2, "log file /etc/ripd.log informational\n");
 		fprintf(fp2, "log stdout\n");
+
+		append_custom_config("ripd.conf",fp2);
 		fclose(fp2);
+		use_custom_config("ripd.conf","/etc/ripd.conf");
+		run_postconf("ripd","/etc/ripd.conf");
 		eval("ripd", "-d", "-f", "/etc/ripd.conf");
 	}
 	return 0;
@@ -8942,7 +8949,7 @@ check_ddr_done:
 		update_resolvconf();
 	}
 	else if (strcmp(script, "app") == 0) {
-#if defined(RTCONFIG_APP_PREINSTALLED) || defined(RTCONFIG_APP_NETINSTALLED) || defined(RTCONFIG_APP_NOLOCALDM)
+#if defined(RTCONFIG_APP_PREINSTALLED) || defined(RTCONFIG_APP_NETINSTALLED)
 		if(action & RC_SERVICE_STOP)
 			stop_app();
 #endif
