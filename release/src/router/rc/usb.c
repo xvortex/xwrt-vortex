@@ -2005,10 +2005,11 @@ void write_ftpd_conf()
 #if (!defined(LINUX30) && LINUX_VERSION_CODE < KERNEL_VERSION(2,6,36))
 	fprintf(fp, "use_sendfile=NO\n");
 #endif
+#ifndef RTCONFIG_BCMARM
+	fprintf(fp, "isolate=NO\n");	// 3.x: Broken for MIPS
+#endif
 
 #ifdef RTCONFIG_IPV6
-/* vsftpd 3.x */
-/*
 	if (ipv6_enabled()) {
 		fprintf(fp, "listen_ipv6=YES\n");
 		// vsftpd 3.x can't use both listen at same time.  We don't specify an interface, so
@@ -2017,8 +2018,7 @@ void write_ftpd_conf()
 	} else {
 		fprintf(fp, "listen=YES\n");
 	}
-*/
-	fprintf(fp, "listen%s=YES\n", ipv6_enabled() ? "_ipv6" : "");
+
 #else
 	fprintf(fp, "listen=YES\n");
 #endif

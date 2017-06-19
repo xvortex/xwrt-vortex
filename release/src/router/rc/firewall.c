@@ -1320,7 +1320,7 @@ void nat_setting(char *wan_if, char *wan_ip, char *wanx_if, char *wanx_ip, char 
 #ifdef RTCONFIG_TOR
 	char addr_new[32];
 	int addr_type;
-	char *nv, *nvp, *b;
+	char *nv, *b;
 #endif
 	
 	sprintf(name, "%s_%s_%s", NAT_RULES, wan_if, wanx_if);
@@ -1553,7 +1553,7 @@ void nat_setting2(char *lan_if, char *lan_ip, char *logaccept, char *logdrop)	//
 #ifdef RTCONFIG_TOR
 	char addr_new[32];
 	int addr_type;
-	char *nv, *nvp, *b;
+	char *nv, *b;
 #endif
 
 	ip2class(lan_ip, nvram_safe_get("lan_netmask"), lan_class);
@@ -1674,7 +1674,14 @@ void nat_setting2(char *lan_if, char *lan_ip, char *logaccept, char *logdrop)	//
 	{
 		/* call UPNP chain */
 		fprintf(fp, "-A VSERVER -j VUPNP\n");
-		fprintf(fp, "-A POSTROUTING -o %s -j PUPNP\n", wan_if);
+		for (unit = WAN_UNIT_FIRST; unit < wan_max_unit; unit++) {
+			snprintf(prefix, sizeof(prefix), "wan%d_", unit);
+			if(nvram_get_int(strcat_r(prefix, "state_t", tmp)) != WAN_STATE_CONNECTED)
+				continue;
+
+			wan_if = get_wan_ifname(unit);
+			fprintf(fp, "-A POSTROUTING -o %s -j PUPNP\n", wan_if);
+		}
 	}
 
 	/* Trigger port setting */
@@ -2661,8 +2668,8 @@ TRACE_PT("writing Parental Control\n");
 			}
 			else
 			{
-				fprintf(fp, "-A INPUT -i %s -p tcp --dport %d -j %s\n",
-				        wan_if, nvram_get_int("sshd_port") ? : 22, logaccept);
+				fprintf(fp, "-A INPUT -p tcp --dport %d -j %s\n",
+				        nvram_get_int("sshd_port") ? : 22, logaccept);
 #ifdef RTCONFIG_IPV6
 				if (ipv6_enabled())
 					fprintf(fp_ipv6, "-A INPUT -p tcp --dport %d -j %s\n",
@@ -3685,8 +3692,8 @@ TRACE_PT("writing Parental Control\n");
 				fprintf(fp, "-A SSHBFP -m recent --set --name SSH --rsource\n");
 				fprintf(fp, "-A SSHBFP -m recent --update --seconds 60 --hitcount 4 --name SSH --rsource -j %s\n", logdrop);
 				fprintf(fp, "-A SSHBFP -j %s\n", logaccept);
-				fprintf(fp, "-A INPUT -i %s -p tcp --dport %d -m state --state NEW -j SSHBFP\n",
-				        wan_if, nvram_get_int("sshd_port") ? : 22);
+				fprintf(fp, "-A INPUT -p tcp --dport %d -m state --state NEW -j SSHBFP\n",
+				        nvram_get_int("sshd_port") ? : 22);
 #ifdef RTCONFIG_IPV6
 				if (ipv6_enabled())
 				{
@@ -3702,8 +3709,8 @@ TRACE_PT("writing Parental Control\n");
 			}
 			else
 			{
-				fprintf(fp, "-A INPUT -i %s -p tcp --dport %d -j %s\n",
-				        wan_if, nvram_get_int("sshd_port") ? : 22, logaccept);
+				fprintf(fp, "-A INPUT -p tcp --dport %d -j %s\n",
+				        nvram_get_int("sshd_port") ? : 22, logaccept);
 #ifdef RTCONFIG_IPV6
 				if (ipv6_enabled())
 					fprintf(fp_ipv6, "-A INPUT -p tcp --dport %d -j %s\n",
@@ -3786,9 +3793,18 @@ TRACE_PT("writing Parental Control\n");
 #endif
 		//Add for snmp daemon
 		if (nvram_match("snmpd_enable", "1") && nvram_match("snmpd_wan", "1")) {
-			fprintf(fp, "-A INPUT -p udp -s 0/0 --sport 1024:65535 -d %s --dport 161:162 -m state --state NEW,ESTABLISHED -j %s\n", wan_ip, logaccept);
-			fprintf(fp, "-A OUTPUT -p udp -s %s --sport 161:162 -d 0/0 --dport 1024:65535 -m state --state ESTABLISHED -j %s\n", wan_ip, logaccept);
-		}
+
+			for(unit = WAN_UNIT_FIRST; unit < wan_max_unit; ++unit){
+				snprintf(prefix, sizeof(prefix), "wan%d_", unit);
+				if(nvram_get_int(strcat_r(prefix, "state_t", tmp)) != WAN_STATE_CONNECTED)
+					continue;
+				wan_ip = nvram_safe_get(strcat_r(prefix, "ipaddr", tmp));
+
+				fprintf(fp, "-A INPUT -p udp -s 0/0 --sport 1024:65535 -d %s --dport 161:162 -m state --state NEW,ESTABLISHED -j %s\n", wan_ip, logaccept);
+				fprintf(fp, "-A OUTPUT -p udp -s %s --sport 161:162 -d 0/0 --dport 1024:65535 -m state --state ESTABLISHED -j %s\n", wan_ip, logaccept);
+
+                        }
+                }
 
 #ifdef RTCONFIG_IPV6
 		switch (get_ipv6_service()) {
@@ -4928,7 +4944,6 @@ mangle_setting2(char *lan_if, char *lan_ip, char *logaccept, char *logdrop)
 	int unit;
 	char tmp[100], prefix[] = "wanXXXXXXXXXX_";
 	char *wan_if;
-	char *wan_ip;
 	int wan_max_unit = WAN_UNIT_MAX;
 #ifdef CONFIG_BCMWL5 /* the only use so far */
 	char lan_class[32];
@@ -4987,21 +5002,17 @@ mangle_setting2(char *lan_if, char *lan_ip, char *logaccept, char *logdrop)
 
 
 /* For NAT loopback */
-/* Untested yet */
-#if 0
 	for(unit = WAN_UNIT_FIRST; unit < WAN_UNIT_MAX; ++unit){
 		snprintf(prefix, sizeof(prefix), "wan%d_", unit);
 		if(nvram_get_int(strcat_r(prefix, "state_t", tmp)) != WAN_STATE_CONNECTED)
 			continue;
 
-		wan_ip = nvram_safe_get(strcat_r(prefix, "ipaddr", tmp));
 		wan_if = get_wan_ifname(unit);
 
 		if (nvram_match("fw_nat_loopback", "2"))
 			eval("iptables", "-t", "mangle", "-A", "PREROUTING", "!", "-i", wan_if,
-			     "-d", wan_ip, "-j", "MARK", "--set-mark", "0x8000/0x8000");
+			     "-d", nvram_safe_get(strcat_r(prefix, "ipaddr", tmp)), "-j", "MARK", "--set-mark", "0x8000/0x8000");
 	}
-#endif
 
 /* Workaround for neighbour solicitation flood from Comcast */
 #ifdef RTCONFIG_IPV6

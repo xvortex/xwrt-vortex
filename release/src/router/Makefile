@@ -519,8 +519,8 @@ obj-$(RTCONFIG_NFS) += nfs-utils
 obj-$(RTCONFIG_NFS) += portmap
 
 #obj-y += dosfstools
-obj-$(RTCONFIG_FTP) += $(if $(RTCONFIG_QCA),vsftpd-3.x,vsftpd)
-#obj-$(RTCONFIG_FTP) += vsftpd-3.x
+#obj-$(RTCONFIG_FTP) += $(if $(RTCONFIG_QCA),vsftpd-3.x,vsftpd)
+obj-$(RTCONFIG_FTP) += vsftpd-3.x
 
 ifeq ($(CONFIG_LINUX26),y)
 ifeq ($(RTCONFIG_SAMBASRV),y)
@@ -785,7 +785,6 @@ obj-$(RTCONFIG_TCPDUMP) += libpcap
 obj-$(RTCONFIG_TCPDUMP) += tcpdump-4.4.0
 
 # Merlin addons
-obj-n += wol
 ifneq ($(or $(findstring linux-2.6.36,$(LINUXDIR)),$(findstring linux-3.x,$(LINUXDIR))),)
 obj-y += ipset_arm
 obj-y += libmnl
@@ -3974,6 +3973,7 @@ curl/Makefile: curl/configure
 		--enable-http --with-ssl=$(TOP)/openssl/ssl \
 		$(if $(RTCONFIG_IPV6),--enable-ipv6) \
 		--disable-gopher --disable-dict --disable-telnet \
+		--disable-proxy --disable-manual --disable-libcurl-option \
 		CPPFLAGS='-I$(TOP)/openssl/include' \
 		LDFLAGS='$(LDFLAGS) -L$(TOP)/openssl' LIBS='-lcrypto -lssl -ldl' \
 		--with-ca-bundle=/rom/ca-bundle.crt
@@ -4326,25 +4326,6 @@ ufsd: kernel_header kernel
 
 ufsd-install: ufsd
 	@$(MAKE) -C ufsd install INSTALLDIR=$(INSTALLDIR)/ufsd
-
-wol/stamp-h1:
-	cd $(TOP)/wol && jm_cv_func_working_malloc=yes \
-	CFLAGS="-Os -Wall $(EXTRACFLAGS) -ffunction-sections -fdata-sections" \
-	$(CONFIGURE) --host=mips --prefix=$(INSTALLDIR)/wol CC=mipsel-uclibc-gcc STRIP=mipsel-uclibc-strip \
-	AR=mipsel-uclibc-ar LD=mipsel-uclibc-ld NM=mipsel-uclibc-nm RANLIB=mipsel-uclibc-ranlib
-	@touch $@
-
-wol: wol/stamp-h1
-	@$(SEP)
-	jm_cv_func_working_malloc=yes $(MAKE) -C $@
-
-wol-clean:
-	-@$(MAKE) -C wol distclean
-	@rm -f wol/stamp-h1
-
-wol-install: wol
-	install -D wol/src/wol $(INSTALLDIR)/wol/usr/sbin/wol
-	$(STRIP) $(INSTALLDIR)/wol/usr/sbin/wol
 
 netstat-nat-clean:
 	-@$(MAKE) -C netstat-nat clean
