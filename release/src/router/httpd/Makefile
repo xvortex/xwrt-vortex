@@ -5,6 +5,12 @@ CFLAGS += -I$(SRCBASE) -I$(SRCBASE)/include -I. -I$(TOP)/shared -I$(TOP)/zlib
 CFLAGS += -I$(TOP)/push_log
 CFLAGS += -DASUS_DDNS -DTRANSLATE_ON_FLY -DFLASH_EMULATOR -DLinux -DWSC 
 
+ifeq ($(RTAC68U)$(RTAC56U),y)
+#Use binary blob
+else
+CFLAGS += -DMISSING_HOOKS
+endif
+
 ifeq ($(RTCONFIG_BCM_7114),y)
 CFLAGS += -I$(SRCBASE)/../dhd/components/shared/
 endif

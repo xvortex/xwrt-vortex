@@ -222,9 +222,8 @@ struct language_table language_tables[] = {
 /* Forwards. */
 static int initialize_listen_socket(usockaddr* usa, const char *ifname);
 static int auth_check( char* dirname, char* authorization, char* url, char* file, char* cookies, int fromapp_flag);
-static int referer_check(char* referer, int fromapp_flag);
-static int check_noauth_referrer(char* referer, int fromapp_flag);
-static char *get_referrer(char *referer);
+int check_noauth_referrer(char* referer, int fromapp_flag);
+char *get_referrer(char *referer);
 char *generate_token(void);
 static void send_error( int status, char* title, char* extra_header, char* text );
 //#ifdef RTCONFIG_CLOUDSYNC
@@ -232,8 +231,6 @@ static void send_page( int status, char* title, char* extra_header, char* text ,
 //#endif
 static void send_headers( int status, char* title, char* extra_header, char* mime_type, int fromapp);
 static void send_token_headers( int status, char* title, char* extra_header, char* mime_type, int fromapp);
-static int match( const char* pattern, const char* string );
-static int match_one( const char* pattern, int patternlen, const char* string );
 static void handle_request(void);
 void send_login_page(int fromapp_flag, int error_status, char* url, char* file, int lock_time);
 void __send_login_page(int fromapp_flag, int error_status, char* url, char* file, int lock_time);
@@ -256,7 +253,7 @@ char *http_ifname = NULL;
 time_t login_dt=0;
 char login_url[128];
 int login_error_status = 0;
-char cloud_file[128];
+char cloud_file[256];
 
 /* Added by Joey for handle one people at the same time */
 unsigned int login_ip=0; // the logined ip
@@ -370,7 +367,7 @@ error:
 void 
 send_login_page(int fromapp_flag, int error_status, char* url, char* file, int lock_time)
 {
-	char inviteCode[256]={0};
+	char inviteCode[512]={0};
 	//char url_tmp[64]={0};
 	char *cp, *file_var=NULL;
 
@@ -410,7 +407,7 @@ __send_login_page(int fromapp_flag, int error_status, char* url, char* file, int
 	send_login_page(fromapp_flag, error_status, url, file, lock_time);
 }
 
-static char
+char
 *get_referrer(char *referer)
 {
 	char *auth_referer=NULL;
@@ -435,7 +432,11 @@ static char
 	return auth_referer;
 }
 
-static int
+/* That code is now closed source.  Until we get binary blobs for
+   all model, reuse the original code. */
+
+#ifdef MISSING_HOOKS
+int
 check_noauth_referrer(char* referer, int fromapp_flag)
 {
 	char *auth_referer=NULL;
@@ -455,7 +456,7 @@ check_noauth_referrer(char* referer, int fromapp_flag)
 		return REFERERFAIL;
 }
 
-static int
+int
 referer_check(char* referer, int fromapp_flag)
 {
 	char *auth_referer=NULL;
@@ -499,6 +500,9 @@ referer_check(char* referer, int fromapp_flag)
 	}
 	return REFERERFAIL;
 }
+
+#endif	// temporary code
+
 
 #define	HEAD_HTTP_LOGIN	"HTTP login"	// copy from push_log/push_log.h
 
@@ -723,7 +727,7 @@ match( const char* pattern, const char* string )
     }
 
 
-static int
+int
 match_one( const char* pattern, int patternlen, const char* string )
     {
     const char* p;
@@ -1363,7 +1367,7 @@ handle_request(void)
 
 	if (!handler->pattern){
 		if(strlen(file) > 50 && !(strstr(file, "findasus")) && !(strstr(file, "acme-challenge"))){
-			char inviteCode[256];
+			char inviteCode[512];
 			memset(cloud_file, 0, sizeof(cloud_file));
 			if(!check_xss_blacklist(file, 0))
 				strlcpy(cloud_file, file, sizeof(cloud_file));

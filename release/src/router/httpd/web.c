@@ -281,9 +281,6 @@ extern int change_passwd;	// 2008.08 magic
 extern int reget_passwd;	// 2008.08 magic
 extern int skip_auth;
 extern int lock_flag;
-extern char host_name[64];
-extern char referer_host[64];
-extern char current_page_name[128];
 extern unsigned int login_ip_tmp;
 
 extern time_t login_timestamp; // the timestamp of the logined ip
@@ -2135,7 +2132,7 @@ int validate_instance(webs_t wp, char *name, json_object *root)
 		}
 	}
 	else if(strncmp(name, "vpn_client_", 11)==0) {
-		for(i=1;i<6;i++) {
+		for(i=1;i<MAX_OVPN_CLIENT+1;i++) {
 			sprintf(prefix, "vpn_client%d_", i);
 			value = get_cgi_json(strcat_r(prefix, name+11, tmp),root);
 			if(value && strcmp(nvram_safe_get(tmp), value)) {
@@ -7678,15 +7675,6 @@ wps_finish:
 		websDone(wp, 200);
 		//websRedirect(wp, current_url);
 	}
-	else if (!strcmp(action_mode, "restore_module"))
-	{
-		action_para = get_cgi_json("module_prefix",root);
-		if(action_para) {
-			snprintf(command, sizeof(command),"restore %s", action_para);
-			notify_rc(command);
-		}
-		websRedirect(wp, current_url);
-	}
 	else if (!strcmp(action_mode, "mfp_requeue")){
 		unsigned int login_ip = (unsigned int)atoll(nvram_safe_get("login_ip"));
 
@@ -10133,7 +10121,7 @@ login_cgi(webs_t wp, char_t *urlPrefix, char_t *webDir, int arg,
 			websWrite(wp,"<HTML><HEAD>\n" );
 			if(!strcmp(nvram_default_get("http_passwd"), nvram_safe_get("http_passwd")) && !nvram_match("ATEMODE", "1"))
 				websWrite(wp, T("<meta http-equiv=\"refresh\" content=\"0; url=Main_Password.asp\">\r\n"));
-			else if(check_xss_blacklist(next_page, 1))
+			else if(check_xss_blacklist(next_page, 1) || !useful_redirect_page(next_page))
 				websWrite(wp, T("<meta http-equiv=\"refresh\" content=\"0; url=index.asp\">\r\n"));
 			else{
 				if(strncmp(next_page, "cloud_sync.asp", 14)==0)
@@ -10350,8 +10338,8 @@ struct mime_handler mime_handlers[] = {
 	{ "js/chart.min.js", "text/javascript", cache_object, NULL, do_file, NULL },
 	{ "require/require.min.js", "text/javascript", no_cache_IE7, NULL, do_file, NULL },
 	{ "httpd_check.xml", "text/xml", no_cache_IE7, do_html_post_and_get, do_ej, NULL },
-	{ "httpd_check.json", "application/json", no_cache_IE7, do_html_post_and_get, do_ej, NULL },
-	{ "findasus.json", "application/json", no_cache_IE7, do_html_post_and_get, do_ej, NULL },
+	{ "repage.json", "application/json", no_cache_IE7, do_html_post_and_get, do_ej, NULL },
+	{ "chdom.json", "application/json", no_cache_IE7, do_html_post_and_get, do_ej, NULL },
 	{ "get_webdavInfo.asp", "text/html", no_cache_IE7, do_html_post_and_get, do_ej, NULL },
 	{ "appGet_image_path.cgi", "text/html", no_cache_IE7, do_html_post_and_get, do_appGet_image_path_cgi, NULL },
 	{ "login.cgi", "text/html", no_cache_IE7, do_html_post_and_get, do_login_cgi, NULL },
@@ -10367,8 +10355,8 @@ struct mime_handler mime_handlers[] = {
 	{ "update_appstate.asp", "text/html", no_cache_IE7, do_html_post_and_get, do_ej, NULL },
 	{ "WAN_info.asp", "text/html", no_cache_IE7, do_html_post_and_get, do_ej, NULL },
 #ifdef RTCONFIG_FINDASUS
-	{ "findasus.cgi", "text/html", no_cache_IE7, do_html_post_and_get, do_findasus_cgi, NULL },
-	{ "find_device.asp", "text/html", no_cache_IE7, do_html_post_and_get, do_ej, NULL },
+	{ "findasus.cgi", "text/html", no_cache_IE7, do_html_post_and_get, do_findasus_cgi, do_auth },
+	{ "find_device.asp", "text/html", no_cache_IE7, do_html_post_and_get, do_ej, do_auth },
 #endif
 	{ "**.xml", "text/xml", no_cache_IE7, do_html_post_and_get, do_ej, do_auth },
 	{ "**.htm*", "text/html", no_cache_IE7, do_html_post_and_get, do_ej, do_auth },
@@ -10528,6 +10516,17 @@ struct except_mime_handler except_mime_handlers[] = {
 	{ NULL, 0 }
 };
 
+#ifdef MISSING_HOOKS
+
+/* No idea what that function does,
+   so make it do nothing */
+
+int useful_redirect_page(char *next_page){
+	return 0;
+}
+
+
+
 // some should be referer
 struct mime_referer mime_referers[] = {
 	{ "start_apply.htm", CHECK_REFERER},
@@ -10562,8 +10561,8 @@ struct mime_referer mime_referers[] = {
 	{ "**.CFG", CHECK_REFERER},
 	{ NULL, 0 }
 };
+#endif
 
-//2008.08 magic}
 #ifdef RTCONFIG_USB
 int ej_get_AiDisk_status(int eid, webs_t wp, int argc, char **argv){
 	disk_info_t *disks_info, *follow_disk;
@@ -15049,8 +15048,9 @@ ej_check_asus_model(int eid, webs_t wp, int argc, char **argv)
 }
 
 static int
-ej_httpd_check(int eid, webs_t wp, int argc, char **argv)
+ej_chdom(int eid, webs_t wp, int argc, char **argv)
 {
+#ifdef MISSING_HOOKS
 	struct json_object *item = json_object_new_object();
 
 	/* check alive */
@@ -15066,6 +15066,17 @@ ej_httpd_check(int eid, webs_t wp, int argc, char **argv)
 	websWrite(wp, "%s", json_object_to_json_string(item));
 	json_object_put(item);
 	return 0;
+#else
+	char str[32];
+	memset(str, 0, sizeof(str));
+	char *hostname = websGetVar(wp, "hostname", "");
+
+	ipisdomain(hostname,str);
+
+	websWrite(wp, "%s", str);
+
+	return 0;
+#endif
 }
 
 #ifdef RTCONFIG_CONCURRENTREPEATER
@@ -15506,7 +15517,7 @@ struct ej_handler ej_handlers[] = {
 	{ "check_asus_model", ej_check_asus_model},
 	{ "generate_region", ej_generate_region},
 	{ "get_next_lanip", ej_get_next_lanip},
-	{ "httpd_check", ej_httpd_check},
+	{ "chdom", ej_chdom},
 #ifdef RTCONFIG_NOTIFICATION_CENTER
 	{ "get_nt_db", ej_get_nt_db},
 #endif
