@@ -2272,7 +2272,7 @@ int main(int argc, char **argv)
 void save_cert(void)
 {
 #if defined(RTCONFIG_JFFS2) || defined(RTCONFIG_BRCM_NAND_JFFS2) || defined(RTCONFIG_UBIFS)
-	eval("cp", "-p", "/etc/cert.pem", "/etc/key.pem", "/jffs/https/");
+	eval("cp", "-p", "/etc/cert.pem", "/etc/key.pem", "/jffs/ssl/");
 #else
 	if (eval("tar", "-C", "/", "-czf", "/tmp/cert.tgz", "etc/cert.pem", "etc/key.pem") == 0) {
 		if (nvram_set_file("https_crt_file", "/tmp/cert.tgz", 8192)) {
@@ -2352,8 +2352,7 @@ void start_ssl(void)
 				// browsers seems to like this when the ip address moves...	-- zzz
 				f_read("/dev/urandom", &sn, sizeof(sn));
 
-				sprintf(t, "%llu", sn & 0x7FFFFFFFFFFFFFFFULL);
-				eval("gencert.sh", t);
+				eval("gencert.sh", "web");
 			}
 		}
 
