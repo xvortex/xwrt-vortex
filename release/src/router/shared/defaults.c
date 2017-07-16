@@ -1540,7 +1540,8 @@ struct nvram_tuple router_defaults[] = {
 	{ "qos_type",			"0"				}, // 0: Traditional, 1: Adaptive
 #ifdef RTCONFIG_BCMARM
 	{ "qos_sched",			"0"				},
-	{ "qos_overhead",		"0"				}, // ATM overhead
+	{ "qos_overhead",		"0"				}, // Overhead
+	{ "qos_atm",			"0"				}, // 1 = ATM, 0 = Ethernet
 #endif
 	{ "qos_method",			"0"				},
 	{ "qos_sticky",			"1"				},
@@ -2048,7 +2049,6 @@ struct nvram_tuple router_defaults[] = {
 	{ "telnetd_enable", "0" },
 #ifdef RTCONFIG_SSH
 	{ "sshd_enable", "0" },		/* 0: disabled 1: enabled 2: enabled for LAN only */
-	{ "sshd_timeout", "0" },
 	{ "sshd_port", "22" },
 	{ "sshd_pass", "1" },
 	{ "sshd_authkeys", "" },

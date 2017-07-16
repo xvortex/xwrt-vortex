@@ -1641,6 +1641,7 @@ _dprintf("%s: Finish.\n", __FUNCTION__);
 void logmessage_normal(char *logheader, char *fmt, ...){
   va_list args;
   char buf[512];
+  char logheader2[33];
   int level;
 
   va_start(args, fmt);
@@ -1650,7 +1651,9 @@ void logmessage_normal(char *logheader, char *fmt, ...){
   level = nvram_get_int("message_loglevel");
   if (level > 7) level = 7;
 
-  openlog(logheader, 0, 0);
+  strlcpy(logheader2, logheader, sizeof (logheader2));
+  replace_char(logheader2, ' ', '_');
+  openlog(logheader2, 0, 0);
   syslog(level, buf);
   closelog();
   va_end(args);
@@ -2643,13 +2646,13 @@ void run_custom_script(char *name, char *args)
 
 	if(f_exists(script)) {
 		if (nvram_match("jffs2_scripts", "0")) {
-			logmessage("custom script", "Found %s, but custom script execution is disabled!", name);
+			logmessage("custom_script", "Found %s, but custom script execution is disabled!", name);
 			return;
 		}
 		if (args)
-			logmessage("custom script" ,"Running %s (args: %s)", script, args);
+			logmessage("custom_script" ,"Running %s (args: %s)", script, args);
 		else
-			logmessage("custom script" ,"Running %s", script);
+			logmessage("custom_script" ,"Running %s", script);
 		xstart(script, args);
 	}
 }
@@ -2662,13 +2665,13 @@ void run_custom_script_blocking(char *name, char *args)
 
 	if(f_exists(script)) {
 		if (nvram_match("jffs2_scripts", "0")) {
-			logmessage("custom script", "Found %s, but custom script execution is disabled!", name);
+			logmessage("custom_script", "Found %s, but custom script execution is disabled!", name);
 			return;
 		}
 		if (args)
-			logmessage("custom script" ,"Running %s (args: %s)", script, args);
+			logmessage("custom_script" ,"Running %s (args: %s)", script, args);
 		else
-			logmessage("custom script" ,"Running %s", script);
+			logmessage("custom_script" ,"Running %s", script);
 		eval(script, args);
 	}
 
