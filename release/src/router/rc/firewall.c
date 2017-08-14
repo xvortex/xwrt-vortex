@@ -82,11 +82,6 @@ void write_porttrigger(FILE *fp, char *wan_if, int is_nat);
 void redirect_setting();
 #endif
 
-#ifdef RTCONFIG_DNSFILTER
-void dnsfilter_settings(FILE *fp, char *lan_ip);
-void dnsfilter6_settings(FILE *fp, char *lan_if, char *lan_ip);
-#endif
-
 struct datetime{
 	char start[7];		// start time
 	char stop[7];		// stop time
@@ -2456,10 +2451,12 @@ TRACE_PT("writing Parental Control\n");
 #endif
 
 #ifdef RTCONFIG_FTP
-		if ((!nvram_match("enable_ftp", "0")) && (nvram_match("ftp_wanac", "1")))
-
+		if ((!nvram_match("enable_ftp", "0")) && (nvram_get_int("ftp_wanac")))
 		{
 			fprintf(fp, "-A INPUT -p tcp -m tcp --dport 21 -j %s\n", logaccept);
+			int passive_port = nvram_get_int("ftp_pasvport");
+			if (passive_port)
+				fprintf(fp, "-A INPUT -p tcp -m tcp --dport %d:%d -j %s\n", passive_port, passive_port+30, logaccept);
 			int local_ftpport = nvram_get_int("vts_ftpport");
 			if (nvram_match("vts_enable_x", "1") && local_ftpport != 0 && local_ftpport != 21 && ruleHasFTPport())
 				fprintf(fp, "-A INPUT -p tcp -m tcp --dport %d -j %s\n", local_ftpport, logaccept);
@@ -2467,6 +2464,9 @@ TRACE_PT("writing Parental Control\n");
 			if (ipv6_enabled() && nvram_match("ipv6_fw_enable", "1"))
 			{
 				fprintf(fp_ipv6, "-A INPUT -p tcp -m tcp --dport 21 -j %s\n", logaccept);
+				if (passive_port)
+					fprintf(fp_ipv6, "-A INPUT -p tcp -m tcp --dport %d:%d -j %s\n", passive_port, passive_port+30, logaccept);
+
 				if (nvram_match("vts_enable_x", "1") && local_ftpport != 0 && local_ftpport != 21 && ruleHasFTPport())
 					fprintf(fp_ipv6, "-A INPUT -p tcp -m tcp --dport %d -j %s\n", local_ftpport, logaccept);
 			}
@@ -3075,7 +3075,7 @@ TRACE_PT("write url filter\n");
 			if (vstrsep(b, ">", &filterstr) != 1)
 				continue;
 			if (*filterstr) {
-
+				fprintf(fp, "-I FORWARD -p tcp %s -m webstr --url \"%s\" -j REJECT --reject-with tcp-reset\n", timef, filterstr);
 #ifdef RTCONFIG_IPV6
 				if (ipv6_enabled())
 					fprintf(fp_ipv6, "-I FORWARD -p tcp %s -m webstr --url \"%s\" -j REJECT --reject-with tcp-reset\n", timef, filterstr);
@@ -3457,6 +3457,10 @@ TRACE_PT("writing Parental Control\n");
 
 		{
 			fprintf(fp, "-A INPUT -p tcp -m tcp --dport 21 -j %s\n", logaccept);
+			int passive_port = nvram_get_int("ftp_pasvport");
+			if (passive_port)
+				fprintf(fp, "-A INPUT -p tcp -m tcp --dport %d:%d -j %s\n", passive_port, passive_port+30, logaccept);
+
 			int local_ftpport = nvram_get_int("vts_ftpport");
 			if (nvram_match("vts_enable_x", "1") && local_ftpport != 0 && local_ftpport != 21 && ruleHasFTPport())
 				fprintf(fp, "-A INPUT -p tcp -m tcp --dport %d -j %s\n", local_ftpport, logaccept);
@@ -3464,6 +3468,9 @@ TRACE_PT("writing Parental Control\n");
 			if (ipv6_enabled() && nvram_match("ipv6_fw_enable", "1"))
 			{
 				fprintf(fp_ipv6, "-A INPUT -p tcp -m tcp --dport 21 -j %s\n", logaccept);
+				if (passive_port)
+					fprintf(fp_ipv6, "-A INPUT -p tcp -m tcp --dport %d:%d -j %s\n", passive_port, passive_port+30, logaccept);
+
 				if (nvram_match("vts_enable_x", "1") && local_ftpport != 0 && local_ftpport != 21 && ruleHasFTPport())
 					fprintf(fp_ipv6, "-A INPUT -p tcp -m tcp --dport %d -j %s\n", local_ftpport, logaccept);
 			}
@@ -4478,14 +4485,12 @@ mangle_setting(char *wan_if, char *wan_ip, char *lan_if, char *lan_ip, char *log
 			     "-p", "tcp", "--dport", "80",
 			     "-m", "state", "--state", "NEW", "-j", "MARK", "--set-mark", "0x01/0x7");
 		}
-		if (nvram_match("fw_nat_loopback", "1")) {
-			/* mark VTS loopback connections */
-			if (nvram_match("vts_enable_x", "1") || !nvram_match("dmz_ip", "") ||
-				(is_nat_enabled() && nvram_get_int("upnp_enable"))) {
-				eval("iptables", "-t", "mangle", "-A", "FORWARD",
-				     "-o", lan_if, "-s", lan_class, "-d", lan_class,
-				     "-j", "MARK", "--set-mark", "0x01/0x7");
-			}
+		/* mark VTS loopback connections */
+		if (nvram_match("vts_enable_x", "1") || !nvram_match("dmz_ip", "") ||
+			(is_nat_enabled() && nvram_get_int("upnp_enable"))) {
+			eval("iptables", "-t", "mangle", "-A", "FORWARD",
+			     "-o", lan_if, "-s", lan_class, "-d", lan_class,
+			     "-j", "MARK", "--set-mark", "0x01/0x7");
 		}
 #ifdef RTCONFIG_BCMARM
 		/* mark STUN connection*/
@@ -4837,14 +4842,12 @@ mangle_setting2(char *lan_if, char *lan_ip, char *logaccept, char *logdrop)
 			     "-m", "state", "--state", "NEW", "-j", "MARK", "--set-mark", "0x01/0x7");
 		}
 
-		if (nvram_match("fw_nat_loopback", "1")) {
-			/* mark VTS loopback connections */
-			if (nvram_match("vts_enable_x", "1") || !nvram_match("dmz_ip", "") ||
-				(is_nat_enabled() && nvram_get_int("upnp_enable"))) {
-				eval("iptables", "-t", "mangle", "-A", "FORWARD",
-				     "-o", lan_if, "-s", lan_class, "-d", lan_class,
-				     "-j", "MARK", "--set-mark", "0x01/0x7");
-			}
+		/* mark VTS loopback connections */
+		if (nvram_match("vts_enable_x", "1") || !nvram_match("dmz_ip", "") ||
+			(is_nat_enabled() && nvram_get_int("upnp_enable"))) {
+			eval("iptables", "-t", "mangle", "-A", "FORWARD",
+			     "-o", lan_if, "-s", lan_class, "-d", lan_class,
+			     "-j", "MARK", "--set-mark", "0x01/0x7");
 		}
 #ifdef RTCONFIG_BCMARM
 		/* mark STUN connection*/
@@ -5379,108 +5382,3 @@ void ipt_account(FILE *fp, char *interface) {
 		}
 	}
 }
-
-
-#ifdef RTCONFIG_DNSFILTER
-void dnsfilter_settings(FILE *fp, char *lan_ip) {
-	char *name, *mac, *mode, *server[2];
-	unsigned char ea[ETHER_ADDR_LEN];
-	char *nv, *nvp, *b;
-	char lan_class[32];
-	int dnsmode;
-
-	if (nvram_get_int("dnsfilter_enable_x")) {
-		/* Reroute all DNS requests from LAN */
-		ip2class(lan_ip, nvram_safe_get("lan_netmask"), lan_class);
-		fprintf(fp, "-A PREROUTING -s %s -p udp -m udp --dport 53 -j DNSFILTER\n"
-			    "-A PREROUTING -s %s -p tcp -m tcp --dport 53 -j DNSFILTER\n",
-			lan_class, lan_class);
-
-		/* Protection level per client */
-		nv = nvp = strdup(nvram_safe_get("dnsfilter_rulelist"));
-		while (nv && (b = strsep(&nvp, "<")) != NULL) {
-			if (vstrsep(b, ">", &name, &mac, &mode) != 3)
-				continue;
-			if (!*mac || !*mode || !ether_atoe(mac, ea))
-				continue;
-			dnsmode = atoi(mode);
-			if (dnsmode == 0) {
-				fprintf(fp,
-					"-A DNSFILTER -m mac --mac-source %s -j RETURN\n",
-					mac);
-			} else if (get_dns_filter(AF_INET, dnsmode, server)) {
-					fprintf(fp,"-A DNSFILTER -m mac --mac-source %s -j DNAT --to-destination %s\n",
-						mac, server[0]);
-			}
-		}
-		free(nv);
-
-		/* Send other queries to the default server */
-		dnsmode = nvram_get_int("dnsfilter_mode");
-		if ((dnsmode) && get_dns_filter(AF_INET, dnsmode, server)) {
-			fprintf(fp, "-A DNSFILTER -j DNAT --to-destination %s\n", server[0]);
-		}
-	}
-}
-
-
-#ifdef RTCONFIG_IPV6
-void dnsfilter6_settings(FILE *fp, char *lan_if, char *lan_ip) {
-	char *nv, *nvp, *b;
-	char *name, *mac, *mode, *server[2];
-	unsigned char ea[ETHER_ADDR_LEN];
-	int dnsmode, count;
-
-	if (!ipv6_enabled()) return;
-
-	fprintf(fp, "-A INPUT -i %s -p udp -m udp --dport 53 -j DNSFILTERI\n"
-		    "-A INPUT -i %s -p tcp -m tcp --dport 53 -j DNSFILTERI\n"
-		    "-A FORWARD -i %s -p udp -m udp --dport 53 -j DNSFILTERF\n"
-		    "-A FORWARD -i %s -p tcp -m tcp --dport 53 -j DNSFILTERF\n",
-		lan_if, lan_if, lan_if, lan_if);
-
-	nv = nvp = strdup(nvram_safe_get("dnsfilter_rulelist"));
-	while (nv && (b = strsep(&nvp, "<")) != NULL) {
-		if (vstrsep(b, ">", &name, &mac, &mode) != 3)
-			continue;
-		dnsmode = atoi(mode);
-		if (!*mac || !ether_atoe(mac, ea))
-			continue;
-		if (dnsmode == 0) {	/* Unfiltered */
-			fprintf(fp, "-A DNSFILTERI -m mac --mac-source %s -j ACCEPT\n"
-				    "-A DNSFILTERF -m mac --mac-source %s -j ACCEPT\n", 
-					mac, mac);
-		} else {	// Filtered
-			count = get_dns_filter(AF_INET6, dnsmode, server);
-			fprintf(fp, "-A DNSFILTERI -m mac --mac-source %s -j DROP\n", mac);
-			if (count) {
-				fprintf(fp, "-A DNSFILTERF -m mac --mac-source %s -d %s -j ACCEPT\n", mac, server[0]);
-			}
-			if (count == 2) {
-				fprintf(fp, "-A DNSFILTERF -m mac --mac-source %s -d %s -j ACCEPT\n", mac, server[1]);
-			}
-		}
-	}
-	free(nv);
-
-	dnsmode = nvram_get_int("dnsfilter_mode");
-	if (dnsmode) {
-		/* Allow other queries to the default server, and drop the rest */
-		count = get_dns_filter(AF_INET6, dnsmode, server);
-		if (count) {
-			fprintf(fp, "-A DNSFILTERI -d %s -j ACCEPT\n"
-				    "-A DNSFILTERF -d %s -j ACCEPT\n",
-				server[0], server[0]);
-		}
-		if (count == 2) {
-			fprintf(fp, "-A DNSFILTERI -d %s -j ACCEPT\n"
-				    "-A DNSFILTERF -d %s -j ACCEPT\n",
-				server[1], server[1]);
-		}
-		fprintf(fp, "-A DNSFILTERI -j %s\n"
-			    "-A DNSFILTERF -j DROP\n",
-		            (dnsmode == 11 ? "ACCEPT" : "DROP"));
-	}
-}
-#endif	// RTCONFIG_IPV6
-#endif	// RTCONFIG_DNSFILTER

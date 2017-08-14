@@ -226,6 +226,9 @@ var clientlist_array = '<% nvram_get("vpn_client_clientlist"); %>';
 function initial()
 {
 	show_menu();
+	if(vpnc_support && openvpnd_support) {
+		document.getElementById("divSwitchMenu").style.display = "";
+	}
 	showclientlist();
 	showLANIPList();
 
@@ -272,7 +275,7 @@ function initial()
 	document.form.vpn_client_rgw.value = policy_ori;
 	update_visibility();
 
-	setTimeout("getConnStatus()", 2000);
+	setTimeout("getConnStatus()", 1000);
 }
 
 function getTLS(unit){
@@ -510,13 +513,14 @@ function cal_panel_block(){
 }
 
 
-function applyRule(){
-	if (client_state != 0) {
-		document.form.action_wait.value = 15;
-		document.form.action_script.value = "restart_vpnclient"+openvpn_unit;
+function applyRule(manual_switch){
+	if (manual_switch == 0) {
+		showLoading();
+		if (client_state != 0) {
+			document.form.action_wait.value = 15;
+			document.form.action_script.value = "restart_vpnclient"+openvpn_unit;
+		}
 	}
-
-	showLoading(document.form.action_wait.value);
 
 	tmp_value = "";
 
@@ -551,7 +555,7 @@ function applyRule(){
 
 	if (((enforce_ori != getRadioValue(document.form.vpn_client_enforce)) ||
 	     (policy_ori != document.form.vpn_client_rgw.value)) &&
-	    (client_state == 0))
+	    (client_state == 0) && (manual_switch == 0))
 		document.form.action_script.value += "start_vpnrouting"+openvpn_unit;
 
 	document.form.submit();
@@ -808,6 +812,19 @@ function pullLANIPList(obj){
 
 
 function getConnStatus() {
+	$.ajax({
+		url: 'ajax_vpn_status.asp',
+		dataType: 'script',
+		error: function(xhr){
+			getConnStatus();
+		},
+		success: function(response){
+			showConnStatus();
+		}
+	});
+}
+
+function showConnStatus() {
 	switch (openvpn_unit) {
 		case "1":
 			client_state = vpnc_state_t1;
@@ -831,36 +848,49 @@ function getConnStatus() {
 			break;
 	}
 
-	if (client_state == "-1") {
-		switch (client_errno) {
-			case "1":
-				code = "Error - IP conflict!";
+	switch (client_state) {
+		case "1":	// Connecting
+			code = "Connecting...";
+			setTimeout("getConnStatus()",2000);
+			break;
+		case "2":	// COnnected
+			code = "Connected";
+			break;
+		case "-1":
+			switch (client_errno) {
+				case "1":
+					code = "Error - IP conflict!";
+					break;
+				case "2":
+					code = "Error - Routing conflict!";
+					break;
+				case "4":
+					code = "Error - SSL/TLS issue!";
 				break;
-			case "2":
-				code = "Error - Routing conflict!";
-				break;
-			case "4":
-				code = "Error - SSL/TLS issue!";
-				break;
-			case "5":
-				code = "Error - DH issue!";
-				break;
-			case "6":
-				code = "Error - Authentication failure!";
-				break;
-			default:
-				code = "Error - check configuration!";
-				break;
-		}
-		document.getElementById("vpn_error_msg").innerHTML = "<span>" + code + "</span>";
+				case "5":
+					code = "Error - DH issue!";
+					break;
+				case "6":
+					code = "Error - Authentication failure!";
+					break;
+				default:
+					code = "Error - check configuration!";
+					break;
+			}
+			setTimeout("getConnStatus()",2000);
+		break;
+		default:
+			code = "";
+			break;
 	}
+	document.getElementById("vpn_state_msg").innerHTML = "<span>" + code + "</span>";
 }
 
 function defaultSettings() {
 	if (confirm("WARNING: This will reset this OpenVPN client to factory default settings!\n\nKeys and certificates associated to this instance will also be DELETED!\n\nProceed?")) {
 		document.form.action_script.value = "stop_vpnclient" + openvpn_unit + ";clearvpnclient" + openvpn_unit;
-		showLoading(15);
 		document.form.action_wait.value = 15;
+		showLoading();
 		document.form.submit();
 	} else {
 		return false;
@@ -1015,6 +1045,16 @@ function defaultSettings() {
                 <td valign="top">
                 <div>&nbsp;</div>
                 <div class="formfonttitle">OpenVPN Client Settings</div>
+		<div id="divSwitchMenu" style="margin-top:-40px;float:right;display:none;">
+			<div style="width:173px;height:30px;border-top-left-radius:8px;border-bottom-left-radius:8px;" class="block_filter">
+				<a href="Advanced_VPNClient_Content.asp">
+					<div class="block_filter_name">PPTP/L2TP</div>
+				</a>
+			</div>
+			<div style="width:172px;height:30px;margin:-32px 0px 0px 173px;border-top-right-radius:8px;border-bottom-right-radius:8px;" class="block_filter_pressed">
+				<div style="text-align:center;padding-top:5px;color:#93A9B1;font-size:14px">OpenVPN</div>
+			</div>
+		</div>
                 <div style="margin-left:5px;margin-top:10px;margin-bottom:10px"><img src="/images/New_ui/export/line_export.png"></div>
 		<div class="formfontdesc">
                         <p>Before starting the service make sure you properly configure it, including
@@ -1044,16 +1084,16 @@ function defaultSettings() {
 								$('#radio_service_enable').iphoneSwitch((client_state > 0),
 									 function() {
 										document.form.action_script.value = "start_vpnclient" + openvpn_unit;
-										document.form.action_wait.value = 15;
-										parent.showLoading(15);
-										document.form.submit();
+										document.form.action_wait.value = 10;
+										parent.showLoading();
+										applyRule(1);
 										return true;
 									 },
 									 function() {
 										document.form.action_script.value = "stop_vpnclient" + openvpn_unit;
-										document.form.action_wait.value = 15;
-										parent.showLoading(15);
-										document.form.submit();
+										document.form.action_wait.value = 10;
+										parent.showLoading();
+										applyRule(1)
 										return true;
 									 },
 									 {
@@ -1061,8 +1101,7 @@ function defaultSettings() {
 									 }
 								);
 							</script>
-							<span>Warning: any unsaved change will be lost.</span>
-							<div id="vpn_error_msg"></div>
+							<div style="height:30px;line-height:30px;" id="vpn_state_msg"></div>
 					    </td>
 					</tr>
 					<tr>
@@ -1084,6 +1123,12 @@ function defaultSettings() {
 						</tr>
 					</thead>
 
+					<tr>
+						<th>Description</th>
+						<td>
+							<input type="text" maxlength="25" class="input_25_table" name="vpn_client_desc" onBlur="validator.string(this);" value="<% nvram_get("vpn_client_desc"); %>">
+						</td>
+					</tr>
 					<tr>
 						<th>Start with WAN</th>
 						<td>
@@ -1356,7 +1401,7 @@ function defaultSettings() {
 					</tr>
 					<tr>
 						<td width="24%">
-							<input type="text" class="input_15_table" maxlength="15" name="clientlist_deviceName" onClick="hideClients_Block();" onkeypress="return is_alphanum(this,event);">
+							<input type="text" class="input_15_table" maxlength="15" name="clientlist_deviceName" onClick="hideClients_Block();" onKeyPress="return validator.isString(this, event);">
 						</td>
 						<td width="29%">
 							<input type="text" class="input_18_table" maxlength="18" name="clientlist_ipAddr">
@@ -1389,13 +1434,13 @@ function defaultSettings() {
 					</thead>
 					<tr>
 						<td>
-							<textarea rows="8" class="textarea_ssh_table" name="vpn_client_custom" cols="55" maxlength="15000"><% nvram_clean_get("vpn_client_custom"); %></textarea>
+							<textarea rows="8" class="textarea_ssh_table" style="width:99%;" name="vpn_client_custom" cols="55" maxlength="15000"><% nvram_clean_get("vpn_client_custom"); %></textarea>
 						</td>
 					</tr>
 					</table>
 					<div class="apply_gen">
 						<input type="button" id="restoreButton" class="button_gen" value="<#Setting_factorydefault_value#>" onclick="defaultSettings();">
-						<input name="button" type="button" class="button_gen" onclick="applyRule();" value="<#CTL_apply#>"/>
+						<input name="button" type="button" class="button_gen" onclick="applyRule(0);" value="<#CTL_apply#>"/>
 			        </div>
 				</td></tr>
 	        </tbody>

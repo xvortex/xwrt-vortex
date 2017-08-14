@@ -81,6 +81,15 @@
 #define OLD_DUT_DOMAIN_NAME1 "www.asusnetwork.net"
 #define OLD_DUT_DOMAIN_NAME2 "www.asusrouter.com"
 
+/* index page defined for httpd and wanduck */
+#if defined(GTAC5300)
+#define INDEXPAGE "GameDashboard.asp"
+#else
+#define INDEXPAGE "index.asp"
+#endif
+
+#define NETWORKMAP_PAGE "index.asp"
+
 #ifdef RTCONFIG_TRAFFIC_LIMITER
 /* debug message */
 #define TLD_DEBUG		"/tmp/TLD_DEBUG"
@@ -316,10 +325,7 @@ enum {
 	MODEL_RTAC55U,
 	MODEL_RTAC55UHP,
 	MODEL_RT4GAC55U,
-// Need binary blobs from 76xx or newer
-#if !defined(RTN66U)
 	MODEL_PLN11,
-#endif
 	MODEL_PLN12,
 	MODEL_PLAC56,
 	MODEL_PLAC66U,
@@ -1089,6 +1095,8 @@ extern void traffic_limiter_set_bit(const char *type, int unit);
 extern void traffic_limiter_clear_bit(const char *type, int unit);
 extern double traffic_limiter_get_realtime(int unit);
 #endif
+
+/* scripts.c */
 #define xstart(args...) _xstart(args, NULL)
 extern int _xstart(const char *cmd, ...);
 extern void run_custom_script(char *name, char *args);

@@ -551,21 +551,16 @@ endif
 # install before samba3(.6.x) for not overwriting some binaries
 obj-$(RTCONFIG_WEBDAV) += samba-3.5.8
 
-ifneq ($(RTCONFIG_SAMBA_MODERN),y)
 ifeq ($(CONFIG_BCMWL5),y)
 ifneq ($(RTCONFIG_8M_SFP),y)
-obj-$(NEED_SAMBA3) += samba-3.0.33
+obj-$(NEED_SAMBA3) += $(if $(RTCONFIG_SAMBA36X),samba-3.6.x,samba-3.0.33)
 else
 obj-$(NEED_SAMBA3) += $(if $(RTCONFIG_SAMBA36X),samba-3.6.x,samba3)
 endif
 else
-obj-$(NEED_SAMBA3) += samba3
+obj-$(NEED_SAMBA3) += $(if $(RTCONFIG_SAMBA36X),samba-3.6.x,samba3)
 endif
-
-else # Samba 3.6.x
-obj-$(NEED_SAMBA3) += samba36
-obj-$(NEED_SAMBA3) += libiconv-1.14
-endif
+obj-$(RTCONFIG_SAMBA36X) += libiconv-1.14
 
 ifeq ($(RTCONFIG_NTFS),y)
 obj-$(RTCONFIG_OPEN_NTFS3G) += ntfs-3g
@@ -792,9 +787,9 @@ obj-$(RTCONFIG_TCPDUMP) += tcpdump-4.4.0
 
 # Merlin addons
 ifneq ($(or $(findstring linux-2.6.36,$(LINUXDIR)),$(findstring linux-3.x,$(LINUXDIR))),)
-obj-y += ipset_arm
-obj-y += libmnl
 obj-y += libnfnetlink
+obj-y += libmnl
+obj-y += ipset_arm
 else
 obj-y += ipset
 endif
@@ -822,6 +817,7 @@ obj-$(RTCONFIG_TR069) += tr069
 obj-$(RTCONFIG_CLOUDCHECK) += cloudcheck
 
 obj-$(RTCONFIG_GETREALIP) += ministun
+obj-$(RTCONFIG_OPENVPN) += ministun
 
 ifneq ($(find lighttpd-1.4.39, $(obj-y)),"")
 released_dir += APP-IPK
@@ -1586,7 +1582,7 @@ openssl-1.0.0q-clean:
 	[ ! -f openssl-1.0.0q/Makefile ] || $(MAKE) -C openssl-1.0.0q clean
 	@rm -f openssl-1.0.0q/Makefile
 
-openssl-1.0.0q-install: openssl-1.0.0q
+openssl-1.0.0q-install:
 	install -D openssl-1.0.0q/libcrypto-1.0.0q.so.1.0.0 $(INSTALLDIR)/openssl-1.0.0q/usr/lib/libcrypto-1.0.0q.so.1.0.0
 	$(STRIP) $(INSTALLDIR)/openssl-1.0.0q/usr/lib/libcrypto-1.0.0q.so.1.0.0
 	cd $(INSTALLDIR)/openssl-1.0.0q/usr/lib && ln -sf libcrypto-1.0.0q.so.1.0.0 libcrypto-1.0.0q.so
@@ -1623,7 +1619,7 @@ openssl-clean:
 	[ ! -f openssl/Makefile ] || $(MAKE) -C openssl clean
 	@rm -f openssl/Makefile
 
-openssl-install: openssl
+openssl-install:
 	install -D openssl/libcrypto.so.1.0.0 $(INSTALLDIR)/openssl/usr/lib/libcrypto.so.1.0.0
 	$(STRIP) $(INSTALLDIR)/openssl/usr/lib/libcrypto.so.1.0.0
 	cd $(INSTALLDIR)/openssl/usr/lib && ln -sf libcrypto.so.1.0.0 libcrypto.so
@@ -1673,7 +1669,8 @@ wb: openssl libxml2 curl
 push_log: wb
 
 rc: nvram$(BCMEX) shared libbcmcrypto libdisk $(if $(RTCONFIG_FBWIFI),fb_wifi) $(if $(RTCONFIG_PUSH_EMAIL),push_log) $(if $(RTCONFIG_QTN),libqcsapi_client) $(if $(CONFIG_LIBBCM),libbcm) $(if $(RTCONFIG_BWDPI),bwdpi) $(if $(RTCONFIG_USB_SMS_MODEM),smspdu)
-# Dig into our collection of prebuilt objects based on model and architecture.
+	@$(SEP)
+# Dig into our collection of prebuilt objects based on model
 	@-rm -f rc/prebuild/*.o || true
 	@-cp -f rc/prebuild/models/$(BUILD_NAME)/* rc/prebuild/
 	@$(MAKE) -C rc
@@ -1904,7 +1901,7 @@ iptables-1.4.21: iptables-1.4.21/Makefile
 	@$(SEP)
 	$(MAKE) -C $@ KERNEL_DIR=$(LINUXDIR) COPT_FLAGS="-Os $(EXTRACFLAGS) -U CONFIG_NVRAM_SIZE"
 
-iptables-1.4.21-install: iptables-1.4.21
+iptables-1.4.21-install:
 	install -D iptables-1.4.21/iptables/.libs/xtables-multi $(INSTALLDIR)/iptables-1.4.21/usr/sbin/xtables-multi
 	cd $(INSTALLDIR)/iptables-1.4.21/usr/sbin && \
 		ln -sf xtables-multi iptables-restore && \
@@ -1942,7 +1939,7 @@ iptables-1.4.x: iptables-1.4.x/Makefile libnfnetlink
 		CFLAGS="-Wall -Os -D_GNU_SOURCE $(EXTRACFLAGS) -I$(TOP)/libnfnetlink/include" \
 		LDFLAGS="-L$(TOP)/libnfnetlink/src/.libs -lnfnetlink"
 
-iptables-1.4.x-install: iptables-1.4.x
+iptables-1.4.x-install:
 	install -D iptables-1.4.x/iptables/.libs/xtables-multi $(INSTALLDIR)/iptables-1.4.x/usr/sbin/xtables-multi
 	cd $(INSTALLDIR)/iptables-1.4.x/usr/sbin && \
 		ln -sf xtables-multi iptables-save && \
@@ -2051,7 +2048,7 @@ miniupnpc-install:
 
 # !!TB
 shared: busybox $(if $(RTCONFIG_QTN),libqcsapi_client) $(if $(RTCONFIG_HTTPS),openssl)
-# Dig into our collection of prebuilt objects based on model and architecture.
+# Dig into our collection of prebuilt objects based on model.
 	@-rm -f shared/prebuild/*.o || true
 	@-cp -f shared/prebuild/models/$(BUILD_NAME)/* shared/prebuild/
 
@@ -2075,7 +2072,7 @@ else
 endif
 	$(MAKE) -C vsftpd
 
-vsftpd-install: vsftpd
+vsftpd-install:
 	install -D vsftpd/vsftpd $(INSTALLDIR)/vsftpd/usr/sbin/vsftpd
 	$(STRIP) -s $(INSTALLDIR)/vsftpd/usr/sbin/vsftpd
 
@@ -2088,7 +2085,7 @@ else
 endif
 	$(MAKE) -C $@
 
-vsftpd-3.x-install: vsftpd-3.x
+vsftpd-3.x-install:
 	install -D vsftpd-3.x/vsftpd $(INSTALLDIR)/vsftpd-3.x/usr/sbin/vsftpd
 	$(STRIP) -s $(INSTALLDIR)/vsftpd-3.x/usr/sbin/vsftpd
 
@@ -2371,8 +2368,8 @@ p910nd:
 samba:
 samba3:
 	@$(MAKE) -C samba3
-samba36: libiconv-1.14
-	@$(MAKE) -C samba36 $(PARALLEL_BUILD)
+samba-3.6.x: libiconv-1.14
+	@$(MAKE) -C samba-3.6.x $(PARALLEL_BUILD)
 samba-3.5.8:
 	@$(MAKE) -C samba-3.5.8 $(PARALLEL_BUILD)
 
@@ -2510,7 +2507,7 @@ pppd-clean:
 	-@$(MAKE) -C pppd clean
 	@rm -f pppd/stamp-h1
 
-pppd-install: pppd
+pppd-install:
 	install -D pppd/pppd/pppd $(INSTALLDIR)/pppd/usr/sbin/pppd
 	$(STRIP) $(INSTALLDIR)/pppd/usr/sbin/pppd
 	install -D pppd/chat/chat $(INSTALLDIR)/pppd/usr/sbin/chat
@@ -2842,7 +2839,7 @@ tor/Makefile:
 					--disable-asciidoc --disable-unittests \
 					--disable-tool-name-check)
 
-tor-install: tor
+tor-install:
 	install -D tor/src/or/tor $(INSTALLDIR)/tor/usr/sbin/Tor
 	$(STRIP) $(INSTALLDIR)/tor/usr/sbin/Tor
 
@@ -2854,7 +2851,7 @@ iproute2:
 	@$(SEP)
 	@$(MAKE) -C $@ KERNEL_INCLUDE=$(LINUXDIR)/include EXTRACFLAGS="$(EXTRACFLAGS) $(if $(RTCONFIG_IPV6),-DUSE_IPV6,-DNO_IPV6)" $(PARALLEL_BUILD)
 
-iproute2-install: iproute2
+iproute2-install:
 	install -D iproute2/tc/tc $(INSTALLDIR)/iproute2/usr/sbin/tc
 	install -D iproute2/tc/tc $(INSTALLDIR)/iproute2/usr/sbin/realtc
 	$(STRIP) $(INSTALLDIR)/iproute2/usr/sbin/tc
@@ -2866,7 +2863,7 @@ iproute2-3.x: kernel_header iptables-1.4.x
 	@$(SEP)
 	@$(MAKE) -C $@ IPTABLES_DIR=$(TOP)/iptables-1.4.x KERNEL_INCLUDE=$(TOP)/kernel_header/include EXTRACFLAGS="$(EXTRACFLAGS) $(if $(RTCONFIG_IPV6),-DUSE_IPV6,-DNO_IPV6)" && $(MAKE) -C $@ stage
 
-iproute2-3.x-install: iproute2-3.x
+iproute2-3.x-install:
 	install -D iproute2-3.x/tc/tc $(INSTALLDIR)/iproute2-3.x/usr/sbin/tc
 	install -D iproute2-3.x/tc/tc $(INSTALLDIR)/iproute2-3.x/usr/sbin/realtc
 	$(STRIP) $(INSTALLDIR)/iproute2-3.x/usr/sbin/tc
@@ -2946,7 +2943,7 @@ sqlite-clean:
 	-@$(MAKE) -C sqlite clean
 	@rm -f sqlite/stamp-h1
 
-sqlite-install: sqlite
+sqlite-install:
 	@$(SEP)
 
 # commented out for mt-daapd-svn-1696
@@ -3000,7 +2997,7 @@ ffmpeg-clean:
 	-@$(MAKE) -C ffmpeg clean
 	@rm -f ffmpeg/stamp-h1 ffmpeg/config.h ffmpeg/config.mak
 
-ffmpeg-install: ffmpeg
+ffmpeg-install:
 	@$(SEP)
 ifneq ($(MEDIA_SERVER_STATIC),y)
 	install -D ffmpeg/libavformat/libavformat.so.52 $(INSTALLDIR)/ffmpeg/usr/lib/libavformat.so.52
@@ -3025,7 +3022,7 @@ libogg-clean:
 	-@$(MAKE) -C libogg clean
 	@rm -f libogg/stamp-h1
 
-libogg-install: libogg
+libogg-install:
 	@$(SEP)
 ifneq ($(MEDIA_SERVER_STATIC),y)
 	install -D libogg/src/.libs/libogg.so.0 $(INSTALLDIR)/libogg/usr/lib/libogg.so.0
@@ -3049,7 +3046,7 @@ flac-clean:
 	-@$(MAKE) -C flac clean
 	@rm -f flac/stamp-h1
 
-flac-install: flac
+flac-install:
 	@$(SEP)
 ifneq ($(MEDIA_SERVER_STATIC),y)
 	install -D flac/src/libFLAC/.libs/libFLAC.so.8 $(INSTALLDIR)/flac/usr/lib/libFLAC.so.8
@@ -3068,7 +3065,7 @@ jpeg-clean:
 	-@$(MAKE) -C jpeg clean
 	@rm -f jpeg/stamp-h1
 
-jpeg-install: jpeg
+jpeg-install:
 	@$(SEP)
 ifneq ($(MEDIA_SERVER_STATIC),y)
 	install -D jpeg/libjpeg.so $(INSTALLDIR)/jpeg/usr/lib/libjpeg.so
@@ -3089,7 +3086,7 @@ libexif-clean:
 	-@$(MAKE) -C libexif clean
 	@rm -f libexif/stamp-h1
 
-libexif-install: libexif
+libexif-install:
 	@$(SEP)
 ifneq ($(MEDIA_SERVER_STATIC),y)
 	install -D libexif/libexif/.libs/libexif.so.12 $(INSTALLDIR)/libexif/usr/lib/libexif.so.12
@@ -3109,7 +3106,7 @@ zlib-clean:
 	-@$(MAKE) -C zlib clean
 	@rm -f zlib/stamp-h1
 
-zlib-install: zlib
+zlib-install:
 	@$(SEP)
 # commented out for mt-daapd-svn-1696
 ifneq ($(MEDIA_SERVER_STATIC),y)
@@ -3138,7 +3135,7 @@ libid3tag-clean:
 	-@$(MAKE) -C libid3tag clean
 	@rm -f libid3tag/stamp-h1
 
-libid3tag-install: libid3tag
+libid3tag-install:
 	@$(SEP)
 #commented out for mt-daapd-svn-1696
 ifneq ($(MEDIA_SERVER_STATIC),y)
@@ -3164,7 +3161,7 @@ libvorbis-clean:
 	-@$(MAKE) -C libvorbis clean
 	@rm -f libvorbis/stamp-h1
 
-libvorbis-install: libvorbis
+libvorbis-install:
 	@$(SEP)
 ifneq ($(MEDIA_SERVER_STATIC),y)
 	install -D libvorbis/lib/.libs/libvorbis.so.0 $(INSTALLDIR)/libvorbis/usr/lib/libvorbis.so.0
@@ -3236,7 +3233,7 @@ libgdbm-clean:
 	-@$(MAKE) -C libgdbm clean
 	@rm -f libgdbm/stamp-h1
 
-libgdbm-install: libgdbm
+libgdbm-install:
 	@$(SEP)
 ifneq ($(MEDIA_SERVER_STATIC),y)
 	install -D libgdbm/.libs/libgdbm.so.3.0.0 $(INSTALLDIR)/libgdbm/usr/lib/libgdbm.so.3.0.0
@@ -3539,7 +3536,7 @@ lzo-clean:
 	-@$(MAKE) -C lzo clean
 	@rm -f lzo/stamp-h1
 
-lzo-install: lzo
+lzo-install:
 	install -D lzo/src/.libs/liblzo2.so $(INSTALLDIR)/lzo/usr/lib/liblzo2.so.2
 	$(STRIP) $(INSTALLDIR)/lzo/usr/lib/liblzo2.so.2
 	cd $(INSTALLDIR)/lzo/usr/lib && ln -sf liblzo2.so.2 liblzo2.so
@@ -3557,7 +3554,7 @@ openpam-configure:
 		--without-doc --with-pam-unix \
 	)
 
-openpam-install: openpam
+openpam-install:
 	install -D openpam/lib/libpam/.libs/libpam.so.2.0.0 $(INSTALLDIR)/openpam/usr/lib/libpam.so.2
 	$(STRIP) -s $(INSTALLDIR)/openpam/usr/lib/libpam.so.2
 	install -D openpam/modules/pam_unix/.libs/pam_unix.so.2.0.0 $(INSTALLDIR)/openpam/usr/lib/pam_unix.so
@@ -3593,7 +3590,7 @@ openvpn-clean:
 	[ ! -f openvpn/Makefile ] || $(MAKE) -C openvpn clean
 	@rm -f openvpn/Makefile
 
-openvpn-install: openvpn
+openvpn-install:
 	install -D openvpn/src/openvpn/.libs/openvpn $(INSTALLDIR)/openvpn/usr/sbin/openvpn
 	$(STRIP) -s $(INSTALLDIR)/openvpn/usr/sbin/openvpn
 	chmod 0500 $(INSTALLDIR)/openvpn/usr/sbin/openvpn
@@ -3762,7 +3759,7 @@ pcre-8.31/stamp-h1:
 
 pcre-8.31: pcre-8.31/stamp-h1
 
-pcre-8.31-install: pcre-8.31
+pcre-8.31-install:
 	@$(SEP)
 	install -D pcre-8.31/.libs/libpcre.so.1.0.1 $(INSTALLDIR)/pcre-8.31/usr/lib/libpcre.so.1.0.1
 	cd $(INSTALLDIR)/pcre-8.31/usr/lib && ln -sf libpcre.so.1.0.1 libpcre.so.1
@@ -3786,7 +3783,7 @@ libxml2/stamp-h1:
 libxml2: libxml2/stamp-h1
 	$(MAKE) -C libxml2 all $(PARALLEL_BUILD)
 
-libxml2-install: libxml2
+libxml2-install:
 	@$(SEP)
 	install -D libxml2/.libs/libxml2.so.2 $(INSTALLDIR)/libxml2/usr/lib/libxml2.so.2
 	$(STRIP) $(INSTALLDIR)/libxml2/usr/lib/libxml2.so.2
@@ -3805,7 +3802,7 @@ libiconv-1.14/stamp-h1:
 libiconv-1.14:libiconv-1.14/stamp-h1
 	@$(MAKE) -C libiconv-1.14
 
-libiconv-1.14-install: libiconv-1.14
+libiconv-1.14-install:
 	@$(SEP)
 	install -D libiconv-1.14/lib/.libs/libiconv.so.2.5.1 $(INSTALLDIR)/libiconv-1.14/usr/lib/libiconv.so.2.5.1
 	$(STRIP) $(INSTALLDIR)/libiconv-1.14/usr/lib/libiconv.so.2.5.1
@@ -3825,7 +3822,7 @@ ftpclient/stamp-h1:
 
 ftpclient:ftpclient/stamp-h1
 
-ftpclient-install: ftpclient
+ftpclient-install:
 	@$(SEP)
 	install -D ftpclient/ftpclient $(INSTALLDIR)/ftpclient/usr/sbin/ftpclient
 	$(STRIP) $(INSTALLDIR)/ftpclient/usr/sbin/ftpclient
@@ -3845,7 +3842,7 @@ sambaclient/stamp-h1:
 sambaclient: sambaclient/stamp-h1
 	@$(MAKE) -C sambaclient
 
-sambaclient-install: sambaclient
+sambaclient-install:
 	@$(SEP)
 	install -D sambaclient/sambaclient $(INSTALLDIR)/sambaclient/usr/sbin/sambaclient
 	$(STRIP) $(INSTALLDIR)/sambaclient/usr/sbin/sambaclient
@@ -3866,7 +3863,7 @@ usbclient/stamp-h1:
 usbclient: usbclient/stamp-h1
 	@$(MAKE) -C usbclient
 
-usbclient-install: usbclient
+usbclient-install:
 	@$(SEP)
 	install -D usbclient/usbclient $(INSTALLDIR)/usbclient/usr/sbin/usbclient
 	$(STRIP) $(INSTALLDIR)/usbclient/usr/sbin/usbclient
@@ -3933,7 +3930,7 @@ neon/stamp-h1 neon/config.h:
 neon: libxml2 neon/stamp-h1 neon/config.h
 	$(MAKE) -C neon && $(MAKE) $@-stage
 
-neon-install: neon
+neon-install:
 	@$(SEP)
 	install -D neon/src/.libs/libneon.so.27.2.6 $(INSTALLDIR)/neon/usr/lib/libneon.so.27.2.6
 	$(STRIP) $(INSTALLDIR)/neon/usr/lib/libneon.so.27.2.6
@@ -3953,7 +3950,7 @@ webdav_client$(BCMEX)/stamp-h1:
 webdav_client$(BCMEX): webdav_client$(BCMEX)/stamp-h1 nvram$(BCMEX) zlib libxml2 neon
 	@$(MAKE) -C webdav_client$(BCMEX)
 
-webdav_client$(BCMEX)-install: webdav_client$(BCMEX)
+webdav_client$(BCMEX)-install:
 	@$(SEP)
 	install -D webdav_client$(BCMEX)/webdav_client $(INSTALLDIR)/webdav_client$(BCMEX)/usr/sbin/webdav_client
 	$(STRIP) $(INSTALLDIR)/webdav_client$(BCMEX)/usr/sbin/webdav_client
@@ -3997,9 +3994,9 @@ curl/Makefile: curl/configure
 		--disable-proxy --disable-manual --disable-libcurl-option \
 		CPPFLAGS='-I$(TOP)/openssl/include' \
 		LDFLAGS='$(LDFLAGS) -L$(TOP)/openssl' LIBS='-lcrypto -lssl -ldl' \
-		--with-ca-bundle=/rom/ca-bundle.crt
+		--with-ca-bundle=/etc/ssl/certs/ca-certificates.crt
 
-curl-install: curl
+curl-install:
 	@$(SEP)
 	install -D curl/lib/.libs/libcurl.so.4.4.0 $(INSTALLDIR)/curl/usr/lib/libcurl.so.4.4.0
 	$(STRIP) $(INSTALLDIR)/curl/usr/lib/libcurl.so.4.4.0
@@ -4082,7 +4079,7 @@ dropbox_client/stamp-h1:
 dropbox_client: dropbox_client/stamp-h1
 	@$(MAKE) -C dropbox_client
 
-dropbox_client-install: dropbox_client
+dropbox_client-install:
 	@$(SEP)
 	install -D dropbox_client/dropbox_client $(INSTALLDIR)/dropbox_client/usr/sbin/dropbox_client
 	$(STRIP) $(INSTALLDIR)/dropbox_client/usr/sbin/dropbox_client
@@ -4125,7 +4122,7 @@ libgpg-error-1.10: libgpg-error-1.10/stamp-h1
 	@$(SEP)
 	@$(MAKE) -C libgpg-error-1.10
 
-libgpg-error-1.10-install: libgpg-error-1.10
+libgpg-error-1.10-install:
 	install -D libgpg-error-1.10/src/.libs/libgpg-error.so.0.8.0 $(INSTALLDIR)/libgpg-error-1.10/usr/lib/libgpg-error.so.0.8.0
 	$(STRIP) $(INSTALLDIR)/libgpg-error-1.10/usr/lib/libgpg-error.so.0.8.0
 	cd $(INSTALLDIR)/libgpg-error-1.10/usr/lib && ln -sf libgpg-error.so.0.8.0 libgpg-error.so.0
@@ -4145,7 +4142,7 @@ libgcrypt-1.5.1: libgcrypt-1.5.1/stamp-h1
 	@$(SEP)
 	@$(MAKE) -C libgcrypt-1.5.1
 
-libgcrypt-1.5.1-install: libgcrypt-1.5.1
+libgcrypt-1.5.1-install:
 	install -D libgcrypt-1.5.1/src/.libs/libgcrypt.so.11.8.0 $(INSTALLDIR)/libgcrypt-1.5.1/usr/lib/libgcrypt.so.11.8.0
 	$(STRIP) $(INSTALLDIR)/libgcrypt-1.5.1/usr/lib/libgcrypt.so.11.8.0
 	cd $(INSTALLDIR)/libgcrypt-1.5.1/usr/lib && ln -sf libgcrypt.so.11.8.0 libgcrypt.so.11
@@ -4188,7 +4185,7 @@ db-4.8.30: db-4.8.30/build_unix/stamp-h1
 	@$(SEP)
 	@$(MAKE) -C db-4.8.30/build_unix $(PARALLEL_BUILD)
 
-db-4.8.30-install: db-4.8.30
+db-4.8.30-install:
 	install -D db-4.8.30/build_unix/.libs/libdb-4.8.so $(INSTALLDIR)/db-4.8.30/usr/lib/libdb-4.8.so
 	$(STRIP) $(INSTALLDIR)/db-4.8.30/usr/lib/libdb-4.8.so
 	cd $(INSTALLDIR)/db-4.8.30/usr/lib && ln -sf libdb-4.8.so libdb.so
@@ -4232,7 +4229,7 @@ netatalk-3.0.5: netatalk-3.0.5/stamp-h1
 	@touch netatalk-3.0.5/configure
 	@$(MAKE) -C netatalk-3.0.5 $(PARALLEL_BUILD)
 
-netatalk-3.0.5-install: netatalk-3.0.5
+netatalk-3.0.5-install:
 	install -D netatalk-3.0.5/etc/afpd/.libs/afpd $(INSTALLDIR)/netatalk-3.0.5/usr/sbin/afpd
 	install -D netatalk-3.0.5/etc/cnid_dbd/.libs/cnid_dbd $(INSTALLDIR)/netatalk-3.0.5/usr/sbin/cnid_dbd
 	install -D netatalk-3.0.5/etc/cnid_dbd/.libs/cnid_metad $(INSTALLDIR)/netatalk-3.0.5/usr/sbin/cnid_metad
@@ -4278,7 +4275,7 @@ expat-2.0.1: expat-2.0.1/stamp-h1
 	@$(SEP)
 	@$(MAKE) -C expat-2.0.1 $(PARALLEL_BUILD) && $(MAKE) $@-stage
 
-expat-2.0.1-install: expat-2.0.1
+expat-2.0.1-install:
 	install -D expat-2.0.1/.libs/libexpat.so.1.5.2 $(INSTALLDIR)/expat-2.0.1/usr/lib/libexpat.so.1.5.2
 	$(STRIP) $(INSTALLDIR)/expat-2.0.1/usr/lib/libexpat.so.1.5.2
 	cd $(INSTALLDIR)/expat-2.0.1/usr/lib && ln -sf libexpat.so.1.5.2 libexpat.so.1
@@ -4307,7 +4304,7 @@ avahi-0.6.31-configure:
 		LIBDAEMON_CFLAGS="-I$(TOP)/libdaemon" --disable-autoipd --with-xml=expat --disable-stack-protector --with-avahi-user="admin" --with-avahi-group="root" \
 	)
 
-avahi-0.6.31-install: avahi-0.6.31
+avahi-0.6.31-install:
 	install -D avahi-0.6.31/avahi-daemon/.libs/avahi-daemon $(INSTALLDIR)/avahi-0.6.31/usr/sbin/avahi-daemon
 	install -D avahi-0.6.31/avahi-common/.libs/libavahi-common.so.3.5.3 $(INSTALLDIR)/avahi-0.6.31/usr/lib/libavahi-common.so.3.5.3
 	install -D avahi-0.6.31/avahi-core/.libs/libavahi-core.so.7.0.2 $(INSTALLDIR)/avahi-0.6.31/usr/lib/libavahi-core.so.7.0.2
@@ -4507,14 +4504,15 @@ ipset_arm/stamp-h1: libmnl
 	CFLAGS="-Os -Wall $(EXTRACFLAGS) -ffunction-sections -fdata-sections" \
 	LDFLAGS="-ffunction-sections -fdata-sections -Wl,--gc-sections" \
 	libmnl_CFLAGS="-I$(TOP)/libmnl/staged/usr/include" \
-	libmnl_LIBS="-L$(TOP)/libmnl/staged/usr/lib -l:libmnl.so" \
-	$(CONFIGURE) --prefix=/usr --with-kmod=no
+	libmnl_LIBS="-L$(TOP)/libmnl/staged/usr/lib -lmnl" \
+	$(CONFIGURE) --prefix=/usr --with-kmod=yes --with-kbuild=$(LINUXDIR)
 	touch ipset_arm/stamp-h1
 
 ipset_arm: ipset_arm/stamp-h1
 	$(MAKE) -C ipset_arm
+	$(MAKE) -C ipset_arm modules
 
-ipset_arm-install: ipset_arm
+ipset_arm-install:
 	install -D ipset_arm/src/ipset $(INSTALLDIR)/ipset_arm/usr/sbin/ipset
 	install -d $(INSTALLDIR)/ipset_arm/usr/lib/
 	install ipset_arm/lib/.libs/libipset.so.3.6.0 $(INSTALLDIR)/ipset_arm/usr/lib/libipset.so.3.6.0
@@ -4526,6 +4524,7 @@ ipset_arm-install: ipset_arm
 
 ipset_arm-clean:
 	-@$(MAKE) -C ipset_arm clean
+	-@$(MAKE) -C ipset_arm modules_clean
 	-@rm -rf ipset_arm/Makefile ipset_arm/stamp-h1
 
 tftp:
@@ -4842,7 +4841,7 @@ email-3.1.3-clean:
 	-@$(MAKE) -C email-3.1.3 clean
 	@rm -f email-3.1.3/stamp-h1
 
-email-3.1.3-install: email-3.1.3
+email-3.1.3-install:
 	install -D email-3.1.3/src/email $(INSTALLDIR)/email-3.1.3/usr/sbin/email
 	$(STRIP) $(INSTALLDIR)/email-3.1.3/usr/sbin/email
 
@@ -5279,7 +5278,7 @@ json-c/stamp-h1:
 json-c: json-c/stamp-h1
 	$(MAKE) -C $@
 
-json-c-install: json-c
+json-c-install:
 	install -D json-c/.libs/libjson-c.so.2.0.1 $(INSTALLDIR)/json-c/usr/lib/libjson-c.so.2.0.1
 	$(STRIP) $(INSTALLDIR)/json-c/usr/lib/libjson-c.so.2.0.1
 	cd $(INSTALLDIR)/json-c/usr/lib && ln -sf libjson-c.so.2.0.1 libjson-c.so
@@ -5299,7 +5298,7 @@ phddns/stamp-h1:
 phddns: phddns/stamp-h1
 	$(MAKE) -C phddns
 
-phddns-install: phddns
+phddns-install:
 	install -D phddns/src/phddns $(INSTALLDIR)/phddns/usr/sbin/phddns
 	$(STRIP) $(INSTALLDIR)/phddns/usr/sbin/phddns
 
