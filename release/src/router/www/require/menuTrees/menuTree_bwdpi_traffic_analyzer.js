@@ -144,6 +144,7 @@
 				tab: [
 					{url: "Tools_Sysinfo.asp", tabName: "Sysinfo"},
 					{url: "Tools_OtherSettings.asp", tabName: "Other Settings"},
+					{url: "Tools_RunCmd.asp", tabName: "Run Command"},
 					{url: "NULL", tabName: "__INHERIT__"}
 				]
 			},
