@@ -2024,7 +2024,7 @@ int get_yandex_dns(int family, int mode, char **server, int max_count)
 */
 int check_bwdpi_nvram_setting()
 {
-	if(nvram_match("NOASUS", "1")) {
+	if(!nvram_match("bwdpi_enable", "1")) {
 		return 0;
 	}
 	

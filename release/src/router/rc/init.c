@@ -6466,20 +6466,23 @@ int init_nvram(void)
 	add_rc_support("webdav");
 #endif
 
-	if (!nvram_get("NOASUS"))
-		nvram_set("NOASUS", "1");
+	if (!nvram_get("bwdpi_enable"))
+		nvram_set("bwdpi_enable", "0");
+
+	if (!nvram_get("aicloud_enable"))
+		nvram_set("aicloud_enable", "0");
 
 //	add_rc_support("loclist");
 
 #ifdef RTCONFIG_CLOUDSYNC
 	add_rc_support("rrsut");	//syn server
-	if(nvram_match("NOASUS", "0"))
+	if(nvram_match("aicloud_enable", "1"))
 		add_rc_support("cloudsync");
 
 	char ss_support_value[1024]="\0";
 
 #ifdef RTCONFIG_CLOUDSYNC
-	if(nvram_match("NOASUS", "0"))
+	if(nvram_match("aicloud_enable", "1"))
 		strcat(ss_support_value, "asuswebstorage ");
 #endif
 
@@ -6551,7 +6554,7 @@ int init_nvram(void)
 #endif
 
 #ifdef RTCONFIG_BWDPI
-	if(nvram_match("NOASUS", "0"))
+	if(nvram_match("bwdpi_enable", "1"))
 		add_rc_support("bwdpi");
 
 	// tmp to add default nvram

@@ -973,6 +973,27 @@ function done_validating(action){
 						</td>
 					</tr>
 				</table>
+				<table width="100%" border="1" align="center" cellpadding="4" cellspacing="0" bordercolor="#6b8fa3"  class="FormTable">
+                                        <thead>
+						<tr>
+							<td colspan="2">ASUS Features</td>
+						</tr>
+					</thead>
+					<tr id="bwdpi_enable_tr">
+						<th>Enable BWDPI</i></th>
+						<td>
+							<input type="radio" name="bwdpi_enable" class="input" value="1" <% nvram_match_x("", "bwdpi_enable", "1", "checked"); %> onclick="hide_cstats(this.value);"><#checkbox_Yes#>
+							<input type="radio" name="bwdpi_enable" class="input" value="0" <% nvram_match_x("", "bwdpi_enable", "0", "checked"); %> onclick="hide_cstats(this.value);"><#checkbox_No#>
+						</td>
+					</tr>
+					<tr id="aicloud_enable_tr">
+						<th>Enable AiCloud</i></th>
+						<td>
+							<input type="radio" name="aicloud_enable" class="input" value="1" <% nvram_match_x("", "aicloud_enable", "1", "checked"); %> onclick="hide_cstats(this.value);"><#checkbox_Yes#>
+							<input type="radio" name="aicloud_enable" class="input" value="0" <% nvram_match_x("", "aicloud_enable", "0", "checked"); %> onclick="hide_cstats(this.value);"><#checkbox_No#>
+						</td>
+					</tr>
+				</table>
 				<div class="apply_gen">
 					<input name="button" type="button" class="button_gen" onclick="validate();" value="<#CTL_apply#>"/>
 			        </div>
