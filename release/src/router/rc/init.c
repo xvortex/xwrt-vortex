@@ -6466,12 +6466,6 @@ int init_nvram(void)
 	add_rc_support("webdav");
 #endif
 
-	if (!nvram_get("bwdpi_enable"))
-		nvram_set("bwdpi_enable", "0");
-
-	if (!nvram_get("aicloud_enable"))
-		nvram_set("aicloud_enable", "0");
-
 //	add_rc_support("loclist");
 
 #ifdef RTCONFIG_CLOUDSYNC

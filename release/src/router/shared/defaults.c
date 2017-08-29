@@ -1599,6 +1599,7 @@ struct nvram_tuple router_defaults[] = {
 
 #ifdef RTCONFIG_BWDPI
 	// TrendMicro module
+	{ "bwdpi_enable", "0" },
 	{ "wrs_enable", "0" },
 	{ "wrs_rulelist", "" },			// <switch1>MAC1>Adult1>...<switch2>MAC2>Adult2>...
 	{ "wrs_cc_enable", "0" },
@@ -1825,6 +1826,7 @@ struct nvram_tuple router_defaults[] = {
 //#endif
 
 //#ifdef RTCONFIG_CLOUDSYNC
+	{ "aicloud_enable", "0" },
 	{ "enable_cloudsync", "0" },
 	{ "cloud_sync", "" },
 	{ "share_link_param", "" },

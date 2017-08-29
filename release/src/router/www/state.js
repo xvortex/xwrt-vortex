@@ -409,16 +409,7 @@ function isSupport(_ptn){
 		return (based_modelid.search("RP-") != -1) ? true : false;
 	}
 	else if(_ptn == "traffic_analyzer"){
-		if((based_modelid == "RT-AC3200" || based_modelid == "RT-AC87U" || based_modelid == "RT-AC88U" || based_modelid == "RT-AC86U" || 
-			based_modelid == "AC2900" || based_modelid == "RT-AC3100" || based_modelid == "RT-AC5300" || based_modelid == "GT-AC5300" || 
-			based_modelid == "DSL-AC68U" || based_modelid == "RT-AC68U" || based_modelid == "EA6900" || based_modelid == "R7000" || based_modelid == "WS880" || based_modelid == "4G-AC68U" || based_modelid == "RT-AC68R" || 
-			based_modelid == "RT-AC68W" || based_modelid == "RT-AC68RW" || based_modelid == "RT-AC1900P" || 
-			based_modelid == "RT-AC67U" || based_modelid == "RT-AC56U" || based_modelid == "RT-AC56R"  || based_modelid == "BRT-AC828")
-		){
-			return true;
-		}
-
-		return false;
+		return true;
 	}	
 	else
 		return (rc_support.search(_ptn) == -1) ? false : true;
