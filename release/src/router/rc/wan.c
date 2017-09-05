@@ -2234,8 +2234,9 @@ int update_resolvconf(void)
 #ifdef RTCONFIG_OPENVPN
 	dnsstrict = write_vpn_resolv(fp);
 	// If dns not set to exclusive
-	if (dnsstrict != 3) {
+	if (dnsstrict != 3)
 #endif
+	{
 		for (unit = WAN_UNIT_FIRST; unit < WAN_UNIT_MAX; unit++) {
 		char *wan_xdns, *wan_xdomain;
 
@@ -3385,9 +3386,6 @@ stop_wan(void)
 	stop_vpn_eas();
 #endif
 
-#ifdef RTCONFIG_OPENVPN
-	stop_vpn_eas();
-#endif
 #if defined(RTCONFIG_PPTPD) || defined(RTCONFIG_ACCEL_PPTPD)
 	if (nvram_get_int("pptpd_enable"))
 		stop_pptpd();
