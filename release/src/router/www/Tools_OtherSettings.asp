@@ -972,13 +972,6 @@ function done_validating(action){
 							<input type="radio" name="dns_probe" class="input" value="0"><#checkbox_No#>
 						</td>
 					</tr>
-					<tr>
-						<th>Disable Asusnat tunnel</th>
-						<td>
-							<input type="radio" name="aae_disable_force" class="input" value="1" <% nvram_match_x("", "aae_disable_force", "1", "checked"); %>><#checkbox_Yes#>
-							<input type="radio" name="aae_disable_force" class="input" value="0" <% nvram_match_x("", "aae_disable_force", "0", "checked"); %>><#checkbox_No#>
-						</td>
-					</tr>
 
 				</table>
 				<table width="100%" border="1" align="center" cellpadding="4" cellspacing="0" bordercolor="#6b8fa3"  class="FormTable">
@@ -999,6 +992,13 @@ function done_validating(action){
 						<td>
 							<input type="radio" name="aicloud_enable" class="input" value="1" <% nvram_match_x("", "aicloud_enable", "1", "checked"); %>><#checkbox_Yes#>
 							<input type="radio" name="aicloud_enable" class="input" value="0" <% nvram_match_x("", "aicloud_enable", "0", "checked"); %>><#checkbox_No#>
+						</td>
+					</tr>
+					<tr>
+						<th>Enable NAT tunnel</th>
+						<td>
+							<input type="radio" name="aae_disable_force" class="input" value="0" <% nvram_match_x("", "aae_disable_force", "0", "checked"); %>><#checkbox_Yes#>
+							<input type="radio" name="aae_disable_force" class="input" value="1" <% nvram_match_x("", "aae_disable_force", "1", "checked"); %>><#checkbox_No#>
 						</td>
 					</tr>
 				</table>
