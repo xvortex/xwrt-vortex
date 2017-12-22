@@ -49,7 +49,7 @@ function initial(){
 
 	enable_discovery(document.form.tr_discovery.value != '0');
 
-	//if(based_modelid != "RT-AC68U" && based_modelid != "EA6900" && based_modelid != "R7000" && based_modelid != "WS880" && based_modelid != "RT-AC66U" && based_modelid != "RT-N66U"
+	//if(based_modelid != "RT-AC68U" && based_modelid != "RT-AC66U" && based_modelid != "RT-N66U"
 	// && based_modelid != "RT-N18U")
 	if(!jffs2_support)
 		showhide("cert_text", false);

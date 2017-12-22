@@ -409,7 +409,18 @@ function isSupport(_ptn){
 		return (based_modelid.search("RP-") != -1) ? true : false;
 	}
 	else if(_ptn == "traffic_analyzer"){
-		return true;
+		if(!bwdpi_support) return false;
+
+		if((based_modelid == "RT-AC3200" || based_modelid == "RT-AC87U" || based_modelid == "RT-AC88U" || based_modelid == "RT-AC86U" || 
+			based_modelid == "AC2900" || based_modelid == "RT-AC3100" || based_modelid == "RT-AC5300" || based_modelid == "GT-AC5300" || 
+			based_modelid == "DSL-AC68U" || based_modelid == "RT-AC68U" || based_modelid == "EA6900" || based_modelid == "R7000" || based_modelid == "WS880" || based_modelid == "4G-AC68U" || based_modelid == "RT-AC68R" || 
+			based_modelid == "RT-AC68W" || based_modelid == "RT-AC68RW" || based_modelid == "RT-AC1900P" || 
+			based_modelid == "RT-AC67U" || based_modelid == "RT-AC56U" || based_modelid == "RT-AC56R"  || based_modelid == "BRT-AC828")
+		){
+			return true;
+		}
+
+		return false;
 	}	
 	else
 		return (rc_support.search(_ptn) == -1) ? false : true;
@@ -509,7 +520,7 @@ var pwrsave_support = isSupport("pwrsave");
 var wl_mfp_support = isSupport("wl_mfp");	// For Protected Management Frames, ARM platform
 var bwdpi_support = isSupport("bwdpi");
 var ipsec_support = isSupport("ipsec");
-var traffic_analyzer_support =  isSupport("traffic_analyzer");
+var traffic_analyzer_support = bwdpi_support;
 var traffic_limiter_support = isSupport("traffic_limiter");
 var force_upgrade_support = isSupport("fupgrade");
 
