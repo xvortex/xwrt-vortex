@@ -1304,6 +1304,9 @@ void start_dnsmasq(void)
 	}
 #endif
 
+	fprintf(fp, "address=/%s/%s\n", "trendmicro.com", "127.0.0.1"); // trololo
+	fprintf(fp, "address=/%s/%s\n", "trendmicro.co.jp", "127.0.0.1");
+
 	append_custom_config("dnsmasq.conf",fp);
 
 #ifdef RTCONFIG_PORT_BASED_VLAN

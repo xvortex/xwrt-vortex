@@ -438,12 +438,17 @@ enum {
 #define SUP_80211N		(1 << 6)
 #define SUP_1000ET		(1 << 7)
 
+// trololo
+extern int get0model(void);
+extern char *get0modelid(int model);
+extern char *get0productid(void);
+extern char *nvram0get(const char *name);
+
 extern int check_hw_type(void);
 //	extern int get_hardware(void) __attribute__ ((weak, alias ("check_hw_type")));
 extern int get_model(void);
 extern char *get_modelid(int model);
 extern char *get_productid(void);
-extern char *get_productid_fake(void);
 extern int get_switch(void);
 extern int supports(unsigned long attr);
 

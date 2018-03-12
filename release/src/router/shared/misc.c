@@ -1288,18 +1288,46 @@ void bcmvlan_models(int model, char *vlan)
 char *get_productid(void)
 {
 	char *productid = nvram_safe_get("productid");
-#ifdef RTCONFIG_ODMPID
-	char *odmpid = nvram_safe_get("odmpid");
-	if (*odmpid)
-		productid = odmpid;
-#endif
 	return productid;
 }
 
-char *get_productid_fake(void)
+// trololo
+int get0model(void)
+{
+	return MODEL_R7000; // R7000 has RT-AC68U id
+}
+
+char *get0modelid(int model)
+{
+	char *modelid = "RT-AC68U";
+	return modelid;
+}
+
+char *get0productid(void)
 {
 	char *productid = "RT-AC68U";
 	return productid;
+}
+
+char *nvram0get(const char *name)
+{
+	if (!strcmp(name, "btn_rst_gpio")) {
+		char *rst   = "4107";
+		return rst;
+	}
+	if (!strcmp(name, "btn_wps_gpio")) {
+		char *wps   = "4103";
+		return wps;
+	}
+	if (!strcmp(name, "btn_led_gpio")) {
+		char *led   = "5";
+		return led;
+	}
+	if (!strcmp(name, "btn_wltog_gpio")) {
+		char *wltog = "4111";
+		return wltog;
+	}
+	return NULL;
 }
 
 long backup_rx = 0;

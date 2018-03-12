@@ -309,8 +309,8 @@ misc_ioctrl(void)
 	}
 	if (nvram_get_int("sw_mode") == SW_MODE_ROUTER) {
 		led_control(LED_WAN, LED_ON);
-		eval("et", "-i", "eth0", "robowr", "0", "0x18", "0x01fe");
-		eval("et", "-i", "eth0", "robowr", "0", "0x1a", "0x01fe");
+		eval("et", "robowr", "0", "0x18", "0x01ff");
+		eval("et", "robowr", "0", "0x1a", "0x01e0");
 	}
 #endif
 }
@@ -5309,8 +5309,8 @@ int init_nvram(void)
 
 		nvram_set_int("pwr_usb_gpio", 0);
 
-		nvram_set_int("led_usb_gpio", 17|GPIO_ACTIVE_LOW);
-		nvram_set_int("led_usb3_gpio", 18|GPIO_ACTIVE_LOW);
+		nvram_set_int("led_usb_gpio", 18|GPIO_ACTIVE_LOW);
+		nvram_set_int("led_usb3_gpio", 17|GPIO_ACTIVE_LOW);
 		nvram_set_int("led_pwr_gpio", 1|GPIO_ACTIVE_LOW);
 		nvram_set_int("led_wps_gpio", 14);
 #ifdef RTCONFIG_LOGO_LED

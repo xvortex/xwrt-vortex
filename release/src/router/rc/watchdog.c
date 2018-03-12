@@ -2260,7 +2260,7 @@ int confirm_led()
 {
 	if (
 		1
-#if defined(RTN53) || defined(RTN18U)
+#if defined(RTN53) || defined(RTN18U) || defined(R7000) || defined(WS880)
 		&& led_gpio_table[LED_2G] != 0xff
 		&& led_gpio_table[LED_2G] != -1
 #endif
@@ -2280,7 +2280,7 @@ int confirm_led()
 		&& led_gpio_table[LED_MMC] != 0xff
 		&& led_gpio_table[LED_MMC] != -1
 #endif
-#if defined(RTCONFIG_BRCM_USBAP) || defined(RTAC66U) || defined(BCM4352)
+#if defined(RTCONFIG_BRCM_USBAP) || defined(RTAC66U) || defined(BCM4352) || defined(R7000) || defined(WS880)
 		&& led_gpio_table[LED_5G] != 0xff
 		&& led_gpio_table[LED_5G] != -1
 #endif
@@ -2331,7 +2331,7 @@ void led_check(int sig)
 #ifdef RTCONFIG_WLAN_LED
 	if (nvram_contains_word("rc_support", "led_2g"))
 	{
-#if defined(RTN53) || defined(R7000) || defined(WS880)
+#if defined(RTN53)
 		if (nvram_get_int("wl0_radio") == 0)
 			led_control(LED_2G, LED_OFF);
 		else
@@ -2390,7 +2390,7 @@ void led_check(int sig)
 	   (wlonunit == -1 || wlonunit == 1))
 #endif
 	{
-#if defined(RTN53) || defined(R7000) || defined(WS880)
+#if defined(RTN53)
 		if (nvram_get_int("wl1_radio") == 0)
 			led_control(LED_5G, LED_OFF);
 		else
@@ -2411,6 +2411,25 @@ void led_check(int sig)
 if (nvram_match("dsltmp_adslsyncsts","up") && nvram_match("wan0_state_t","2"))
 	led_DSLWAN();
 #endif
+#endif
+}
+
+void led_check_vtx(int sig)
+{
+	if (!confirm_led()) {
+		get_gpio_values_once(1);
+	}
+
+#if defined(EA6900) || defined(R7000) || defined(WS880)
+	if (nvram_get_int("wl0_radio") == 0)
+		led_control(LED_2G, LED_OFF);
+	else
+		fake_wl_led_2g();
+
+	if (nvram_get_int("wl1_radio") == 0)
+		led_control(LED_5G, LED_OFF);
+	else
+		fake_wl_led_5g();
 #endif
 }
 #endif
@@ -4090,8 +4109,11 @@ int sw_devled_main(int argc, char *argv[])
 	swled_alloff_counts = nvram_get_int("offc");
 
 	/* set the signal handler */
+#if defined(EA6900) || defined(R7000) || defined(WS880)
+	signal(SIGALRM, led_check_vtx);
+#else
 	signal(SIGALRM, led_check);
-
+#endif
 	/* set timer */
 	alarmtimer(NORMAL_PERIOD, 0);
 

@@ -130,6 +130,7 @@ function initial(){
  		document.getElementById("update").style.display = "none";
  		document.getElementById("beta_firmware_path_span").style.display = "none";
 		document.getElementById("linkpage_div").style.display = "none";
+		document.getElementById("fw_check_link").style.display = "none";
 	}
 	else{
 		if(!live_update_support || !HTTPS_support || ("<% nvram_get("firmware_check_enable"); %>" != "1")){

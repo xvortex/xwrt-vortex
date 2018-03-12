@@ -389,6 +389,9 @@ static void get_network_nvram(int signo){
 
 void enable_wan_led()
 {
+#if defined(EA6900) || defined(R7000) || defined(WA880)
+	return;
+#endif
 	int usb_wan = get_dualwan_by_unit(wan_primary_ifunit()) == WANS_DUALWAN_IF_USB ? 1:0;
 
 	if(usb_wan) {
@@ -400,9 +403,6 @@ void enable_wan_led()
 #endif
 			case MODEL_RTAC3200:
 			case MODEL_RTAC87U:
-			case MODEL_EA6900:
-			case MODEL_R7000:
-			case MODEL_WS880:
 				eval("et", "-i", "eth0", "robowr", "0", "0x18", "0x01ff");
 				eval("et", "-i", "eth0", "robowr", "0", "0x1a", "0x01fe");
 				break;
@@ -423,6 +423,9 @@ void enable_wan_led()
 
 void disable_wan_led()
 {
+#if defined(EA6900) || defined(R7000) || defined(WA880)
+	return;
+#endif
 	eval("et", "-i", "eth0", "robowr", "0", "0x18", "0x01fe");
 	eval("et", "-i", "eth0", "robowr", "0", "0x1a", "0x01fe");
 }
