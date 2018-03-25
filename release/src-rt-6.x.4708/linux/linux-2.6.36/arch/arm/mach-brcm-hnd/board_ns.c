@@ -877,6 +877,14 @@ init_nflash_mtd_partitions(hndnand_t *nfl, struct mtd_info *mtd, size_t size)
 
 		nparts++;
 
+#ifdef CONFIG_BOARD_DATA /* R7000 board_data partition */
+                bcm947xx_nflash_parts[nparts].name = "board_data";
+                bcm947xx_nflash_parts[nparts].size = 0x400000;
+                bcm947xx_nflash_parts[nparts].offset = 0x2200000;
+                bcm947xx_nflash_parts[nparts].mask_flags = MTD_WRITEABLE;
+                nparts++;
+#endif
+
 #ifdef CONFIG_DUAL_TRX /* ASUS Setup 2nd kernel MTD partition */
                 bcm947xx_nflash_parts[nparts].name = "linux2";
                 bcm947xx_nflash_parts[nparts].size = NFL_BOOT_OS_SIZE;

@@ -782,9 +782,8 @@ init_brcmnand_mtd_partitions(struct mtd_info *mtd, uint64_t size)
 	knldev = soc_knl_dev((void *)brcmnand->sih);
 	if (knldev == SOC_KNLDEV_NANDFLASH)
 		offset = nfl_boot_os_size(brcmnand->nfl);
-#ifdef CONFIG_JFFS2GAP
-		if (offset < 0x02600000)
-			offset += 0x0600000; // Skipping board_data
+#ifdef CONFIG_BOARD_DATA
+		offset += 0x0400000; // Skipping board_data
 #endif
 #ifdef CONFIG_DUAL_TRX
 		offset = offset*2; //Dual Trx
